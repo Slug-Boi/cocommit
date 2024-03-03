@@ -39,6 +39,7 @@ func main() {
 	// run application tests
 
 	test := runner.WithExec([]string{"go", "test"})
+	
 	buildDir := test.Directory("/src/dist")
 
 	for _, goos := range geese {
