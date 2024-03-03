@@ -18,11 +18,13 @@ jobs:
       - name: publish project
         shell: bash
         run: |
+          cp ./src_code/go_src/author.txt ./dist
+
           tag=$(git describe --tags --abbrev=0)
           #linux build
           release_name_linux="cocommit_go-$tag-linux"
 
-          tar -czvf "${release_name_linux}.tar.gz" ./dist/cocommit_go-linux
+          tar -C ./dist -czvf "${release_name_linux}.tar.gz" ./cocommit_go-linux ./author.txt
 
           #windows build
           release_name_win="cocommit_go-$tag-win"
