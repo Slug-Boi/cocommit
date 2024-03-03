@@ -5,7 +5,7 @@ Currently built in:
 - [ ] Python
 
 Currently tested in:
-- [ ] Go
+- [x] Go
 - [ ] C++
 - [ ] Python
 
