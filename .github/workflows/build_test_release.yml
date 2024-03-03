@@ -1,0 +1,38 @@
+name: Build Binary & Release
+
+on:
+    push:
+      tags:
+        - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Go
+        uses: actions/setup-go@v3
+      - uses: actions/checkout@v3
+      - run: go get dagger.io/dagger@latest
+      - run: go run ci/build_test_release.go
+      - name: publish project
+        shell: bash
+        run: |
+          tag=$(git describe --tags --abbrev=0)
+          #linux build
+          release_name_linux="cocommit_go-$tag-linux"
+
+          tar -czvf "${release_name_linux}.tar.gz" ./dist/cocommit_go-linux
+
+          #windows build
+          release_name_win="cocommit_go-$tag-win"
+          tar -czvf "${release_name_win}.tar.gz" ./dist/cocommit_go-windows
+
+          #mac build
+          release_name_mac="cocommit_go-$tag-mac"
+          tar -czvf "${release_name_mac}.tar.gz" ./dist/cocommit_go-darwin
+      - name: Release project
+        uses: softprops/action-gh-release@v1
+        with:
+            files: "*.tar.gz"
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
