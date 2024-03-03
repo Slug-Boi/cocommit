@@ -15,7 +15,7 @@ Currently tested in:
 # Syntax for the author file
 The syntax for the author file can be found at the top of the template file included in the repo. It should look like this:
 ```
-name_short|Name|Username|emai
+name_short|Name|Username|email
 ```
 
 # Why?
