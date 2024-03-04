@@ -18,6 +18,7 @@ type user struct {
 var users = make(map[string]user)
 var sb strings.Builder
 var all_flag = false
+var defExclude = []string{}
 
 func main() {
 
@@ -43,6 +44,13 @@ func main() {
 		usr := user{username: info[2], email: info[3]}
 		users[info[0]] = usr
 		users[info[1]] = usr
+
+		if len(info) > 4 {
+			if info[4] == "ex" {
+				defExclude = append(defExclude, info[2])
+			}
+		}
+
 	}
 
 	if err := scanner.Err(); err != nil {
@@ -114,6 +122,9 @@ func main() {
 }
 
 func add_x_users(excludeMode []string) {
+	if len(defExclude) > 0 {
+		excludeMode = append(excludeMode, defExclude...)
+	}
 	for key, user := range users {
 		if !slices.Contains(excludeMode, user.username) {
 			sb_author(key)
