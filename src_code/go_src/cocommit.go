@@ -52,7 +52,7 @@ func main() {
 	// builds the commit message with the selected authors
 	var sb strings.Builder
 	sb.WriteString(string(args[0])+"\n")
-	reg, _ := regexp.Compile("([^:]+):(.+)")
+	reg, _ := regexp.Compile("([^:]+):([^:]+)")
 
 	for _, commiter := range args[1:] {
 		if _, ok := users[commiter]; ok {
