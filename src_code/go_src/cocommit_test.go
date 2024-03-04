@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"os/exec"
+	"strings"
 	"testing"
 )
 
@@ -53,6 +54,7 @@ func Test_add_all(t *testing.T) {
     for k := range users {
         delete(users, k)
     }
+    sb.Reset()
     users["test1"] = user{username: "test1", email: "test1"}
     users["test2"] = user{username: "test2", email: "test2"}  
     users["test3"] = user{username: "test3", email: "test3"} 
@@ -60,13 +62,26 @@ func Test_add_all(t *testing.T) {
     add_x_users([]string{})
 
     commit := sb_build()
-
-    if commit != "\nCo-authored-by: test <test>\nCo-authored-by: test1 <test1>\nCo-authored-by: test2 <test2>\nCo-authored-by: test3 <test3>" {
+    if !strings.Contains(commit, "\nCo-authored-by: test1 <test1>") || 
+    !strings.Contains(commit, "\nCo-authored-by: test2 <test2>") ||
+    !strings.Contains(commit, "\nCo-authored-by: test3 <test3>") {
         t.Fatalf("String built incorrectly. Strings did not match: Created -> %s Expected -> Co-authored-by: test <test>",commit)
     }
 }  
 
+func Test_exclude_user(t *testing.T) {
+    // Reusing users map from last test
+    excludeMode := []string{"test1"}
 
+    sb.Reset()
+
+    add_x_users(excludeMode)
+
+    commit := sb_build()
+    if strings.Contains(commit, "\nCo-authored-by: test1 <test1>") {
+        t.Fatalf("String built incorrectly. Strings did not match: Created -> %s Expected -> Co-authored-by: test <test>",commit)
+    } 
+}
 
 
 
