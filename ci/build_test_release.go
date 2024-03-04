@@ -40,7 +40,7 @@ func main() {
 	// run application tests
 	test := runner.WithWorkdir("/src/src_code/go_src").WithExec([]string{"go", "test"})
 	
-	buildDir := test.Directory("/src/dist")
+	buildDir := test.Directory("/src/")
 
 	for _, goos := range geese {
 		path := fmt.Sprintf("/dist/")
