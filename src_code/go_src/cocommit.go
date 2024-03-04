@@ -17,10 +17,10 @@ type user struct {
 
 var users = make(map[string]user)
 var sb strings.Builder
+var all_flag = false
 
 func main() {
 
-	all_flag := false
 
 	// Reads a shell env variable :: author_file
 	authors := os.Getenv("author_file")
@@ -88,19 +88,15 @@ func main() {
 	skip_loop:
 	
 	if len(excludeMode) > 0 || all_flag {
-		for key, user := range users {
-			if !slices.Contains(excludeMode, user.username) {
-				sb_author(key)
-				excludeMode = append(excludeMode, user.username)
-			}
-		}
+		add_x_users(excludeMode)
 	}
 
 
 	// commit msg built
 	commit := sb_build()
 
-	print(commit)
+	//NOTE: Uncomment for testing
+	//print(commit)
 
 	// commit shell command
 	cmd := exec.Command("git", "commit", "-m", commit)
@@ -115,6 +111,15 @@ func main() {
 		println(string(cmd_output))
 	}
 
+}
+
+func add_x_users(excludeMode []string) {
+	for key, user := range users {
+		if !slices.Contains(excludeMode, user.username) {
+			sb_author(key)
+			excludeMode = append(excludeMode, user.username)
+		}
+	}
 }
 
 func sb_build() string {
