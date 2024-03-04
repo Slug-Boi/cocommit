@@ -18,6 +18,8 @@ func main() {
 	}
 	defer client.Close()
 
+	goCache := client.CacheVolume("golang")
+
 	// use a node:16-slim container
 	// mount the source code directory on the host
 	// at /src in the container
@@ -25,7 +27,7 @@ func main() {
 		From("golang:1.21").
 		WithDirectory("/src", client.Host().Directory(".", dagger.HostDirectoryOpts{
 			Exclude: []string{"ci/"},
-		}))
+		})).WithMountedCache("/src/dagger_dep_cache/go_dep", goCache)
 
 	geese := []string{"darwin", "linux", "windows"}
 	goarch := "amd64"
@@ -35,10 +37,8 @@ func main() {
 	runner := source.WithWorkdir("/src").
 		WithExec([]string{"go", "mod", "tidy"})
 
-	runner = source.WithWorkdir("/src/src_code/go_src")
 	// run application tests
-
-	test := runner.WithExec([]string{"go", "test"})
+	test := runner.WithWorkdir("/src/src_code/go_src").WithExec([]string{"go", "test"})
 	
 	buildDir := test.Directory("/src/dist")
 
