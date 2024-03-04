@@ -1,1 +1,1 @@
-Syntax: name_short|Name|Username|email(Opt: |ex)     !!Remember to set the env var authors_file!!
+Syntax: name_short|Name|Username|email (opt: |ex)     !!Remember to set the env var authors_file!!
