@@ -35,10 +35,12 @@ $ cocommit users
 ```
 
 # Syntax for the author file
-The syntax for the author file can be found at the top of the template file included in the repo. It should look like this:
+The syntax for the author file can be found at the top of the template file included in the repo. It should look like this (opt) is optional syntax:  
 ```
-name_short|Name|Username|email
+name_short|Name|Username|email (opt: |ex)
 ```
+opt explained:  
+ex -> excludes the given author for all and negation commands
 
 # Why?
 Writing co-authors onto commits can be pretty tedious so automating this process as a simple shell alias is a lot nicer
