@@ -18,7 +18,7 @@ Once downloaded you need to create an alias for your shell guides found below:
 
 Once you've created an alias for the program you need to set an env variable (authors_file) in your shell. This should be the path pointing to your author.txt file   
 
-you can now run it using the alias shorthand you assigned it to  
+you can now run it using the alias shorthand you assigned to it 
 ## Usage:
 ```zsh
 $ cocommit "message" <name1> [name2] [name3]...
