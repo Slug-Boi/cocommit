@@ -20,6 +20,8 @@ var sb strings.Builder
 
 func main() {
 
+	all_flag := false
+
 	// Reads a shell env variable :: author_file
 	authors := os.Getenv("author_file")
 
@@ -57,6 +59,12 @@ func main() {
 	sb.WriteString(string(args[0]) + "\n")
 	reg, _ := regexp.Compile("([^:]+):([^:]+)")
 
+	if args[1] == "all" || args[1] == "All" {
+		all_flag = true
+		goto skip_loop
+	}
+
+
 	for _, committer := range args[1:] {
 		if _, ok := users[committer]; ok {
 			sb_author(committer)
@@ -77,7 +85,9 @@ func main() {
 		}
 	}
 
-	if len(excludeMode) > 0 {
+	skip_loop:
+	
+	if len(excludeMode) > 0 || all_flag {
 		for key, user := range users {
 			if !slices.Contains(excludeMode, user.username) {
 				sb_author(key)
@@ -85,8 +95,10 @@ func main() {
 			}
 		}
 	}
+
+
 	// commit msg built
-	commit := sb.String()
+	commit := sb_build()
 
 	print(commit)
 
@@ -103,6 +115,10 @@ func main() {
 		println(string(cmd_output))
 	}
 
+}
+
+func sb_build() string {
+	return sb.String()
 }
 
 func sb_author(committer string) {
