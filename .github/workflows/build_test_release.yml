@@ -23,15 +23,15 @@ jobs:
           #linux build
           release_name_linux="cocommit_go-$tag-linux"
 
-          tar -C ./dist -czvf "${release_name_linux}.tar.gz" /dist/cocommit_go-linux ./author.txt
+          tar -C /dist -czvf "${release_name_linux}.tar.gz" ./cocommit_go-linux ./author.txt
 
           #windows build
           release_name_win="cocommit_go-$tag-win"
-          tar -C ./dist -czvf "${release_name_win}.tar.gz" /dist/cocommit_go-windows ./author.txt
+          tar -C /dist -czvf "${release_name_win}.tar.gz" ./cocommit_go-windows ./author.txt
 
           #mac build
           release_name_mac="cocommit_go-$tag-mac"
-          tar -C ./dist -czvf "${release_name_mac}.tar.gz" /dist/cocommit_go-darwin ./author.txt
+          tar -C /dist -czvf "${release_name_mac}.tar.gz" ./cocommit_go-darwin ./author.txt
       - name: Release project
         uses: softprops/action-gh-release@v1
         with:
