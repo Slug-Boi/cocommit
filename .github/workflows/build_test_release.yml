@@ -18,6 +18,7 @@ jobs:
       - name: publish project
         shell: bash
         run: |
+          ls -la
 
           tag=$(git describe --tags --abbrev=0)
           #linux build
