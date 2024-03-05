@@ -25,7 +25,13 @@ $ cocommit "message" <name1> [name2] [name3]...
 
 $ cocommit "message" <name:email1> [name:email2] [name:email3]...
 
-$ cocommit "message" <name:email1> <name1> [name:email2]  
+$ cocommit "message" <name:email1> <name1> [name:email2]
+
+$ cocommit "message" all
+*adds all comitters execpt ones tagged with ex*
+
+$ cocommit "message" ^<name>
+*adds all users except the negated users and users tagged with ex*
 
 $ cocommit
 *prints usage*
