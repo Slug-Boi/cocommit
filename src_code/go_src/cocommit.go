@@ -15,9 +15,14 @@ type user struct {
 	email    string
 }
 
+// Map of all th users in the author file
 var users = make(map[string]user)
+// String builder for building the commit message
 var sb strings.Builder
+// Flag that can be toggled to include all users in a commit message (excluding defExclude)
 var all_flag = false
+// DefaultExclude -> A list that contains users marked with ex meaning 
+// they should not be included in all and negations
 var defExclude = []string{}
 
 func main() {
@@ -44,7 +49,7 @@ func main() {
 		usr := user{username: info[2], email: info[3]}
 		users[info[0]] = usr
 		users[info[1]] = usr
-
+		// Adds users with the ex tag to the defExclude list
 		if len(info) > 4 {
 			if info[4] == "ex" {
 				defExclude = append(defExclude, info[2])
@@ -56,15 +61,19 @@ func main() {
 	if err := scanner.Err(); err != nil {
 		os.Exit(2)
 	}
-
+	// Removes the call command for the program
 	args := os.Args[1:]
 
+	// Checks if the user called the program with any inputs or with non commit args
 	NoInput(args, users)
 
+	// This list is used when doing negations and for removing duplicate users during string building
 	excludeMode := []string{}
 
 	// builds the commit message with the selected authors
 	sb.WriteString(string(args[0]) + "\n")
+
+	// Regex that catches one off authors
 	reg, _ := regexp.Compile("([^:]+):([^:]+)")
 
 	if args[1] == "all" || args[1] == "All" {
@@ -72,7 +81,7 @@ func main() {
 		goto skip_loop
 	}
 
-
+	// Loop that adds users
 	for _, committer := range args[1:] {
 		if _, ok := users[committer]; ok {
 			sb_author(committer)
@@ -85,7 +94,7 @@ func main() {
 			sb.WriteString(str[1])
 			sb.WriteRune('>')
 
-		} else if committer[0] == '^' {
+		} else if committer[0] == '^' { // Negations
 			excludeMode = append(excludeMode, users[committer[1:]].username)
 
 		} else {
@@ -93,9 +102,11 @@ func main() {
 		}
 	}
 
+	// Skip label for adding all
 	skip_loop:
 	
 	if len(excludeMode) > 0 || all_flag {
+		// adds all users not in the excludeMode list
 		add_x_users(excludeMode)
 	}
 
