@@ -30,7 +30,7 @@ $ cocommit "message" <name:email1> <name1> [name:email2]
 $ cocommit "message" all
 *adds all comitters execpt ones tagged with ex*
 
-$ cocommit "message" ^<name>
+$ cocommit "message" ^<name1> ^[name2]
 *adds all users except the negated users and users tagged with ex*
 
 $ cocommit
