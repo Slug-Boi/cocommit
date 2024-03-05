@@ -53,5 +53,5 @@ Writing co-authors onto commits can be pretty tedious so automating this process
 
 # Workflows
 This repo is sort of a test bed for working with Dagger CI but therefore also should support automated testing and building at some point 
-*coming soon*
+*See ci folder for the current dagger workflows*
 
