@@ -17,16 +17,21 @@ type user struct {
 
 // Map of all th users in the author file
 var users = make(map[string]user)
+
 // String builder for building the commit message
 var sb strings.Builder
+
 // Flag that can be toggled to include all users in a commit message (excluding defExclude)
 var all_flag = false
-// DefaultExclude -> A list that contains users marked with ex meaning 
+
+// DefaultExclude -> A list that contains users marked with ex meaning
 // they should not be included in all and negations
 var defExclude = []string{}
 
-func main() {
+// Group map for adding people as a group
+var groups = make(map[string][]user)
 
+func main() {
 
 	// Reads a shell env variable :: author_file
 	authors := os.Getenv("author_file")
@@ -45,17 +50,35 @@ func main() {
 
 	// reads the input of authors file and formats accordingly
 	for scanner.Scan() {
-		info := strings.Split(scanner.Text(), "|")
+		input_str := scanner.Text()
+		group_info := []string{}
+		if strings.Contains(input_str, ";;") {
+			input := strings.Split(input_str, ";;")
+			input_str = input[0]
+			group_info = append(group_info, strings.Split(input[1], "|")...)
+		}
+		info := strings.Split(input_str, "|")
 		usr := user{username: info[2], email: info[3]}
 		users[info[0]] = usr
 		users[info[1]] = usr
 		// Adds users with the ex tag to the defExclude list
-		if len(info) > 4 {
+		if len(info) == 5 {
 			if info[4] == "ex" {
 				defExclude = append(defExclude, info[2])
 			}
+		} else if len(group_info) > 0 {
+			// Group assignment
+			for _, group := range group_info {
+				if groups[group] == nil {
+					groups[group] = []user{usr}
+				} else {
+					//TODO: Try and find a cleaner way of doing this
+					usr_lst := groups[group]
+					usr_lst = append(usr_lst, usr)
+					groups[group] = usr_lst
+				}
+			}
 		}
-
 	}
 
 	if err := scanner.Err(); err != nil {
@@ -78,6 +101,10 @@ func main() {
 
 	if args[1] == "all" || args[1] == "All" {
 		all_flag = true
+		goto skip_loop
+	} else if groups[args[1]] != nil {
+		// Selects everybody that isn't the group members and adds them to the defExclude
+		excludeMode = group_selection(groups[args[1]], excludeMode)
 		goto skip_loop
 	}
 
@@ -103,13 +130,12 @@ func main() {
 	}
 
 	// Skip label for adding all
-	skip_loop:
-	
+skip_loop:
+
 	if len(excludeMode) > 0 || all_flag {
 		// adds all users not in the excludeMode list
 		add_x_users(excludeMode)
 	}
-
 
 	// commit msg built
 	commit := sb_build()
@@ -130,6 +156,16 @@ func main() {
 		println(string(cmd_output))
 	}
 
+}
+
+func group_selection(group []user, excludeMode []string) []string {
+	for _, user := range users {
+		if !(slices.Contains(group, user)) {
+			excludeMode = append(excludeMode, user.username)
+		}
+	}
+
+	return excludeMode
 }
 
 func add_x_users(excludeMode []string) {
