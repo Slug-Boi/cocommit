@@ -20,7 +20,7 @@ Once you've created an alias for the program you need to set an env variable (au
 
 you can now run it using the alias shorthand you assigned to it 
 ## Usage:
-```zsh
+```
 $ cocommit "message" <name1> [name2] [name3]...
 
 $ cocommit "message" <name:email1> [name:email2] [name:email3]...
