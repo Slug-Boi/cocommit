@@ -98,6 +98,29 @@ func Test_exclude_by_default(t *testing.T) {
     }
 }
 
+func Test_commit_with_grouping(t *testing.T) {
+    for k := range groups {
+        delete(groups, k)
+    }
+
+    defExclude = []string{}
+    
+    groups["test1"] = []user{users["test1"]}
+    
+    excludeMode := group_selection(groups["test1"], []string{})
+    
+    sb.Reset()
+
+    add_x_users(excludeMode)
+
+    commit := sb_build()
+
+    if commit != "\nCo-authored-by: test1 <test1>" {
+        t.Fatalf("String built incorrectly. Strings did not match: Created -> %s Expected -> Co-authored-by: test <test>",commit)
+    }
+
+}
+
 
 
 
