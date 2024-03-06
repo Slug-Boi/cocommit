@@ -33,6 +33,9 @@ $ cocommit "message" all
 $ cocommit "message" ^<name1> ^[name2]
 *adds all users except the negated users and users tagged with ex*
 
+$ cocommit "message" <group_name>
+*adds all users that has that group tag in author file*
+
 $ cocommit
 *prints usage*
 
