@@ -1,13 +1,13 @@
 # cocommit
 Currently built in:
 - [x] Go
-- [ ] C++
-- [ ] Python
+- [ ] Rust
+
 
 Currently tested in:
 - [x] Go
-- [ ] C++
-- [ ] Python
+- [ ] Rust
+
 
 # How to run
 Download the binary for your OS on the [release page](https://github.com/Slug-Boi/cocommit/releases)  
