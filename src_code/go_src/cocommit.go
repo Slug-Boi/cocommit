@@ -37,10 +37,7 @@ func main() {
 	authors := os.Getenv("author_file")
 
 	file, err := os.Open(authors)
-	if err != nil {
-		print("File not found")
-		os.Exit(2)
-	}
+	check_err(err)
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
@@ -81,9 +78,7 @@ func main() {
 		}
 	}
 
-	if err := scanner.Err(); err != nil {
-		os.Exit(2)
-	}
+	check_err(scanner.Err())
 	// Removes the call command for the program
 	args := os.Args[1:]
 
@@ -207,5 +202,12 @@ func NoInput(args []string, users map[string]user) {
 		print("Usage: cocommit <commit message> <co-author1> [co-author2] [co-author3] || \ncocommit <commit message> <co-author1:email> [co-author2:email] [co-author3:email] || \ncocommit <commit message> all  || \ncocommit <commit message> ^<co-author1> ^[co-author2] || \ncocommit users || \nMixes of both")
 
 		os.Exit(1)
+	}
+}
+
+func check_err(e error) {
+	if e != nil {
+		fmt.Println(e.Error())
+		os.Exit(2)
 	}
 }
