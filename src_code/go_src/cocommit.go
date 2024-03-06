@@ -60,7 +60,7 @@ func main() {
 		users[info[0]] = usr
 		users[info[1]] = usr
 		// Adds users with the ex tag to the defExclude list
-		if len(info) == 4 {
+		if len(info) == 5 {
 			if info[4] == "ex" {
 				defExclude = append(defExclude, info[2])
 			}
@@ -75,10 +75,8 @@ func main() {
 					usr_lst = append(usr_lst, usr)
 					groups[group] = usr_lst
 				}
-
 			}
 		}
-
 	}
 
 	if err := scanner.Err(); err != nil {
@@ -162,9 +160,10 @@ func main() {
 func group_selection(group []user, excludeMode []string) []string {
 	for _, user := range users {
 		if !(slices.Contains(group, user)) {
-			excludeMode = append(defExclude, user.username)
+			excludeMode = append(excludeMode, user.username)
 		}
 	}
+
 	return excludeMode
 }
 
