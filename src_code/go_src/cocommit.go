@@ -48,7 +48,14 @@ func main() {
 
 	// reads the input of authors file and formats accordingly
 	for scanner.Scan() {
-		info := strings.Split(scanner.Text(), "|")
+		input_str := scanner.Text()
+		group_info := []string{}
+		if strings.Contains(input_str, ";;") {
+			input := strings.Split(input_str, ";;")
+			input_str = input[0]
+			group_info = append(group_info, strings.Split(input[1],"|")...)
+		} 
+		info := strings.Split(input_str, "|")
 		usr := user{username: info[2], email: info[3]}
 		users[info[0]] = usr
 		users[info[1]] = usr
@@ -57,9 +64,9 @@ func main() {
 			if info[4] == "ex" {
 				defExclude = append(defExclude, info[2])
 			}
-		} else if len(info) > 5 {
+		} else if len(group_info) > 0 {
 			// Group assignment
-			for _, group := range info[5:] {
+			for _, group := range group_info {
 				if groups[group] == nil {
 					groups[group] = []user{usr}
 				} else {
