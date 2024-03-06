@@ -15,6 +15,24 @@ jobs:
       - run: go get dagger.io/dagger@latest
       - run: mkdir ./dist
       - run: go run ci/build_test_release.go
+      - name: Auto Changelog
+        uses: ardalanamini/auto-changelog@v4.0.1
+        id  : changelog
+        with:
+          github-token            : ${{ secrets.GITHUB_TOKEN }}
+          commit-types            : |
+            feat: New Features
+            fix: Bug Fixes
+            build: Build System & Dependencies
+            perf: Performance Improvements
+            docs: Documentation
+            test: Tests
+            refactor: Refactors
+            chore: Chores
+            ci: CI
+            cd: CD
+            style: Code Style
+            revert: Reverts
       - name: publish project
         shell: bash
         run: |
@@ -36,6 +54,7 @@ jobs:
       - name: Release project
         uses: softprops/action-gh-release@v1
         with:
+            body: ${{steps.changelog.outputs.changelog}}
             files: "*.tar.gz"
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
