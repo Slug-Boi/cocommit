@@ -199,7 +199,7 @@ func NoInput(args []string, users map[string]user) {
 			os.Exit(1)
 		}
 		// if calling binary with nothing or only string
-		print("Usage: cocommit <commit message> <co-author1> [co-author2] [co-author3] || \ncocommit <commit message> <co-author1:email> [co-author2:email] [co-author3:email] || \ncocommit <commit message> all  || \ncocommit <commit message> ^<co-author1> ^[co-author2] || \ncocommit users || \nMixes of both")
+		print("Usage: cocommit <commit message> <co-author1> [co-author2] [co-author3] || \ncocommit <commit message> <co-author1:email> [co-author2:email] [co-author3:email] || \ncocommit <commit message> all  || \ncocommit <commit message> ^<co-author1> ^[co-author2] || \ncocommit <commit message> <group> || \ncocommit users || \nMixes of both")
 
 		os.Exit(1)
 	}
