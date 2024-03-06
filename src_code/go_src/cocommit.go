@@ -24,6 +24,9 @@ var all_flag = false
 // DefaultExclude -> A list that contains users marked with ex meaning 
 // they should not be included in all and negations
 var defExclude = []string{}
+// Group map for adding people as a group
+var groups = make(map[string][]user)
+
 
 func main() {
 
@@ -50,9 +53,22 @@ func main() {
 		users[info[0]] = usr
 		users[info[1]] = usr
 		// Adds users with the ex tag to the defExclude list
-		if len(info) > 4 {
+		if len(info) == 4 {
 			if info[4] == "ex" {
 				defExclude = append(defExclude, info[2])
+			}
+		} else if len(info) > 5 {
+			// Group assignment
+			for _, group := range info[5:] {
+				if groups[group] == nil {
+					groups[group] = []user{usr}
+				} else {
+					//TODO: Try and find a cleaner way of doing this 
+					usr_lst := groups[group]
+					usr_lst = append(usr_lst, usr)
+					groups[group] = usr_lst
+				}
+
 			}
 		}
 
@@ -78,6 +94,10 @@ func main() {
 
 	if args[1] == "all" || args[1] == "All" {
 		all_flag = true
+		goto skip_loop
+	} else if groups[args[1]] != nil {
+		// Selects everybody that isn't the group members and adds them to the defExclude
+		excludeMode = group_selection(groups[args[1]], excludeMode)
 		goto skip_loop
 	}
 
@@ -130,6 +150,15 @@ func main() {
 		println(string(cmd_output))
 	}
 
+}
+
+func group_selection(group []user, excludeMode []string) []string {
+	for _, user := range users {
+		if !(slices.Contains(group, user)) {
+			excludeMode = append(defExclude, user.username)
+		}
+	}
+	return excludeMode
 }
 
 func add_x_users(excludeMode []string) {
