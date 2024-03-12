@@ -1,4 +1,8 @@
 # cocommit
+
+## IMPORTANT NOTICE!!!! 
+### Windows defender recently got an update that apparently sees Go Binaries as a trojan... So I guess you have to manually go in and flag it as not being that until Microsoft decides to fix this.
+[Link to Github issue talking about this](https://github.com/golang/vscode-go/issues/3182)
 Currently built in:
 - [x] Go
 - [ ] Rust
