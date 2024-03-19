@@ -54,6 +54,7 @@ name_short|Name|Username|email (opt: |ex) (opt: ;;group1|group2|group3...)
 ```
 opt explained:  
 ex -> excludes the given author for all and negation commands
+group -> groups an author which can then be called as an argument to add all people from that group. An author can be a part of multiple groups 
 
 # Why?
 Writing co-authors onto commits can be pretty tedious so automating this process as a simple shell alias is a lot nicer
