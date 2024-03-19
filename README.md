@@ -50,7 +50,7 @@ $ cocommit users
 # Syntax for the author file
 The syntax for the author file can be found at the top of the template file included in the repo. It should look like this (opt) is optional syntax:  
 ```
-name_short|Name|Username|email (opt: |ex) (opt: ;;group1|group2|group3...)
+name_short|Name|Username|email (opt: |ex) (opt: ;;group1 or ;;group1|group2|group3...)
 ```
 opt explained:  
 ex -> excludes the given author for all and negation commands
