@@ -20,7 +20,8 @@ Once downloaded you need to create an alias for your shell guides found below:
 *^please note if you use another shell than bash you will need to look up how to do it in that shell^*  
 [Powershell Guide](https://stackoverflow.com/questions/24914589/how-to-create-permanent-powershell-aliases)  
 
-Once you've created an alias for the program you need to set an env variable (author_file) in your shell. This should be the path pointing to your author.txt file   
+Once you've created an alias for the program you need to set an env variable (author_file) in your shell. This should be the path pointing to your author.txt file
+[Powershell guide](https://stackoverflow.com/a/714918)
 
 you can now run it using the alias shorthand you assigned to it 
 ## Usage:
