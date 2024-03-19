@@ -18,7 +18,7 @@ Download the binary for your OS on the [release page](https://github.com/Slug-Bo
 Once downloaded you need to create an alias for your shell guides found below:  
 [Bash Guide](https://linuxize.com/post/how-to-create-bash-aliases/)  
 *^please note if you use another shell than bash you will need to look up how to do it in that shell^*  
-[Powershell Guide](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/set-alias?view=powershell-7.4)  
+[Powershell Guide]([https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/set-alias?view=powershell-7.4](https://stackoverflow.com/questions/24914589/how-to-create-permanent-powershell-aliases))  
 
 Once you've created an alias for the program you need to set an env variable (author_file) in your shell. This should be the path pointing to your author.txt file   
 
