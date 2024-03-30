@@ -27,7 +27,7 @@ export author_file='path/to/your/aurhor.txt'
 ```
 [Powershell guide for env variable](https://stackoverflow.com/a/714918)
 
-*^Please note that the syntax line at the top of the author.txt file should not be deleted and that you must add at least one author to the file to run the program^*
+*Please note that the syntax line at the top of the author.txt file should not be deleted and that you must add at least one author to the file to run the program*
 
 you can now run it using the alias shorthand you assigned to it 
 ## Usage:
