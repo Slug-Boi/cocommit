@@ -16,7 +16,7 @@ Currently tested in:
 # How to run
 Download the binary for your OS on the [release page](https://github.com/Slug-Boi/cocommit/releases)  
 Once downloaded you need to create an alias for your shell guides found below:  
-[Bash Guide](https://linuxize.com/post/how-to-create-bash-aliases/)  
+[Bash Guide for alias](https://linuxize.com/post/how-to-create-bash-aliases/)  
 *^please note if you use another shell than bash you will need to look up how to do it in that shell^*  
 [Powershell Guide for alias](https://stackoverflow.com/questions/24914589/how-to-create-permanent-powershell-aliases)  
 
@@ -54,7 +54,7 @@ The syntax for the author file can be found at the top of the template file incl
 name_short|Name|Username|email (opt: |ex) (opt: ;;group1 or ;;group1|group2|group3...)
 ```
 opt explained:  
-ex -> excludes the given author for all and negation commands
+ex -> excludes the given author for all and negation commands  
 group -> groups an author which can then be called as an argument to add all people from that group. An author can be a part of multiple groups 
 
 # Why?
