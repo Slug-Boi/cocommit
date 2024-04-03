@@ -2,6 +2,8 @@
 Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 
 */
+
+// Follow this guide: https://elewis.dev/charming-cobras-with-bubbletea-part-1
 package cmd
 
 import (
