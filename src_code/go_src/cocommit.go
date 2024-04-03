@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"main/src_code/go_src/cmd"
 	"os"
 	"os/exec"
 	"regexp"
@@ -32,6 +33,10 @@ var defExclude = []string{}
 var groups = make(map[string][]user)
 
 func main() {
+	
+	if err := cmd.Execute(); err != nil {
+		panic(err)
+	}
 
 	// Reads a shell env variable :: author_file
 	authors := os.Getenv("author_file")
