@@ -13,6 +13,7 @@ import (
 type user struct {
 	username string
 	email    string
+	names    string
 }
 
 // Map of all th users in the author file
@@ -55,7 +56,7 @@ func main() {
 			group_info = append(group_info, strings.Split(input[1], "|")...)
 		}
 		info := strings.Split(input_str, "|")
-		usr := user{username: info[2], email: info[3]}
+		usr := user{username: info[2], email: info[3], names: info[0]+ "/" + info[1]}
 		users[info[0]] = usr
 		users[info[1]] = usr
 		// Adds users with the ex tag to the defExclude list
@@ -192,9 +193,13 @@ func NoInput(args []string, users map[string]user) {
 	if len(args) < 2 {
 		// If you call binary with users prints users
 		if len(args) == 1 && args[0] == "users" {
-			println("List of users:")
+			println("List of users:\nFormat: <shortname>/<name> -> Username: <username> Email: <email>")
+			seen_users := []user{}
 			for name, usr := range users {
-				println(name, " ->", " Username:", usr.username, " Email:", usr.email)
+				if !slices.Contains(seen_users, usr) {
+				println(users[name].names, " ->", " Username:", usr.username, " Email:", usr.email)
+				seen_users = append(seen_users, usr)
+				}
 			}
 			os.Exit(1)
 		}
