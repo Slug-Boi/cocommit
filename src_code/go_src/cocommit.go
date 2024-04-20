@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"regexp"
 	"slices"
+	"sort"
 	"strings"
 )
 
@@ -56,7 +57,7 @@ func main() {
 			group_info = append(group_info, strings.Split(input[1], "|")...)
 		}
 		info := strings.Split(input_str, "|")
-		usr := user{username: info[2], email: info[3], names: info[0]+ "/" + info[1]}
+		usr := user{username: info[2], email: info[3], names: info[0] + "/" + info[1]}
 		users[info[0]] = usr
 		users[info[1]] = usr
 		// Adds users with the ex tag to the defExclude list
@@ -195,12 +196,15 @@ func NoInput(args []string, users map[string]user) {
 		if len(args) == 1 && args[0] == "users" {
 			println("List of users:\nFormat: <shortname>/<name> -> Username: <username> Email: <email>")
 			seen_users := []user{}
+			user_sb := []string{}
 			for name, usr := range users {
 				if !slices.Contains(seen_users, usr) {
-				println(users[name].names, " ->", " Username:", usr.username, " Email:", usr.email)
-				seen_users = append(seen_users, usr)
+					user_sb = append(user_sb, users[name].names+" ->"+" Username: "+usr.username+" Email: "+usr.email+"\n")
+					seen_users = append(seen_users, usr)
 				}
 			}
+			sort.Strings(user_sb)
+			println(strings.Join(user_sb, ""))
 			os.Exit(1)
 		}
 		// if calling binary with nothing or only string
