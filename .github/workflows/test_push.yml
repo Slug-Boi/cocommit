@@ -15,7 +15,9 @@ jobs:
         - name: Setup Go
           uses: actions/setup-go@v3
         - uses: actions/checkout@v3
+        - name: Setup Go Workfile
+          run: go work init ./ci ./src_code/go_src
         - name: Get Dagger
-          run: go get dagger.io/dagger@latest
+          run: cd ci && go get dagger.io/dagger@latest && cd ..
         - name: Run Dagger Test Workflow
           run: go run ci/test_on_push.go
