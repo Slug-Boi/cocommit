@@ -26,7 +26,7 @@ func main() {
 	source := client.Container().
 		From("golang:1.21").
 		WithDirectory("/src", client.Host().Directory(".", dagger.HostDirectoryOpts{
-			Exclude: []string{"ci/"},
+			Exclude: []string{},
 		})).WithMountedCache("/src/dagger_dep_cache/go_dep", goCache)
 
 	geese := []string{"darwin", "linux", "windows"}
