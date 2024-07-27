@@ -50,12 +50,11 @@ func main() {
 		authors = envVar
 	}
 
-
 	file, err := os.Open(authors)
 	if err != nil {
 		authors, _ = os.UserConfigDir()
 		authors += "/cocommit/authors"
-		println("Authors file cannot be found. Please check the path to the file. \nEither set the author_file env variable or place the file in the default location. \nDefault location: "+ authors)
+		println("Authors file cannot be found. Please check the path to the file. \nEither set the author_file env variable or place the file in the default location. \nDefault location: " + authors)
 		println("If you want to create a blank template file at the default location type y|yes or cancel with n|no")
 		var input string
 		fmt.Scanln(&input)
@@ -233,21 +232,33 @@ func NoInput(args []string, users map[string]user) {
 			sort.Strings(user_sb)
 			println(strings.Join(user_sb, ""))
 			os.Exit(1)
-		} else if len(args) == 1 && args[0] == "config"{
+		} else if len(args) == 1 && args[0] == "config" {
 			create_author_file()
 		}
 		// if calling binary with nothing or only string
-		print("Usage: cocommit <commit message> <co-author1> [co-author2] [co-author3] || \ncocommit <commit message> <co-author1:email> [co-author2:email] [co-author3:email] || \ncocommit <commit message> all  || \ncocommit <commit message> ^<co-author1> ^[co-author2] || \ncocommit <commit message> <group> || \ncocommit users || \nMixes of both")
+		command_options := []string{
+			"cocommit <commit message> <co-author1> [co-author2] [co-author3]",
+			"cocommit <commit message> <co-author1:email> [co-author2:email] [co-author3:email]",
+			"cocommit <commit message> all",
+			"cocommit <commit message> ^<co-author1> ^[co-author2]",
+			"cocommit <commit message> <group>",
+			"cocommit users",
+		}
+		println("Usage:")
+		for _, v := range command_options {
+			print(v)
+			println(" ||")
+		}
+		println("Mixes of both")
 
 		os.Exit(1)
 	}
 }
 
-
 func create_author_file(param ...string) {
 	var input string
 	authors, err := os.UserConfigDir()
-	
+
 	if err != nil {
 		println("Error: ", err)
 		os.Exit(1)
@@ -256,13 +267,13 @@ func create_author_file(param ...string) {
 		input = "yes"
 		goto skip
 	}
-	println("This command will create a blank template auhtor file in the default location. \nDefault location: "+ authors + "\nConfirm by typing y|yes or cancel with n|no")
+	println("This command will create a blank template auhtor file in the default location. \nDefault location: " + authors + "\nConfirm by typing y|yes or cancel with n|no")
 	fmt.Scanln(&input)
 	if err != nil {
 		println("Error: ", err)
 		os.Exit(1)
 	}
-	skip:
+skip:
 	if input == "y" || input == "yes" {
 		// create folder cocommit in .config
 		authors += "/cocommit"
@@ -279,7 +290,7 @@ func create_author_file(param ...string) {
 		}
 		defer file.Close()
 		file.WriteString("name_short|Name|Username|email (opt: |ex) (opt: ;;group1 or ;;group1|group2|group3...)\n")
-		println("File created successfully at: "+ authors)
+		println("File created successfully at: " + authors)
 		os.Exit(1)
 	} else {
 		println("Cancelled")
