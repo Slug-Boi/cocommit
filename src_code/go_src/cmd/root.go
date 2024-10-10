@@ -1,9 +1,10 @@
 package cmd
 
 import (
+	"fmt"
+	"main/src_code/go_src/cmd/tui"
 	"main/src_code/go_src/cmd/utils"
 	"os"
-	"fmt"
 
 	"github.com/spf13/cobra"
 )
@@ -26,13 +27,31 @@ var rootCmd = &cobra.Command{
 		pflag, _ := cmd.Flags().GetBool("print")
 		// run execute commands again as root run will not call this part
 		// redundant check for now but will be useful later when we add tui
-		if len(args) == 1 {
-			utils.GitWrapper(args[0])
-			if pflag {
-				fmt.Println(args[0])
+		wrap_around:
+		switch len(args) {
+		case 0:
+			// launch the tui
+			sel_auth := tui.Entry()
+			for _, a := range sel_auth {
+				fmt.Println(a)
 			}
 			os.Exit(0)
+		case 1:
+			if len(args) == 1 {
+				utils.GitWrapper(args[0])
+				if pflag {
+					fmt.Println(args[0])
+				}
+				os.Exit(0)
+			}
 		}
+		
+		// check if user included -m tag and remove. Wrap around for safety's sake
+		if args[0] == "-m" {
+			args = args[1:]
+			goto wrap_around
+		}
+
 		// builds the commit message with the selected authors
 		message := utils.Commit(args[0], args[1:])
 		// prints the commit message to the console if the print flag is set
