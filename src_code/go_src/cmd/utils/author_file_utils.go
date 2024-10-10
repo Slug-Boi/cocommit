@@ -1,8 +1,11 @@
 package utils
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
 	"os"
+	"regexp"
 )
 
 // Author file utils is a package that contains functions that are used to read
@@ -41,4 +44,54 @@ func CheckAuthorFile() string {
 	}
 	// This string output is mostly for convenience can mostly be ignored
 	return authorfile
+}
+
+func DeleteOneAuthor(author string) {
+	//author_file := Find_authorfile()
+
+	author_file := "author_file"
+
+	// open author_file
+	file, err := os.OpenFile(author_file, os.O_RDWR, 0644)
+	if err != nil {
+		fmt.Println("Error opening file: ", err)
+		return
+	}
+
+	defer file.Close()
+
+	// create regex to capture author line
+	regexp, err := regexp.Compile(fmt.Sprintf("^(.+\\|%s\\|.+|%s\\|.+\\|.+)$",author,author))
+	if err != nil {
+		fmt.Println("Error compiling regex: ", err)
+		return
+	}
+	
+	var b []byte
+    buf := bytes.NewBuffer(b)
+
+	// create a scanner for the file
+	scanner := bufio.NewScanner(file)
+
+	// write the header to the buffer
+	scanner.Scan()
+	buf.WriteString(scanner.Text() + "\n")
+
+	// check if author matches the regex and skip
+	for scanner.Scan() {
+		line := scanner.Text()
+		if regexp.MatchString(line) {
+			continue
+		}
+		buf.WriteString(line + "\n")
+
+	}
+	// remove the last newline character
+	buf.Truncate(buf.Len()-1)
+
+	file.Truncate(0)
+	file.Seek(0,0)
+	buf.WriteTo(file)
+
+	RemoveUser(author)
 }

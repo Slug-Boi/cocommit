@@ -67,3 +67,7 @@ func Define_users(author_file string)  {
 		os.Exit(2)
 	}
 }
+
+func RemoveUser(short string) {
+	delete(Users, short)
+}

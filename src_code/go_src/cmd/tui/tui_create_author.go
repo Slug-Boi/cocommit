@@ -5,6 +5,7 @@ package tui
 
 import (
 	"fmt"
+	"main/src_code/go_src/cmd/utils"
 	"os"
 	"strings"
 
@@ -179,7 +180,7 @@ func (m model_ca) View() string {
 	return b.String()
 }
 
-func Entry_CA() {
+func Entry_CA() string{
 	m, err := tea.NewProgram(initialModel()).Run()
 	if err != nil {
 		fmt.Printf("could not start program: %s\n", err)
@@ -201,6 +202,7 @@ func Entry_CA() {
 		defer f.Close()
 
 		sb := strings.Builder{}
+		sb.WriteRune('\n')
 
 		sb.WriteString(fmt.Sprintf("%s|%s|%s|%s", 
 		m.(model_ca).inputs[0].Value(), 
@@ -216,11 +218,13 @@ func Entry_CA() {
 			sb.WriteString(fmt.Sprintf(";;%s", m.(model_ca).inputs[4].Value()))
 		}
 
-		sb.WriteRune('\n')
+		//sb.WriteRune('\n')
 
 		if _, err = f.WriteString(sb.String()); err != nil {
 			panic(err)
 		}
+		utils.Define_users(utils.Find_authorfile())
+		return m.(model_ca).inputs[0].Value()
 	}
-
+	return ""
 }

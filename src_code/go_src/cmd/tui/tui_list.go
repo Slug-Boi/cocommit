@@ -33,12 +33,15 @@ var selected = map[string]item{}
 
 var negation = false
 
+var dupProtect = map[string]string{}
+
 type listKeyMap struct {
 	selectAll    key.Binding
 	negation  	 key.Binding
 	groupSelect  key.Binding
 	selectOne    key.Binding
 	createAuthor key.Binding
+	deleteAuthor key.Binding
 }
 
 func newListKeyMap() *listKeyMap {
@@ -62,6 +65,10 @@ func newListKeyMap() *listKeyMap {
 		createAuthor: key.NewBinding(
 			key.WithKeys("C"),
 			key.WithHelp("C", "Create new author"),
+		),
+		deleteAuthor: key.NewBinding(
+			key.WithKeys("D"),
+			key.WithHelp("D", "Delete author"),
 		),
 	}
 }
@@ -174,7 +181,19 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				// group code goes here
 			
 			case key.Matches(msg, m.keys.createAuthor):
-				Entry_CA()
+				author := Entry_CA()
+				if author != "" {
+					item_str := utils.Users[author].Username + " - " + utils.Users[author].Email
+					dupProtect[item_str] = author
+					m.list.InsertItem(len(m.list.Items())+1,item(item_str))
+				}
+				return m, tea.ClearScreen
+			case key.Matches(msg, m.keys.deleteAuthor):
+				author_str := string(m.list.SelectedItem().(item))
+				author := dupProtect[author_str]
+				utils.DeleteOneAuthor(author)
+				delete(dupProtect, author_str)
+				m.list.RemoveItem(m.list.Index())
 				return m, tea.ClearScreen
 		}
 		// extra key options
@@ -206,7 +225,6 @@ func (m model) View() string {
 //TODO: pass list in as a param to allow for group selection using same template
 func Entry() []string {
 	items := []list.Item{}
-	dupProtect := map[string]string{}
 
 	listKeys := newListKeyMap()
 
