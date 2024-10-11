@@ -1,8 +1,10 @@
 package cmd
 
 import (
+	"main/src_code/go_src/cmd/tui"
 	"main/src_code/go_src/cmd/utils"
 	"os"
+	"os/exec"
 	"slices"
 	"sort"
 	"strings"
@@ -19,21 +21,36 @@ var usersCmd = &cobra.Command{
 	Long:  `Displays all users from the author file located at: ` + authorfile,
 	Run: func(cmd *cobra.Command, args []string) {
 		//TODO: make this print a bit prettier (sort it and maybe use a table)
-		println("List of users:\nFormat: <shortname>/<name> -> Username: <username> Email: <email>")
-		seen_users := []utils.User{}
-		user_sb := []string{}
-		for name, usr := range utils.Users {
-			if !slices.Contains(seen_users, usr) {
-				user_sb = append(user_sb, utils.Users[name].Names+" ->"+" Username: "+usr.Username+" Email: "+usr.Email+"\n")
-				seen_users = append(seen_users, usr)
+		// check if the no pretty print flag is set
+		np, _ := cmd.Flags().GetBool("np")
+		if np {
+			println("List of users:\nFormat: <shortname>/<name> -> Username: <username> Email: <email>")
+			seen_users := []utils.User{}
+			user_sb := []string{}
+			for name, usr := range utils.Users {
+				if !slices.Contains(seen_users, usr) {
+					user_sb = append(user_sb, utils.Users[name].Names+" ->"+" Username: "+usr.Username+" Email: "+usr.Email+"\n")
+					seen_users = append(seen_users, usr)
+				}
 			}
+			sort.Strings(user_sb)
+			println(strings.Join(user_sb, ""))
+			os.Exit(1)
 		}
-		sort.Strings(user_sb)
-		println(strings.Join(user_sb, ""))
-		os.Exit(1)
+		bat_check := exec.Command("which", "bat")
+		out, _ := bat_check.CombinedOutput()
+		if string(out) == "" {
+			tui.Entry_US(authorfile)
+			os.Exit(0)
+		}
+		bat := exec.Command("bat", authorfile)
+		bat.Stdout = os.Stdout
+		bat.Stderr = os.Stderr
+		bat.Run()
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(usersCmd)
+	usersCmd.Flags().BoolP("np", "n", false, "No pretty print of the users")
 }
