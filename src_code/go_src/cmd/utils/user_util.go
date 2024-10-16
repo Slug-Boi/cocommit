@@ -40,6 +40,15 @@ func Define_users(author_file string)  {
 			group_info = append(group_info, strings.Split(input[1], "|")...)
 		}
 		info := strings.Split(input_str, "|")
+		if len(info) < 4 {
+			if len(info) > 0 {
+				println("Error: User ", info[0], " is missing information")
+			} else {
+				println("Error: Some user is missing information")
+			}
+			println("Please check the author file for proper syntax")
+			os.Exit(1)
+		}
 		usr := User{Username: info[2], Email: info[3], Names: info[0] + "/" + info[1]}
 		Users[info[0]] = usr
 		Users[info[1]] = usr

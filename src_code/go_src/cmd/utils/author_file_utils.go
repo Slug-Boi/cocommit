@@ -47,9 +47,7 @@ func CheckAuthorFile() string {
 }
 
 func DeleteOneAuthor(author string) {
-	//author_file := Find_authorfile()
-
-	author_file := "author_file"
+	author_file := Find_authorfile()
 
 	// open author_file
 	file, err := os.OpenFile(author_file, os.O_RDWR, 0644)

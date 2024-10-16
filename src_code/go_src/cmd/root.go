@@ -31,11 +31,12 @@ var rootCmd = &cobra.Command{
 		switch len(args) {
 		case 0:
 			// launch the tui
-			sel_auth := tui.Entry()
-			for _, a := range sel_auth {
-				fmt.Println(a)
-			}
-			os.Exit(0)
+			args = append(args, tui.Entry_CM())
+			fmt.Println(args[0])
+			//sel_auth := tui.Entry()
+			// for _, a := range sel_auth {
+			// 	fmt.Println(a)
+			// }
 		case 1:
 			if len(args) == 1 {
 				utils.GitWrapper(args[0])
