@@ -23,20 +23,20 @@ var rootCmd = &cobra.Command{
 	//TODO: add bubble tea interface to this
 	Args: cobra.MinimumNArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
+		var message string
+
 		// check if the print flag is set
 		pflag, _ := cmd.Flags().GetBool("print")
 		// run execute commands again as root run will not call this part
 		// redundant check for now but will be useful later when we add tui
-		wrap_around:
+	wrap_around:
 		switch len(args) {
 		case 0:
 			// launch the tui
 			args = append(args, tui.Entry_CM())
-			fmt.Println(args[0])
-			//sel_auth := tui.Entry()
-			// for _, a := range sel_auth {
-			// 	fmt.Println(a)
-			// }
+			sel_auth := tui.Entry()
+			message = utils.Commit(args[0], sel_auth)
+			goto tui
 		case 1:
 			if len(args) == 1 {
 				utils.GitWrapper(args[0])
@@ -46,7 +46,7 @@ var rootCmd = &cobra.Command{
 				os.Exit(0)
 			}
 		}
-		
+
 		// check if user included -m tag and remove. Wrap around for safety's sake
 		if args[0] == "-m" {
 			args = args[1:]
@@ -54,7 +54,9 @@ var rootCmd = &cobra.Command{
 		}
 
 		// builds the commit message with the selected authors
-		message := utils.Commit(args[0], args[1:])
+		message = utils.Commit(args[0], args[1:])
+
+	tui:
 		// prints the commit message to the console if the print flag is set
 		if pflag {
 			fmt.Println(message)
