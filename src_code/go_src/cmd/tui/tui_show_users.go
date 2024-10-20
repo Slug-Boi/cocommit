@@ -14,7 +14,7 @@ import (
 
 //TODO: MAybe change away from glamour if the weird email issue can't be solved
 
-var content string 
+var content string
 
 var helpStyle_us = lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Render
 
@@ -85,11 +85,15 @@ func Entry_US(author_file string) {
 
 	scanner := bufio.NewScanner(file)
 	var cnt strings.Builder
-	
-	for scanner.Scan() {
-		cnt.WriteString(scanner.Text() + "\n")
-	}
 
+	scanner.Scan()
+	header := scanner.Text()
+	cnt.WriteString(header + "\n")
+
+	for scanner.Scan() {
+		//very hacky it basically just ensure glamour doesn't format the email
+		cnt.WriteString(":\b" + scanner.Text() + "\n")
+	}
 
 	content = cnt.String()
 
