@@ -16,10 +16,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-var (
-	barStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("170"))
-)
-
 type KeyMap struct {
 	EndWithMes key.Binding
 }
