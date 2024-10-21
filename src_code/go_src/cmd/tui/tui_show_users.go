@@ -16,7 +16,9 @@ import (
 
 var content string
 
-var helpStyle_us = lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Render
+var (
+	helpStyle_us = lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Render
+)
 
 type example struct {
 	viewport viewport.Model
@@ -82,6 +84,10 @@ func (e example) helpView() string {
 
 func Entry_US(author_file string) {
 	file, err := os.Open(author_file)
+	if err != nil {
+		fmt.Println("Could not open file:", err)
+		os.Exit(1)
+	}
 
 	scanner := bufio.NewScanner(file)
 	var cnt strings.Builder

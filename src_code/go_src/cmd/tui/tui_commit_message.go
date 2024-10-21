@@ -13,6 +13,11 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+)
+
+var (
+	barStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("170"))
 )
 
 type KeyMap struct {
@@ -47,18 +52,20 @@ type errMsg error
 
 type model_cm struct {
 	textarea textarea.Model
-	keys    *KeyMap
+	keys     *KeyMap
 	err      error
 }
 
 func initialModel_cm() model_cm {
 	ti := textarea.New()
+	ti.FocusedStyle = textarea.Style{Base: lipgloss.NewStyle().Foreground(lipgloss.Color("170"))}
+
 	ti.Placeholder = "Write your commit message here..."
 	ti.Focus()
 
 	return model_cm{
 		textarea: ti,
-		keys:    newKeyMap(),
+		keys:     newKeyMap(),
 		err:      nil,
 	}
 }
@@ -74,8 +81,8 @@ func (m model_cm) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
-			case key.Matches(msg, m.keys.EndWithMes):
-				return m, tea.Quit
+		case key.Matches(msg, m.keys.EndWithMes):
+			return m, tea.Quit
 		}
 		switch msg.Type {
 		case tea.KeyCtrlC:
@@ -101,9 +108,8 @@ func (m model_cm) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m model_cm) View() string {
 	return fmt.Sprintf(
-		"Tell me a story.\n\n%s\n\n%s",
+		"Commit message:\n\n%s\n\n%s",
 		m.textarea.View(),
-		"alt+enter|Submit\nctrl+c|Cancel",
+		"(alt+enter | Submit)\n(ctrl+c | Cancel)",
 	) + "\n\n"
 }
-
