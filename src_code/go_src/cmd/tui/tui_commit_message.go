@@ -23,7 +23,7 @@ type KeyMap struct {
 func newKeyMap() *KeyMap {
 	return &KeyMap{
 		EndWithMes: key.NewBinding(
-			key.WithKeys("alt+enter"),
+			key.WithKeys("enter"),
 		),
 	}
 }
