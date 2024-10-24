@@ -16,6 +16,7 @@ type user struct {
 	email    string
 	names    string
 }
+//TODO: Remove later once everything is up and running with the new version
 
 // Map of all th users in the author file
 var users = make(map[string]user)
@@ -162,6 +163,8 @@ skip_loop:
 
 	// commit msg built
 	commit := sb_build()
+
+	print(commit)
 
 	//NOTE: Uncomment for testing
 	//print(commit)
