@@ -6,6 +6,7 @@ import (
 	"main/src_code/go_src/cmd/utils"
 	"os"
 
+	"github.com/inancgumus/screen"
 	"github.com/spf13/cobra"
 )
 
@@ -34,6 +35,8 @@ var rootCmd = &cobra.Command{
 		case 0:
 			// launch the tui
 			args = append(args, tui.Entry_CM())
+			screen.Clear()
+			screen.MoveTopLeft()
 			sel_auth := tui.Entry()
 			message = utils.Commit(args[0], sel_auth)
 			goto tui
@@ -82,5 +85,4 @@ func Execute() {
 
 func init() {
 	rootCmd.Flags().BoolP("print", "p", false, "Prints the commit message to the console")
-
 }
