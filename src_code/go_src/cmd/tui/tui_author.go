@@ -5,7 +5,7 @@ package tui
 
 import (
 	"fmt"
-	"main/src_code/go_src/cmd/utils"
+	"github.com/Slug-Boi/cocommit/src_code/go_src/cmd/utils"
 	"os"
 	"strings"
 
@@ -285,7 +285,7 @@ func Entry_CA() string {
 	return ""
 }
 
-func Entry_TA(ch chan bool) string {
+func Entry_TA() string {
 	m, err := tea.NewProgram(initialModel("temp")).Run()
 	if err != nil {
 		fmt.Printf("could not start program: %s\n", err)

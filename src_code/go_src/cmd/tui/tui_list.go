@@ -3,7 +3,7 @@ package tui
 import (
 	"fmt"
 	"io"
-	"main/src_code/go_src/cmd/utils"
+	"github.com/Slug-Boi/cocommit/src_code/go_src/cmd/utils"
 	"os"
 	"sort"
 	"strings"

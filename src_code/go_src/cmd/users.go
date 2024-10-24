@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"main/src_code/go_src/cmd/tui"
-	"main/src_code/go_src/cmd/utils"
+	"github.com/Slug-Boi/cocommit/src_code/go_src/cmd/tui"
+	"github.com/Slug-Boi/cocommit/src_code/go_src/cmd/utils"
 	"os"
 	"os/exec"
 	"slices"
