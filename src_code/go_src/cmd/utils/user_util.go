@@ -17,7 +17,7 @@ var Users = map[string]User{}
 var DefExclude = []string{}
 var Groups = map[string][]User{}
 
-func Define_users(author_file string)  {
+func Define_users(author_file string) {
 	file, err := os.Open(author_file)
 	if err != nil {
 		print("File not found")
@@ -80,3 +80,10 @@ func Define_users(author_file string)  {
 func RemoveUser(short string) {
 	delete(Users, short)
 }
+
+func TempAddUser(username, email string) {
+	usr := User{Username: username, Email: email}
+
+	Users[username] = usr
+}
+
