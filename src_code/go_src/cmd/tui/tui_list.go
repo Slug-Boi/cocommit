@@ -12,18 +12,19 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/inancgumus/screen"
 )
 
 const listHeight = 14
 
 var (
-	titleStyle        = lipgloss.NewStyle().MarginLeft(2)
-	itemStyle         = lipgloss.NewStyle().PaddingLeft(4)
-	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("170"))
-	highlightStyle   = lipgloss.NewStyle().PaddingLeft(4).Background(lipgloss.Color("236")).Foreground(lipgloss.Color("17"))
+	titleStyle             = lipgloss.NewStyle().MarginLeft(2)
+	itemStyle              = lipgloss.NewStyle().PaddingLeft(4)
+	selectedItemStyle      = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("170"))
+	highlightStyle         = lipgloss.NewStyle().PaddingLeft(4).Background(lipgloss.Color("236")).Foreground(lipgloss.Color("17"))
 	selectedHighlightStyle = lipgloss.NewStyle().PaddingLeft(2).Background(lipgloss.Color("236")).Foreground(lipgloss.Color("170"))
-	paginationStyle   = list.DefaultStyles().PaginationStyle.PaddingLeft(4)
-	helpStyle         = list.DefaultStyles().HelpStyle.PaddingLeft(4).PaddingBottom(1)
+	paginationStyle        = list.DefaultStyles().PaginationStyle.PaddingLeft(4)
+	helpStyle              = list.DefaultStyles().HelpStyle.PaddingLeft(4).PaddingBottom(1)
 	//quitTextStyle     = lipgloss.NewStyle().Margin(1, 0, 2, 4)
 )
 
@@ -32,16 +33,18 @@ type item string
 var selected = map[string]item{}
 
 var negation = false
+var ignore = false
 
 var dupProtect = map[string]string{}
 
 type listKeyMap struct {
 	selectAll    key.Binding
-	negation  	 key.Binding
+	negation     key.Binding
 	groupSelect  key.Binding
 	selectOne    key.Binding
 	createAuthor key.Binding
 	deleteAuthor key.Binding
+	tempAdd      key.Binding
 }
 
 func newListKeyMap() *listKeyMap {
@@ -70,11 +73,14 @@ func newListKeyMap() *listKeyMap {
 			key.WithKeys("D"),
 			key.WithHelp("D", "Delete author"),
 		),
+		tempAdd: key.NewBinding(
+			key.WithKeys("T"),
+			key.WithHelp("T", "Add temporary author"),
+		),
 	}
 }
 
-
-//TODO: Try and add filtering later down the line
+// TODO: Try and add filtering later down the line
 func (i item) FilterValue() string { return string(i) }
 
 type itemDelegate struct{}
@@ -88,7 +94,6 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 		return
 	}
 
-
 	str := fmt.Sprintf("%d. %s", index+1, i)
 
 	//TODO: add negation style where all items are flipped in selection
@@ -98,7 +103,7 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 		fn = func(s ...string) string {
 			base := strings.Join(s, " ")
 			if negation {
-				base =  base + " ^"
+				base = base + " ^"
 			}
 			if index == m.Index() {
 				return selectedHighlightStyle.Render("> " + base + " [X]")
@@ -113,14 +118,13 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 			}
 		}
 	}
-	
 
 	fmt.Fprint(w, fn(str))
 }
 
 type model struct {
 	list     list.Model
-	keys   *listKeyMap
+	keys     *listKeyMap
 	quitting bool
 }
 
@@ -134,7 +138,7 @@ func selectToggle(i item) {
 		toggleNegation()
 	} else {
 		selected[string(i)] = i
-	}	
+	}
 }
 
 func toggleNegation() {
@@ -144,7 +148,6 @@ func toggleNegation() {
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.list.SetWidth(msg.Width)
@@ -157,44 +160,56 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		// Handle keys from keyList (help menu)
 		switch {
-			case key.Matches(msg, m.keys.negation):
-				i, ok := m.list.SelectedItem().(item)
-				if ok { 
-					negation = true
-					selectToggle(i)
-				}
+		case key.Matches(msg, m.keys.negation):
+			i, ok := m.list.SelectedItem().(item)
+			if ok {
+				negation = true
+				selectToggle(i)
+			}
 
-			case key.Matches(msg, m.keys.selectOne):
-				i, ok := m.list.SelectedItem().(item)
+		case key.Matches(msg, m.keys.selectOne):
+			i, ok := m.list.SelectedItem().(item)
 			if ok {
 				selectToggle(i)
 			}
 
-			case key.Matches(msg, m.keys.selectAll):
-				//TODO: maybe look at behavior of this when auth are already selected
-				negation = false
-				for _, i := range m.list.Items() {
-					selectToggle(i.(item))
-				}
+		case key.Matches(msg, m.keys.selectAll):
+			//TODO: maybe look at behavior of this when auth are already selected
+			negation = false
+			for _, i := range m.list.Items() {
+				selectToggle(i.(item))
+			}
 
-			case key.Matches(msg, m.keys.groupSelect):
-				// group code goes here
-			
-			case key.Matches(msg, m.keys.createAuthor):
-				author := Entry_CA()
-				if author != "" {
-					item_str := utils.Users[author].Username + " - " + utils.Users[author].Email
-					dupProtect[item_str] = author
-					m.list.InsertItem(len(m.list.Items())+1,item(item_str))
-				}
-				return m, tea.ClearScreen
-			case key.Matches(msg, m.keys.deleteAuthor):
-				author_str := string(m.list.SelectedItem().(item))
-				author := dupProtect[author_str]
-				utils.DeleteOneAuthor(author)
-				delete(dupProtect, author_str)
-				m.list.RemoveItem(m.list.Index())
-				return m, tea.ClearScreen
+		case key.Matches(msg, m.keys.groupSelect):
+			// group code goes here
+
+		case key.Matches(msg, m.keys.tempAdd):
+			screen.Clear()
+			screen.MoveTopLeft()
+			tempAuthr := Entry_TA()
+			if tempAuthr != "" {
+				split := strings.Split(tempAuthr, ":")
+				item_str := split[0] + " - " + split[1]
+				dupProtect[item_str] = tempAuthr
+				m.list.InsertItem(len(m.list.Items())+1, item(item_str))
+			}
+			return m, tea.ClearScreen
+
+		case key.Matches(msg, m.keys.createAuthor):
+			author := Entry_CA()
+			if author != "" {
+				item_str := utils.Users[author].Username + " - " + utils.Users[author].Email
+				dupProtect[item_str] = author
+				m.list.InsertItem(len(m.list.Items())+1, item(item_str))
+			}
+			return m, tea.ClearScreen
+		case key.Matches(msg, m.keys.deleteAuthor):
+			author_str := string(m.list.SelectedItem().(item))
+			author := dupProtect[author_str]
+			utils.DeleteOneAuthor(author)
+			delete(dupProtect, author_str)
+			m.list.RemoveItem(m.list.Index())
+			return m, tea.ClearScreen
 		}
 		// extra key options
 		switch keypress := msg.String(); keypress {
@@ -222,7 +237,7 @@ func (m model) View() string {
 	return "\n" + m.list.View()
 }
 
-//TODO: pass list in as a param to allow for group selection using same template
+// TODO: pass list in as a param to allow for group selection using same template
 func Entry() []string {
 	items := []list.Item{}
 
@@ -252,20 +267,20 @@ func Entry() []string {
 	l.Styles.Title = titleStyle
 	l.Styles.PaginationStyle = paginationStyle
 	l.AdditionalShortHelpKeys = // Add help keys (main page)
-	func() []key.Binding {
-		return []key.Binding{
-			listKeys.selectOne,
+		func() []key.Binding {
+			return []key.Binding{
+				listKeys.selectOne,
+			}
 		}
-	}
 	l.AdditionalFullHelpKeys = // Add help keys (help menu)
-	func() []key.Binding {
-		return []key.Binding{
-			listKeys.selectAll,
-			listKeys.negation,
-			listKeys.groupSelect,
-			listKeys.createAuthor,
+		func() []key.Binding {
+			return []key.Binding{
+				listKeys.selectAll,
+				listKeys.negation,
+				listKeys.groupSelect,
+				listKeys.createAuthor,
+			}
 		}
-	}
 	l.Styles.HelpStyle = helpStyle
 
 	m := model{list: l, keys: listKeys}
@@ -279,13 +294,15 @@ func Entry() []string {
 	// Assert the final tea.Model to our local model and print the choice.
 
 	output := []string{}
-
+	if len(selected) == 0 {
+		os.Exit(0)
+	}
 	for i := range selected {
 		short := dupProtect[i]
 		if negation {
 			short = "^" + short
 		}
-		
+
 		output = append(output, short)
 	}
 
