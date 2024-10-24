@@ -82,7 +82,18 @@ func (e example) helpView() string {
 	return helpStyle_us("\n  ↑/↓: Navigate • q: Quit\n")
 }
 
-func Entry_US(author_file string) {
+func intialModel_US(author_file string) tea.Model {
+	loadData(author_file)
+
+	model, err := newExample()
+	if err != nil {
+		fmt.Println("Could not initialize Bubble Tea model:", err)
+		os.Exit(1)
+	}
+	return model
+}
+
+func loadData(author_file string) {
 	file, err := os.Open(author_file)
 	if err != nil {
 		fmt.Println("Could not open file:", err)
@@ -103,11 +114,11 @@ func Entry_US(author_file string) {
 
 	content = cnt.String()
 
-	model, err := newExample()
-	if err != nil {
-		fmt.Println("Could not initialize Bubble Tea model:", err)
-		os.Exit(1)
-	}
+}
+
+func Entry_US(author_file string) {
+
+	model := intialModel_US(author_file)
 
 	if _, err := tea.NewProgram(model).Run(); err != nil {
 		fmt.Println("Bummer, there's been an error:", err)
