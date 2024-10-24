@@ -1,0 +1,23 @@
+name: Test On Push
+
+on:
+    push:
+        branches:
+        - main
+    pull_request:
+      branches: 
+      - main
+
+jobs:
+    build:
+      runs-on: ubuntu-latest
+      steps:
+        - name: Setup Go
+          uses: actions/setup-go@v3
+        - uses: actions/checkout@v3
+        - name: Setup Go Workfile
+          run: go work init ./ci ./src_code/go_src
+        - name: Get Dagger
+          run: cd ci && go get dagger.io/dagger@latest && cd ..
+        - name: Run Dagger Test Workflow
+          run: go run ci/test_on_push.go

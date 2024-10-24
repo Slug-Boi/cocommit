@@ -12,9 +12,29 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v3
       - uses: actions/checkout@v3
-      - run: go get dagger.io/dagger@latest
-      - run: mkdir dist
+      - name: Setup Go Workfile
+        run: go work init ./ci ./src_code/go_src
+      - run: cd ci && go get dagger.io/dagger@latest && cd ..
+      - run: mkdir ./dist
       - run: go run ci/build_test_release.go
+      - name: Auto Changelog
+        uses: ardalanamini/auto-changelog@v4.0.1
+        id  : changelog
+        with:
+          github-token            : ${{ secrets.GITHUB_TOKEN }}
+          commit-types            : |
+            feat: New Features
+            fix: Bug Fixes
+            build: Build System & Dependencies
+            perf: Performance Improvements
+            docs: Documentation
+            test: Tests
+            refactor: Refactors
+            chore: Chores
+            ci: CI
+            cd: CD
+            style: Code Style
+            revert: Reverts
       - name: publish project
         shell: bash
         run: |
@@ -24,18 +44,19 @@ jobs:
           #linux build
           release_name_linux="cocommit_go-$tag-linux"
 
-          tar -C ./dist -czvf "${release_name_linux}.tar.gz" ./cocommit_go-linux ./author.txt
+          tar -C ./dist -czvf "${release_name_linux}.tar.gz" cocommit_go-linux ./author.txt
 
           #windows build
           release_name_win="cocommit_go-$tag-win"
-          tar -C ./dist -czvf "${release_name_win}.tar.gz" ./dist/cocommit_go-windows ./author.txt
+          tar -C ./dist -czvf "${release_name_win}.tar.gz" cocommit_go-windows ./author.txt
 
           #mac build
           release_name_mac="cocommit_go-$tag-mac"
-          tar -C ./dist -czvf "${release_name_mac}.tar.gz" ./cocommit_go-darwin ./author.txt
+          tar -C ./dist -czvf "${release_name_mac}.tar.gz" cocommit_go-darwin ./author.txt
       - name: Release project
         uses: softprops/action-gh-release@v1
         with:
+            body: ${{steps.changelog.outputs.changelog}}
             files: "*.tar.gz"
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
