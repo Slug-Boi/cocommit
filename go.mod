@@ -8,6 +8,8 @@ require (
 	github.com/charmbracelet/bubbletea v1.1.1
 	github.com/charmbracelet/glamour v0.8.0
 	github.com/charmbracelet/lipgloss v0.13.0
+	github.com/charmbracelet/x/exp/teatest v0.0.0-20241022174419-46d9bb99a691
+	github.com/inancgumus/screen v0.0.0-20190314163918-06e984b86ed3
 	github.com/spf13/cobra v1.8.1
 )
 
@@ -22,12 +24,10 @@ require (
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/charmbracelet/x/ansi v0.2.3 // indirect
 	github.com/charmbracelet/x/exp/golden v0.0.0-20240815200342-61de596daa2b // indirect
-	github.com/charmbracelet/x/exp/teatest v0.0.0-20241022174419-46d9bb99a691 // indirect
 	github.com/charmbracelet/x/term v0.2.0 // indirect
 	github.com/dlclark/regexp2 v1.11.0 // indirect
 	github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f // indirect
 	github.com/gorilla/css v1.0.1 // indirect
-	github.com/inancgumus/screen v0.0.0-20190314163918-06e984b86ed3 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
