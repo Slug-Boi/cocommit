@@ -33,7 +33,6 @@ type item string
 var selected = map[string]item{}
 
 var negation = false
-var ignore = false
 
 var dupProtect = map[string]string{}
 

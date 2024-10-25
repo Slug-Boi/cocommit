@@ -54,6 +54,7 @@ func Test_DeleteAuthor(t *testing.T) {
 		t.Errorf("DeleteOneAuthor() did not delete author")
 	}
 }
+
 // Author tests END
 
 // User tests BEGIN
@@ -78,6 +79,27 @@ func Test_RemoveUser(t *testing.T) {
 	if len(utils.Users) != 3 {
 		t.Errorf("RemoveUser() = %v; want 3", len(utils.Users))
 	}
+}
+
+func Test_TempAddUser(t *testing.T) {
+	setup()
+	defer teardown()
+	// Test TempAddUser
+	utils.Define_users("author_file_test")
+	if len(utils.Users) != 4 {
+		t.Errorf("Define_users() = %v; want 4", len(utils.Users))
+	}
+
+	utils.TempAddUser("temp", "temp@test.io")
+
+	if len(utils.Users) != 5 {
+		t.Errorf("TempAddUser() = %v; want 5", len(utils.Users))
+	}
+	
+	if _, ok := utils.Users["temp"]; !ok {
+		t.Errorf("TempAddUser() did not add user")
+	}
+	
 }
 // User tests END
 
