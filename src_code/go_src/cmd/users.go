@@ -15,7 +15,8 @@ import (
 var authorfile = utils.Find_authorfile()
 
 // usersCmd represents the users command
-var usersCmd = &cobra.Command{
+func UsersCmd() *cobra.Command {
+	return &cobra.Command{
 	Use:   "users",
 	Short: "Displays all users from the author file located at: " + authorfile,
 	Long:  `Displays all users from the author file located at: ` + authorfile,
@@ -35,7 +36,7 @@ var usersCmd = &cobra.Command{
 			}
 			sort.Strings(user_sb)
 			println(strings.Join(user_sb, ""))
-			os.Exit(1)
+			os.Exit(0)
 		}
 		bat_check := exec.Command("which", "bat")
 		out, _ := bat_check.CombinedOutput()
@@ -49,8 +50,10 @@ var usersCmd = &cobra.Command{
 		bat.Run()
 	},
 }
+}
 
 func init() {
-	rootCmd.AddCommand(usersCmd)
+	usersCmd := UsersCmd()
+	rootCmD.AddCommand(usersCmd)
 	usersCmd.Flags().BoolP("np", "n", false, "No pretty print of the users")
 }

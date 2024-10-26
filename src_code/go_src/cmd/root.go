@@ -2,16 +2,18 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/Slug-Boi/cocommit/src_code/go_src/cmd/tui"
 	"github.com/Slug-Boi/cocommit/src_code/go_src/cmd/utils"
-	"os"
 
 	"github.com/inancgumus/screen"
 	"github.com/spf13/cobra"
 )
 
 // rootCmd represents the base command when called without any subcommands
-var rootCmd = &cobra.Command{
+// func RootCmd() *cobra.Command {
+var rootCmD = &cobra.Command{
 	Use: `cocommit <commit message> <co-author1> [co-author2] ... ||
   cocommit <commit message> <co-author1:email> [co-author2:email] ... ||
   cocommit <commit message> all ||
@@ -28,6 +30,7 @@ var rootCmd = &cobra.Command{
 
 		// check if the print flag is set
 		pflag, _ := cmd.Flags().GetBool("print")
+		tflag, _ := cmd.Flags().GetBool("test_print")
 		// run execute commands again as root run will not call this part
 		// redundant check for now but will be useful later when we add tui
 	wrap_around:
@@ -42,6 +45,11 @@ var rootCmd = &cobra.Command{
 			goto tui
 		case 1:
 			if len(args) == 1 {
+				if tflag {
+					fmt.Println(args[0])
+					return
+				}
+
 				utils.GitWrapper(args[0])
 				if pflag {
 					fmt.Println(args[0])
@@ -77,12 +85,15 @@ func Execute() {
 	// define users
 	utils.Define_users(author_file)
 
-	err := rootCmd.Execute()
+	err := rootCmD.Execute()
 	if err != nil {
 		os.Exit(1)
 	}
 }
 
 func init() {
-	rootCmd.Flags().BoolP("print", "p", false, "Prints the commit message to the console")
+	//rootCmD := RootCmd()
+	rootCmD.Flags().BoolP("print", "p", false, "Prints the commit message to the console")
+	rootCmD.Flags().BoolP("test_print", "t", false, "Prints the commit message to the console without running the git commit command")
+	rootCmD.Flags().BoolP("message", "m", false, "Does nothing but allows for -m to be used in the command")
 }
