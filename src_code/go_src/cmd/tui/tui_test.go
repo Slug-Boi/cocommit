@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Slug-Boi/cocommit/src_code/go_src/cmd/utils"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/x/exp/teatest"
 )
@@ -185,7 +186,7 @@ func Test_EntryCA(t *testing.T) {
 // tui_author TESTS END
 
 // tui_commit_message TESTS BEGIN
-func TestEntryCM(t *testing.T) {
+func Test_EntryCM(t *testing.T) {
 	setup()
 	defer teardown()
 
@@ -211,3 +212,152 @@ func TestEntryCM(t *testing.T) {
 	}
 }
 // tui_commit_message TESTS END
+
+
+// tui_list TESTS BEGIN
+func Test_EntrySelectUsers(t *testing.T) {
+	setup()
+	defer teardown()
+
+	utils.Define_users("author_file_test")
+
+	m := listModel()
+	tm := teatest.NewTestModel(
+		t, m, teatest.WithInitialTermSize(300, 300),
+	)
+	tm.Send(tea.KeyMsg{
+		Type:  tea.KeyRunes,
+		Runes: []rune(" "),
+	})
+
+	tm.Send(tea.KeyMsg{
+		Type:  tea.KeyRunes,
+		Runes: []rune("enter"),
+	})
+
+	fm := tm.FinalModel(t)
+	m, ok := fm.(model)
+	if !ok {
+		t.Errorf("Expected model, got %T", fm)
+	}
+
+	if !m.quitting {
+		t.Errorf("Expected quitting to be true, got %v", m.quitting)
+	}
+
+	if len(selected) != 1 {
+		t.Errorf("Expected 1 selected item, got %d", len(selected))
+	}
+
+}
+
+func Test_EntrySelectAll(t *testing.T) {
+	setup()
+	defer teardown()
+
+	utils.Define_users("author_file_test")
+
+	m := listModel()
+	tm := teatest.NewTestModel(
+		t, m, teatest.WithInitialTermSize(300, 300),
+	)
+	tm.Send(tea.KeyMsg{
+		Type:  tea.KeyRunes,
+		Runes: []rune("A"),
+	})
+
+	tm.Send(tea.KeyMsg{
+		Type:  tea.KeyRunes,
+		Runes: []rune("enter"),
+	})
+
+	fm := tm.FinalModel(t)
+	m, ok := fm.(model)
+	if !ok {
+		t.Errorf("Expected model, got %T", fm)
+	}
+
+	if !m.quitting {
+		t.Errorf("Expected quitting to be true, got %v", m.quitting)
+	}
+
+	if len(selected) != 2 {
+		t.Errorf("Expected 2 selected item, got %d", len(selected))
+	}
+}
+
+func Test_EntryNegation(t *testing.T) {
+	setup()
+	defer teardown()
+
+	utils.Define_users("author_file_test")
+
+	m := listModel()
+	tm := teatest.NewTestModel(
+		t, m, teatest.WithInitialTermSize(300, 300),
+	)
+	tm.Send(tea.KeyMsg{
+		Type:  tea.KeyRunes,
+		Runes: []rune("n"),
+	})
+
+	tm.Send(tea.KeyMsg{
+		Type:  tea.KeyRunes,
+		Runes: []rune("enter"),
+	})
+
+	fm := tm.FinalModel(t)
+	m, ok := fm.(model)
+	if !ok {
+		t.Errorf("Expected model, got %T", fm)
+	}
+
+	if !m.quitting {
+		t.Errorf("Expected quitting to be true, got %v", m.quitting)
+	}
+
+	if len(selected) != 1 {
+		t.Errorf("Expected 2 selected item, got %d", len(selected))
+	}
+}
+
+func Test_EntryDeleteAuthor(t *testing.T) {
+	setup()
+	defer teardown()
+
+	utils.Define_users("author_file_test")
+
+	m := listModel()
+	tm := teatest.NewTestModel(
+		t, m, teatest.WithInitialTermSize(300, 300),
+	)
+	tm.Send(tea.KeyMsg{
+		Type:  tea.KeyRunes,
+		Runes: []rune("D"),
+	})
+
+	tm.Send(tea.KeyMsg{
+		Type:  tea.KeyRunes,
+		Runes: []rune("D"),
+	})
+
+	tm.Send(tea.KeyMsg{
+		Type:  tea.KeyRunes,
+		Runes: []rune("enter"),
+	})
+
+	fm := tm.FinalModel(t)
+	m, ok := fm.(model)
+	if !ok {
+		t.Errorf("Expected model, got %T", fm)
+	}
+
+	if !m.quitting {
+		t.Errorf("Expected quitting to be true, got %v", m.quitting)
+	}
+
+	if len(utils.Users) != 2 {
+		t.Errorf("Expected 2 user after deletion, got %d", len(utils.Users))
+	}
+}
+// tui_list TESTS END
