@@ -78,7 +78,10 @@ func Define_users(author_file string) {
 }
 
 func RemoveUser(short string) {
-	delete(Users, short)
+	usr := Users[short]
+	split := strings.Split(usr.Names, "/")
+	delete(Users, split[0])
+	delete(Users, split[1])
 }
 
 func TempAddUser(username, email string) {
