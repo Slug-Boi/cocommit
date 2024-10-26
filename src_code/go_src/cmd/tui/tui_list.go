@@ -23,6 +23,7 @@ var (
 	selectedItemStyle      = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("170"))
 	highlightStyle         = lipgloss.NewStyle().PaddingLeft(4).Background(lipgloss.Color("236")).Foreground(lipgloss.Color("17"))
 	selectedHighlightStyle = lipgloss.NewStyle().PaddingLeft(2).Background(lipgloss.Color("236")).Foreground(lipgloss.Color("170"))
+	deletionStyle 		   = lipgloss.NewStyle().MarginLeft(2).Foreground(lipgloss.Color("9"))
 	paginationStyle        = list.DefaultStyles().PaginationStyle.PaddingLeft(4)
 	helpStyle              = list.DefaultStyles().HelpStyle.PaddingLeft(4).PaddingBottom(1)
 	//quitTextStyle     = lipgloss.NewStyle().Margin(1, 0, 2, 4)
@@ -79,7 +80,6 @@ func newListKeyMap() *listKeyMap {
 	}
 }
 
-// TODO: Try and add filtering later down the line
 func (i item) FilterValue() string { return string(i) }
 
 type itemDelegate struct{}
@@ -94,8 +94,6 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	}
 
 	str := fmt.Sprintf("%d. %s", index+1, i)
-
-	//TODO: add negation style where all items are flipped in selection
 
 	fn := itemStyle.Render
 	if _, ok := selected[string(i)]; ok {
@@ -146,7 +144,9 @@ func toggleNegation() {
 	}
 }
 
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+var deletion bool
+
+func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {	
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.list.SetWidth(msg.Width)
@@ -154,6 +154,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// If filtering is enabled, skip key handling
 	case tea.KeyMsg:
+		// deletion toggle with confirmation required
+		b := false
+		defer func(b *bool){deletion = *b}(&b)
 		if m.list.FilterState() == list.Filtering {
 			break
 		}
@@ -190,11 +193,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				split := strings.Split(tempAuthr, ":")
 				item_str := split[0] + " - " + split[1]
 				dupProtect[item_str] = tempAuthr
-				m.list.InsertItem(len(m.list.Items())+1, item(item_str))
+				i := item(item_str)
+				m.list.InsertItem(len(m.list.Items())+1, i)
+				selectToggle(i)
 			}
 			return m, tea.ClearScreen
 
 		case key.Matches(msg, m.keys.createAuthor):
+			screen.Clear()
+			screen.MoveTopLeft()
 			author := Entry_CA()
 			if author != "" {
 				item_str := utils.Users[author].Username + " - " + utils.Users[author].Email
@@ -203,12 +210,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, tea.ClearScreen
 		case key.Matches(msg, m.keys.deleteAuthor):
-			author_str := string(m.list.SelectedItem().(item))
-			author := dupProtect[author_str]
-			utils.DeleteOneAuthor(author)
-			delete(dupProtect, author_str)
-			m.list.RemoveItem(m.list.Index())
-			return m, tea.ClearScreen
+			if deletion {
+				author_str := string(m.list.SelectedItem().(item))
+				author := dupProtect[author_str]
+				utils.DeleteOneAuthor(author)
+				delete(dupProtect, author_str)
+				m.list.RemoveItem(m.list.Index())
+				return m, nil
+			}
+			b = true
+			return m, nil
 		}
 		// extra key options
 		switch keypress := msg.String(); keypress {
@@ -221,6 +232,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.quitting = true
 			return m, tea.Quit
 		}
+
 	}
 
 	var cmd tea.Cmd
@@ -233,12 +245,23 @@ func (m model) View() string {
 		return "" //quitTextStyle.Render(strings.Join(m.choice, " "))
 	}
 
-	return "\n" + m.list.View()
+	sb := strings.Builder{}
+
+	sb.WriteString("\n" + m.list.View())
+
+	if deletion {
+		sb.WriteString(deletionStyle.Render("\n  D: Confirm delete author"))
+	}
+
+	return sb.String()
 }
 
-// TODO: pass list in as a param to allow for group selection using same template
-func Entry() []string {
+func listModel() model {
 	items := []list.Item{}
+
+	selected = map[string]item{}
+
+	dupProtect = map[string]string{}
 
 	listKeys := newListKeyMap()
 
@@ -282,7 +305,13 @@ func Entry() []string {
 		}
 	l.Styles.HelpStyle = helpStyle
 
-	m := model{list: l, keys: listKeys}
+	return model{list: l, keys: listKeys}
+}
+
+// TODO: pass list in as a param to allow for group selection using same template
+func Entry() []string {
+
+	m := listModel()
 
 	f, err := tea.NewProgram(m).Run()
 	if err != nil {
