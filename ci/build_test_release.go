@@ -24,7 +24,7 @@ func main() {
 	// mount the source code directory on the host
 	// at /src in the container
 	source := client.Container().
-		From("golang:1.22").
+		From("golang:1.23").
 		WithDirectory("/src", client.Host().Directory(".", dagger.HostDirectoryOpts{
 			Exclude: []string{},
 		})).WithMountedCache("/src/dagger_dep_cache/go_dep", goCache)
