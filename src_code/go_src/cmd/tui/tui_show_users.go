@@ -109,7 +109,7 @@ func loadData(author_file string) {
 
 	for scanner.Scan() {
 		//very hacky it basically just ensure glamour doesn't format the email
-		cnt.WriteString(":\b" + scanner.Text() + "\n")
+		cnt.WriteString(" " + scanner.Text() + "\n")
 	}
 
 	content = cnt.String()
