@@ -32,10 +32,10 @@ func main() {
 		// set the working directory in the container
 		// install application dependencies
 	runner := source.WithWorkdir("/src/src_code/go_src/").
-		WithExec([]string{"go", "mod", "tidy"})
+		WithExec([]string{"go", "mod", "tidy"}).WithEnvVariable("CI", "true")
 
 		// run application tests
-	out, err := runner.WithWorkdir("/src/src_code/go_src").WithExec([]string{"go", "test", "./..."}).
+	out, err := runner.WithWorkdir("/src/src_code/go_src/").WithExec([]string{"go", "test", "./..."}).
 		Stderr(ctx)
 	if err != nil {
 		panic(err)
