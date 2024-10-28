@@ -31,6 +31,12 @@ var rootCmD = &cobra.Command{
 		// check if the print flag is set
 		pflag, _ := cmd.Flags().GetBool("print")
 		tflag, _ := cmd.Flags().GetBool("test_print")
+		aflag, _ := cmd.Flags().GetBool("authors")
+
+		if aflag {
+			tui.Entry()
+			os.Exit(0)
+		}
 		// run execute commands again as root run will not call this part
 		// redundant check for now but will be useful later when we add tui
 	wrap_around:
@@ -96,4 +102,5 @@ func init() {
 	rootCmD.Flags().BoolP("print", "p", false, "Prints the commit message to the console")
 	rootCmD.Flags().BoolP("test_print", "t", false, "Prints the commit message to the console without running the git commit command")
 	rootCmD.Flags().BoolP("message", "m", false, "Does nothing but allows for -m to be used in the command")
+	rootCmD.Flags().BoolP("authors", "a", false, "Runs the author list TUI")
 }
