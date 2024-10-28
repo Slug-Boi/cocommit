@@ -1,19 +1,16 @@
 # cocommit
-
-## IMPORTANT NOTICE!!!! 
-### Windows defender recently got an update that apparently sees Go Binaries as a trojan... So I guess you have to manually go in and flag it as not being that until Microsoft decides to fix this.
-[Link to Github issue talking about this](https://github.com/golang/vscode-go/issues/3182)
-Currently built in:
-- [x] Go
-- [ ] Rust
-
-
-Currently tested in:
-- [x] Go
-- [ ] Rust
+<p align="center">
+    <img src="/icons/logo.png" width="300" height="300"/>
+    <a href=""> <img src="" alt="Github Actions Tests" /></a>
+    <a href=""> <img src="" alt="Go Reference" /></a>
+    <a href="https://docs.github.com/en/pull-requests/committing-changes-to-your-project/creating-and-editing-commits/creating-a-commit-with-multiple-authors"> <img src="" alt="Co-Author Docs Github Page" /></a>
+    
+</p>
 
 
 # How to run
+*Insert blerb about go install if it works*
+
 Download the binary for your OS on the [release page](https://github.com/Slug-Boi/cocommit/releases)  
 Once downloaded you need to create an alias for your shell guides found below:  
 [Bash Guide for alias](https://linuxize.com/post/how-to-create-bash-aliases/)  
@@ -31,6 +28,17 @@ export author_file='path/to/your/aurhor.txt'
 
 you can now run it using the alias shorthand you assigned to it 
 ## Usage:
+The CLI has two modes, the CLI commands and the TUI below are guides on how to use both
+
+### TUI
+To launch the TUI run the program with no args  
+```
+$ cocommit
+```
+From here you will be asked to write a commit message and then select authors from a list. This creates the same message as the CLI way of doing it but is a bit nicer to work with. The TUI has lots of keybinds that can be seen on the list view by pressing `?`. You can create authors, add temp authors or do all of the usual selections like negated selections or select all. Below is a small video showing a run through of the TUI.
+
+### CLI
+
 ```
 $ cocommit "message" <name1> [name2] [name3]...
 
@@ -47,8 +55,8 @@ $ cocommit "message" ^<name1> ^[name2]
 $ cocommit "message" <group_name>
 *adds all users that has that group tag in author file*
 
-$ cocommit
-*prints usage*
+$ cocommit "message"
+*Runs git commit -m "message"*
 
 $ cocommit users
 *prints list of users*
