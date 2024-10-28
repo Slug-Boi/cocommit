@@ -38,6 +38,8 @@ func Test_FindAuthorFile(t* testing.T) {
 func Test_DeleteAuthor(t *testing.T) {
 	setup()
 	defer teardown()
+
+	utils.Define_users("author_file_test")
 	// Test DeleteOneAuthor
 	og_bytes, err := os.ReadFile("author_file_test")
 	if err != nil {
@@ -76,8 +78,8 @@ func Test_RemoveUser(t *testing.T) {
 
 	utils.RemoveUser("te")
 	
-	if len(utils.Users) != 3 {
-		t.Errorf("RemoveUser() = %v; want 3", len(utils.Users))
+	if len(utils.Users) != 2 {
+		t.Errorf("RemoveUser() = %v; want 2", len(utils.Users))
 	}
 }
 
