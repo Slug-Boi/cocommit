@@ -20,14 +20,16 @@ Once downloaded you need to create an alias for your shell guides found below:
 *^please note if you use another shell than bash you will need to look up how to do it in that shell^*  
 [Powershell Guide for alias](https://stackoverflow.com/questions/24914589/how-to-create-permanent-powershell-aliases)  
 
-Once you've created an alias for the program you need to set an env variable (author_file) in your shell. This should be the path pointing to your author.txt file  
+Once you've created an alias for the program you need to create an author file. You can run the program and it will prompt you to create an author file if one is not found in the default location.
+
+Optionally you can set an env variable (author_file) in your shell. This should be the path pointing to your authors file  
 For bash you just need to add this to your .bashrc file:
 ```
-export author_file='path/to/your/aurhor.txt'
+export author_file='path/to/your/aurhors'
 ```
 [Powershell guide for env variable](https://stackoverflow.com/a/714918)
 
-*Please note that the syntax line at the top of the author.txt file should not be deleted and that you must add at least one author to the file to run the program*
+*Please note that the syntax line at the top of the authors file should not be deleted and that you must add at least one author to the file to run the program*
 
 you can now run it using the alias shorthand you assigned to it 
 ## Usage:
