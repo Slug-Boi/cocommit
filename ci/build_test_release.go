@@ -50,7 +50,7 @@ func main() {
 		build := test.
 			WithEnvVariable("GOOS", goos).
 			WithEnvVariable("GOARCH", goarch).
-			WithExec([]string{"go", "build", "-o", filename})
+			WithExec([]string{"go", "build", "-o", filename}).WithEnvVariable("CI", "true")
 
 		buildDir = buildDir.WithDirectory(path, build.Directory(path))
 
