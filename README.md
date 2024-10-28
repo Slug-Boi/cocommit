@@ -3,10 +3,11 @@
    <img src="/icons/logo.png" alt="cocommit logo" width="300" height="300"/>
 </p>
 <p align="center">
+    <a href="https://github.com/Slug-Boi/cocommit/releases/latest"> <img src="https://img.shields.io/github/v/release/Slug-Boi/cocommit?logo=github" alt="Github Latest Release" /></a>
     <a href="https://github.com/Slug-Boi/cocommit/actions/workflows/test_push.yml"> <img src="https://img.shields.io/github/actions/workflow/status/Slug-Boi/cocommit/test_push.yml?label=tests" alt="Github Actions Tests" /></a>
-    <a href="https://github.com/Slug-Boi/cocommit/actions/workflows/test_push.yml"> <img src="https://img.shields.io/github/actions/workflow/status/Slug-Boi/cocommit/build_test_release.yml" alt="Github Actions Build" /></a>    
+    <a href="https://github.com/Slug-Boi/cocommit/actions/workflows/build_test_release.yml"> <img src="https://img.shields.io/github/actions/workflow/status/Slug-Boi/cocommit/build_test_release.yml" alt="Github Actions Build" /></a>    
     <a href=""> <img src="https://img.shields.io/badge/_-reference-blue?logo=go&label=%E2%80%8E%20" alt="Go Reference" /></a>
-    <a href="https://docs.github.com/en/pull-requests/committing-changes-to-your-project/creating-and-editing-commits/creating-a-commit-with-multiple-authors"> <img src="" alt="Co-Author Docs Github Page" /></a>
+    <a href="https://docs.github.com/en/pull-requests/committing-changes-to-your-project/creating-and-editing-commits/creating-a-commit-with-multiple-authors"> <img src="https://img.shields.io/badge/Github_Docs-Co--Authoring-grey?logo=github&labelColor=black" alt="Co-Author Docs Github Page" /></a>
 </p>
 
 
