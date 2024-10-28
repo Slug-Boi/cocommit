@@ -38,7 +38,7 @@ func UsersCmd() *cobra.Command {
 			println(strings.Join(user_sb, ""))
 			os.Exit(0)
 		}
-		bat_check := exec.Command("which", "bat")
+		bat_check := exec.Command("bat", "--version")
 		out, _ := bat_check.CombinedOutput()
 		if string(out) == "" {
 			tui.Entry_US(authorfile)
