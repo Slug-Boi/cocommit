@@ -14,16 +14,21 @@ import (
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/inancgumus/screen"
 )
 
 type KeyMap struct {
 	EndWithMes key.Binding
+	NewLine    key.Binding
 }
 
 func newKeyMap() *KeyMap {
 	return &KeyMap{
 		EndWithMes: key.NewBinding(
 			key.WithKeys("enter"),
+		),
+		NewLine: key.NewBinding(
+			key.WithKeys("shift+tab"),
 		),
 	}
 }
@@ -38,8 +43,10 @@ func Entry_CM() string {
 		log.Fatal(err)
 	}
 	if m.(model_cm).textarea.Value() == "" {
+		screen.Clear()
+		screen.MoveTopLeft()
 		fmt.Println("No commit message provided. Exiting...")
-		os.Exit(1)
+		os.Exit(0)
 	}
 	return m.(model_cm).textarea.Value() + "\n"
 }
@@ -55,6 +62,8 @@ type model_cm struct {
 func initialModel_cm() model_cm {
 	ti := textarea.New()
 	ti.FocusedStyle = textarea.Style{Base: lipgloss.NewStyle().Foreground(lipgloss.Color("170"))}
+	ti.SetWidth(80)
+	ti.SetHeight(8)
 
 	ti.Placeholder = "Write your commit message here..."
 	ti.Focus()
@@ -73,11 +82,16 @@ func (m model_cm) Init() tea.Cmd {
 func (m model_cm) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	var cmd tea.Cmd
-
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, m.keys.EndWithMes):
+		case key.Matches(msg, m.keys.EndWithMes) && msg.Alt == true:
+			return m, tea.Quit
+		case key.Matches(msg, m.keys.NewLine):
+			m.textarea.SetValue(m.textarea.Value() + "\n")
+			return m, nil
+		case msg.String() == "esc":
+			m.textarea.SetValue("")
 			return m, tea.Quit
 		}
 		switch msg.Type {
@@ -106,6 +120,6 @@ func (m model_cm) View() string {
 	return fmt.Sprintf(
 		"Commit message:\n\n%s\n\n%s",
 		m.textarea.View(),
-		"(alt+enter | Submit)\n(ctrl+c | Cancel)",
+		"(enter | Submit)\n(shift+tab | Newline)\n(ctrl+c | Cancel)",
 	) + "\n\n"
 }
