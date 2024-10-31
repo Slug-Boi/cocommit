@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 func Cz_Call() string {
@@ -18,6 +19,10 @@ func Cz_Call() string {
 
 	err := cmd.Run()
 	if err != nil {
+		// if the user exits the commitizen command, exit the program
+		if strings.Contains(err.Error(), "exit status 8") {
+			os.Exit(0)
+		}
 		panic(fmt.Sprint(err))
 	}
 

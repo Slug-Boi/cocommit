@@ -56,5 +56,5 @@ var czCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(czCmd)
 	czCmd.Flags().BoolP("print", "p", false, "Print the commit message")
-	czCmd.Flags().BoolP("cli", "c", false, "Use the cli style syntax to add co-authors")
+	czCmd.Flags().BoolP("cli", "c", false, "[co-author1] [co-author2] ...")
 }
