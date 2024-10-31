@@ -13,7 +13,7 @@ import (
 
 // rootCmd represents the base command when called without any subcommands
 // func RootCmd() *cobra.Command {
-var rootCmD = &cobra.Command{
+var rootCmd = &cobra.Command{
 	Use: `cocommit <commit message> <co-author1> [co-author2] ... ||
   cocommit <commit message> <co-author1:email> [co-author2:email] ... ||
   cocommit <commit message> all ||
@@ -91,7 +91,7 @@ func Execute() {
 	// define users
 	utils.Define_users(author_file)
 
-	err := rootCmD.Execute()
+	err := rootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
 	}
@@ -99,8 +99,8 @@ func Execute() {
 
 func init() {
 	//rootCmD := RootCmd()
-	rootCmD.Flags().BoolP("print", "p", false, "Prints the commit message to the console")
-	rootCmD.Flags().BoolP("test_print", "t", false, "Prints the commit message to the console without running the git commit command")
-	rootCmD.Flags().BoolP("message", "m", false, "Does nothing but allows for -m to be used in the command")
-	rootCmD.Flags().BoolP("authors", "a", false, "Runs the author list TUI")
+	rootCmd.Flags().BoolP("print", "p", false, "Prints the commit message to the console")
+	rootCmd.Flags().BoolP("test_print", "t", false, "Prints the commit message to the console without running the git commit command")
+	rootCmd.Flags().BoolP("message", "m", false, "Does nothing but allows for -m to be used in the command")
+	rootCmd.Flags().BoolP("authors", "a", false, "Runs the author list TUI")
 }
