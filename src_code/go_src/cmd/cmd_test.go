@@ -32,15 +32,13 @@ func teardown() {
 	os.Setenv("author_file", envVar)
 }
 
-//Skip cobra cmd tests on CI causes problems apparenly idk why
+// Skip cobra cmd tests on CI causes problems apparenly idk why
 // test will be run locally before releasing a new version
 func skipCI(t *testing.T) {
 	if os.Getenv("CI") != "" {
-	  t.Skip("Skipping testing in CI environment")
+		t.Skip("Skipping testing in CI environment")
 	}
-  }
-
-  
+}
 
 func StdoutReader() (chan string, *os.File, *os.File, *os.File) {
 	old := os.Stdout
@@ -111,7 +109,7 @@ func Test_CommitCmd(t *testing.T) {
 		outC <- buf.String()
 	}()
 
-	cmd := rootCmD
+	cmd := rootCmd
 	cmd.SetArgs([]string{"-t", "Test commit message"})
 	cmd.Execute()
 
@@ -142,7 +140,7 @@ func Test_CommitCmdWithM(t *testing.T) {
 		outC <- buf.String()
 	}()
 
-	cmd := rootCmD
+	cmd := rootCmd
 	cmd.SetArgs([]string{"-m", "-t", "Test commit message"})
 	cmd.Execute()
 
@@ -157,6 +155,6 @@ func Test_CommitCmdWithM(t *testing.T) {
 		t.Errorf("Expected to find 'Test commit message' in output but got %s", outStr)
 	}
 
-
 }
+
 // root CMD TEST END
