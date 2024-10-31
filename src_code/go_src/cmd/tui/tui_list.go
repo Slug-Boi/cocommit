@@ -2,8 +2,8 @@ package tui
 
 import (
 	"fmt"
-	"io"
 	"github.com/Slug-Boi/cocommit/src_code/go_src/cmd/utils"
+	"io"
 	"os"
 	"sort"
 	"strings"
@@ -23,7 +23,7 @@ var (
 	selectedItemStyle      = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("170"))
 	highlightStyle         = lipgloss.NewStyle().PaddingLeft(4).Background(lipgloss.Color("236")).Foreground(lipgloss.Color("17"))
 	selectedHighlightStyle = lipgloss.NewStyle().PaddingLeft(2).Background(lipgloss.Color("236")).Foreground(lipgloss.Color("170"))
-	deletionStyle 		   = lipgloss.NewStyle().MarginLeft(2).Foreground(lipgloss.Color("9"))
+	deletionStyle          = lipgloss.NewStyle().MarginLeft(2).Foreground(lipgloss.Color("9"))
 	paginationStyle        = list.DefaultStyles().PaginationStyle.PaddingLeft(4)
 	helpStyle              = list.DefaultStyles().HelpStyle.PaddingLeft(4).PaddingBottom(1)
 	//quitTextStyle     = lipgloss.NewStyle().Margin(1, 0, 2, 4)
@@ -146,7 +146,7 @@ func toggleNegation() {
 
 var deletion bool
 
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {	
+func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.list.SetWidth(msg.Width)
@@ -156,7 +156,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		// deletion toggle with confirmation required
 		b := false
-		defer func(b *bool){deletion = *b}(&b)
+		defer func(b *bool) { deletion = *b }(&b)
 		if m.list.FilterState() == list.Filtering {
 			break
 		}
@@ -301,6 +301,7 @@ func listModel() model {
 				listKeys.negation,
 				listKeys.groupSelect,
 				listKeys.createAuthor,
+				listKeys.tempAdd,
 			}
 		}
 	l.Styles.HelpStyle = helpStyle
