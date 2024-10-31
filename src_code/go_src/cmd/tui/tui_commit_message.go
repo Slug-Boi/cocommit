@@ -85,7 +85,7 @@ func (m model_cm) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, m.keys.EndWithMes) && msg.Alt == true:
+		case key.Matches(msg, m.keys.EndWithMes):
 			return m, tea.Quit
 		case key.Matches(msg, m.keys.NewLine):
 			m.textarea.SetValue(m.textarea.Value() + "\n")
