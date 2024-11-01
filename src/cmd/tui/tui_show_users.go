@@ -108,8 +108,9 @@ func loadData(author_file string) {
 	cnt.WriteString(header + "\n")
 
 	for scanner.Scan() {
-		//very hacky it basically just ensure glamour doesn't format the email
-		cnt.WriteString(":\b" + scanner.Text() + "\n")
+		//very hacky it basically just ensure glamour doesn't format the email whole line as an email
+		// if only the styling had options for what to format grrrrrrr
+		cnt.WriteString("‎" + scanner.Text() + "\n")
 	}
 
 	content = cnt.String()
