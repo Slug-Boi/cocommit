@@ -7,8 +7,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Slug-Boi/cocommit/src_code/go_src/cmd/tui"
-	"github.com/Slug-Boi/cocommit/src_code/go_src/cmd/utils"
+	"github.com/Slug-Boi/cocommit/src/cmd/tui"
+	"github.com/Slug-Boi/cocommit/src/cmd/utils"
 
 	"github.com/spf13/cobra"
 )

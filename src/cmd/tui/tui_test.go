@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Slug-Boi/cocommit/src_code/go_src/cmd/utils"
+	"github.com/Slug-Boi/cocommit/src/cmd/utils"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/x/exp/teatest"
 )
