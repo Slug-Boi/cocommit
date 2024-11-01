@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Slug-Boi/cocommit/src_code/go_src/cmd/utils"
+	"github.com/Slug-Boi/cocommit/src/cmd/utils"
 )
 
 const author_data = `syntax for the test file

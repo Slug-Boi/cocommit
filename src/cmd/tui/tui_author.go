@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Slug-Boi/cocommit/src_code/go_src/cmd/utils"
+	"github.com/Slug-Boi/cocommit/src/cmd/utils"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"

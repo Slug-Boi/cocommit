@@ -25,20 +25,20 @@ func main() {
 	// at /src in the container
 	source := client.Container().
 		From("golang:1.23").
-		WithDirectory("/src", client.Host().Directory(".", dagger.HostDirectoryOpts{
+		WithDirectory("/src_d", client.Host().Directory(".", dagger.HostDirectoryOpts{
 			Exclude: []string{},
-		})).WithMountedCache("/src/dagger_dep_cache/go_dep", goCache)
+		})).WithMountedCache("/src_d/dagger_dep_cache/go_dep", goCache)
 
 	geese := []string{"darwin", "linux", "windows"}
 	goarch := "amd64"
 
 	// set the working directory in the container
 	// install application dependencies
-	runner := source.WithWorkdir("/src/src_code/go_src/").
+	runner := source.WithWorkdir("/src_d/src/").
 		WithExec([]string{"go", "mod", "tidy"})
 
 	// run application tests
-	test := runner.WithWorkdir("/src/src_code/go_src").WithExec([]string{"go", "test", "./..."}).WithEnvVariable("CI", "true")
+	test := runner.WithWorkdir("/src_d/src/").WithExec([]string{"go", "test", "./..."}).WithEnvVariable("CI", "true")
 	
 	buildDir := test.Directory("/src/")
 
