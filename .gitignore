@@ -1,5 +1,6 @@
 # Custom
 dist
+author_file
 
 go.work
 go.sum
