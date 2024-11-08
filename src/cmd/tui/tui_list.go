@@ -37,6 +37,8 @@ var negation = false
 
 var dupProtect = map[string]string{}
 
+var sub_model tea.Model
+
 type listKeyMap struct {
 	selectAll    key.Binding
 	negation     key.Binding
@@ -147,6 +149,17 @@ func toggleNegation() {
 var deletion bool
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if sub_model != nil {
+		var cmd tea.Cmd
+		sub_model, cmd = sub_model.Update(msg)
+		if sub_model_mod, ok := sub_model.(model); ok {
+			m.list = sub_model_mod.list
+			sub_model = nil
+			return m, nil
+		}
+		return m, cmd
+	}
+
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.list.SetWidth(msg.Width)
@@ -183,7 +196,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case key.Matches(msg, m.keys.groupSelect):
-			// group code goes here
+			// TODO: Look into how to select multiple groups
+			sub_model = newModel()
+			//group := Entry_GR()
+			return m, tea.ClearScreen
 
 		case key.Matches(msg, m.keys.tempAdd):
 			screen.Clear()
@@ -202,12 +218,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.createAuthor):
 			screen.Clear()
 			screen.MoveTopLeft()
-			author := Entry_CA()
-			if author != "" {
-				item_str := utils.Users[author].Username + " - " + utils.Users[author].Email
-				dupProtect[item_str] = author
-				m.list.InsertItem(len(m.list.Items())+1, item(item_str))
-			}
+			sub_model = createAuthorModel(&m)
 			return m, tea.ClearScreen
 		case key.Matches(msg, m.keys.deleteAuthor):
 			if deletion {
@@ -224,11 +235,21 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// extra key options
 		switch keypress := msg.String(); keypress {
 		case "q", "ctrl+c", "esc":
+			if sub_model != nil {
+				var cmd tea.Cmd
+				sub_model, cmd = sub_model.Update(msg)
+				return m, cmd
+			}
 			m.quitting = true
 			selected = nil
 			return m, tea.Quit
 
 		case "enter":
+			if sub_model != nil {
+				var cmd tea.Cmd
+				sub_model, cmd = sub_model.Update(msg)
+				return m, cmd
+			}
 			m.quitting = true
 			return m, tea.Quit
 		}
@@ -241,6 +262,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
+	if sub_model != nil {
+		return sub_model.View()
+	}
 	if m.quitting {
 		return "" //quitTextStyle.Render(strings.Join(m.choice, " "))
 	}

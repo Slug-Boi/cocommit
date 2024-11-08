@@ -37,7 +37,11 @@ type model_ca struct {
 	exclude    bool
 }
 
-func createAuthorModel() model_ca {
+var parent_m *model
+
+func createAuthorModel(old_m *model) model_ca {
+	parent_m = old_m
+
 	m := model_ca{
 		inputs: make([]textinput.Model, 5),
 	}
@@ -100,11 +104,13 @@ func tempAuthorModel() model_ca {
 }
 
 func initialModel(model string) model_ca {
-	if model == "author" {
-		return createAuthorModel()
-	} else {
-		return tempAuthorModel()
-	}
+	// if model == "author" {
+	// 	return createAuthorModel()
+	// } else {
+	// 	return tempAuthorModel()
+	// }
+
+	return tempAuthorModel()
 
 }
 
@@ -118,18 +124,18 @@ func (m model_ca) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "ctrl+c", "esc":
 			m.inputs = nil
-			return m, tea.Quit
+			return nil, nil
 
 		// Set focus to next input
 		case "tab", "shift+tab", "enter", "up", "down":
 			s := msg.String()
-
 			// Did the user press enter while the submit button was focused?
 			// If so, exit.
 			if !removeButton {
 				if s == "enter" && m.focusIndex == len(m.inputs)+1 {
 					m.quitting = true
-					return m, tea.Quit
+					m.AddAuthor()
+					return model{list: parent_m.list}, tea.ClearScreen
 				} else if s == "enter" && m.focusIndex == len(m.inputs) {
 					// toggle exclude
 					m.exclude = !m.exclude
@@ -138,7 +144,7 @@ func (m model_ca) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else {
 				if s == "enter" && m.focusIndex == len(m.inputs) {
 					m.quitting = true
-					return m, tea.Quit
+					return nil, nil
 				}
 			}
 
@@ -238,6 +244,53 @@ func (m model_ca) View() string {
 	return b.String()
 }
 
+func (m *model_ca) AddAuthor() {
+	if len(m.inputs) > 0 &&
+		m.inputs[0].Value() != "" &&
+		m.inputs[1].Value() != "" &&
+		m.inputs[2].Value() != "" &&
+		m.inputs[3].Value() != "" {
+		author_file := utils.Find_authorfile()
+		f, err := os.OpenFile(author_file, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+		if err != nil {
+			panic(err)
+		}
+
+		defer f.Close()
+
+		sb := strings.Builder{}
+		sb.WriteRune('\n')
+
+		sb.WriteString(fmt.Sprintf("%s|%s|%s|%s",
+			m.inputs[0].Value(),
+			m.inputs[1].Value(),
+			m.inputs[2].Value(),
+			m.inputs[3].Value()))
+
+		if m.exclude {
+			sb.WriteString(fmt.Sprintf("|%s", "ex"))
+		}
+
+		if m.inputs[4].Value() != "" {
+			sb.WriteString(fmt.Sprintf(";;%s", m.inputs[4].Value()))
+		}
+
+		//sb.WriteRune('\n')
+
+		if _, err = f.WriteString(sb.String()); err != nil {
+			panic(err)
+		}
+		utils.Define_users(utils.Find_authorfile())
+
+		author := m.inputs[0].Value()
+
+		item_str := utils.Users[author].Username + " - " + utils.Users[author].Email
+		dupProtect[item_str] = author
+		parent_m.list.InsertItem(len(parent_m.list.Items())+1, item(item_str))
+
+	}
+}
+
 func Entry_CA() string {
 	m, err := tea.NewProgram(initialModel("author")).Run()
 	if err != nil {
@@ -287,6 +340,8 @@ func Entry_CA() string {
 }
 
 func Entry_TA() string {
+	//old_m = old_m
+
 	m, err := tea.NewProgram(initialModel("temp")).Run()
 	if err != nil {
 		fmt.Printf("could not start program: %s\n", err)
