@@ -204,15 +204,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.tempAdd):
 			screen.Clear()
 			screen.MoveTopLeft()
-			tempAuthr := Entry_TA()
-			if tempAuthr != "" {
-				split := strings.Split(tempAuthr, ":")
-				item_str := split[0] + " - " + split[1]
-				dupProtect[item_str] = tempAuthr
-				i := item(item_str)
-				m.list.InsertItem(len(m.list.Items())+1, i)
-				selectToggle(i)
-			}
+			sub_model = tempAuthorModel(&m)
 			return m, tea.ClearScreen
 
 		case key.Matches(msg, m.keys.createAuthor):

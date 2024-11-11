@@ -28,7 +28,7 @@ var (
 	excludeButton       = fmt.Sprintf("[ %s ]", blurredStyle.Render("Exclude"))
 )
 
-var removeButton bool
+var tempAuthorToggle bool
 
 type model_ca struct {
 	focusIndex int
@@ -74,7 +74,9 @@ func createAuthorModel(old_m *model) model_ca {
 	return m
 }
 
-func tempAuthorModel() model_ca {
+func tempAuthorModel(old_m *model) model_ca {
+	parent_m = old_m
+
 	m := model_ca{
 		inputs: make([]textinput.Model, 2),
 	}
@@ -98,20 +100,9 @@ func tempAuthorModel() model_ca {
 		m.inputs[i] = t
 	}
 
-	removeButton = true
+	tempAuthorToggle = true
 
 	return m
-}
-
-func initialModel(model string) model_ca {
-	// if model == "author" {
-	// 	return createAuthorModel()
-	// } else {
-	// 	return tempAuthorModel()
-	// }
-
-	return tempAuthorModel()
-
 }
 
 func (m model_ca) Init() tea.Cmd {
@@ -131,7 +122,7 @@ func (m model_ca) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			s := msg.String()
 			// Did the user press enter while the submit button was focused?
 			// If so, exit.
-			if !removeButton {
+			if !tempAuthorToggle {
 				if s == "enter" && m.focusIndex == len(m.inputs)+1 {
 					m.quitting = true
 					m.AddAuthor()
@@ -144,7 +135,8 @@ func (m model_ca) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else {
 				if s == "enter" && m.focusIndex == len(m.inputs) {
 					m.quitting = true
-					return nil, nil
+					m.TempAddAuthor()
+					return model{list: parent_m.list}, tea.ClearScreen
 				}
 			}
 
@@ -215,7 +207,7 @@ func (m model_ca) View() string {
 	//TODO: add check here for wether this button is needed
 	var exclude *string
 	var button *string
-	if !removeButton {
+	if !tempAuthorToggle {
 		exclude = &excludeButton
 		if m.focusIndex == len(m.inputs) {
 			exclude = &focusedExclude
@@ -291,70 +283,82 @@ func (m *model_ca) AddAuthor() {
 	}
 }
 
-func Entry_CA() string {
-	m, err := tea.NewProgram(initialModel("author")).Run()
-	if err != nil {
-		fmt.Printf("could not start program: %s\n", err)
-		os.Exit(1)
-	}
-
-	if len(m.(model_ca).inputs) > 0 &&
-		m.(model_ca).inputs[0].Value() != "" &&
-		m.(model_ca).inputs[1].Value() != "" &&
-		m.(model_ca).inputs[2].Value() != "" &&
-		m.(model_ca).inputs[3].Value() != "" {
-		author_file := utils.Find_authorfile()
-		f, err := os.OpenFile(author_file, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
-		if err != nil {
-			panic(err)
+func (m *model_ca) TempAddAuthor() {
+	if len(m.inputs) > 1 && m.inputs[0].Value() != "" && m.inputs[1].Value() != "" {
+		item_str := m.inputs[0].Value() + " - " + m.inputs[1].Value()
+		dupProtect[item_str] = m.inputs[0].Value() + ":" + m.inputs[1].Value()
+		i := item(item_str)
+		parent_m.list.InsertItem(len(parent_m.list.Items())+1, item(item_str))
+		selectToggle(i)
 		}
+		
 
-		defer f.Close()
-
-		sb := strings.Builder{}
-		sb.WriteRune('\n')
-
-		sb.WriteString(fmt.Sprintf("%s|%s|%s|%s",
-			m.(model_ca).inputs[0].Value(),
-			m.(model_ca).inputs[1].Value(),
-			m.(model_ca).inputs[2].Value(),
-			m.(model_ca).inputs[3].Value()))
-
-		if m.(model_ca).exclude {
-			sb.WriteString(fmt.Sprintf("|%s", "ex"))
-		}
-
-		if m.(model_ca).inputs[4].Value() != "" {
-			sb.WriteString(fmt.Sprintf(";;%s", m.(model_ca).inputs[4].Value()))
-		}
-
-		//sb.WriteRune('\n')
-
-		if _, err = f.WriteString(sb.String()); err != nil {
-			panic(err)
-		}
-		utils.Define_users(utils.Find_authorfile())
-		return m.(model_ca).inputs[0].Value()
-	}
-	return ""
 }
 
-func Entry_TA() string {
-	//old_m = old_m
+// func Entry_CA() string {
+// 	m, err := tea.NewProgram(initialModel("author")).Run()
+// 	if err != nil {
+// 		fmt.Printf("could not start program: %s\n", err)
+// 		os.Exit(1)
+// 	}
 
-	m, err := tea.NewProgram(initialModel("temp")).Run()
-	if err != nil {
-		fmt.Printf("could not start program: %s\n", err)
-		os.Exit(1)
-	}
+// 	if len(m.(model_ca).inputs) > 0 &&
+// 		m.(model_ca).inputs[0].Value() != "" &&
+// 		m.(model_ca).inputs[1].Value() != "" &&
+// 		m.(model_ca).inputs[2].Value() != "" &&
+// 		m.(model_ca).inputs[3].Value() != "" {
+// 		author_file := utils.Find_authorfile()
+// 		f, err := os.OpenFile(author_file, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+// 		if err != nil {
+// 			panic(err)
+// 		}
 
-	if len(m.(model_ca).inputs) > 0 &&
-		m.(model_ca).inputs[0].Value() != "" &&
-		m.(model_ca).inputs[1].Value() != "" {
-		utils.TempAddUser(m.(model_ca).inputs[0].Value(), m.(model_ca).inputs[1].Value())
-		return m.(model_ca).inputs[0].Value() + ":" + m.(model_ca).inputs[1].Value()
-	}
+// 		defer f.Close()
 
-	return ""
+// 		sb := strings.Builder{}
+// 		sb.WriteRune('\n')
 
-}
+// 		sb.WriteString(fmt.Sprintf("%s|%s|%s|%s",
+// 			m.(model_ca).inputs[0].Value(),
+// 			m.(model_ca).inputs[1].Value(),
+// 			m.(model_ca).inputs[2].Value(),
+// 			m.(model_ca).inputs[3].Value()))
+
+// 		if m.(model_ca).exclude {
+// 			sb.WriteString(fmt.Sprintf("|%s", "ex"))
+// 		}
+
+// 		if m.(model_ca).inputs[4].Value() != "" {
+// 			sb.WriteString(fmt.Sprintf(";;%s", m.(model_ca).inputs[4].Value()))
+// 		}
+
+// 		//sb.WriteRune('\n')
+
+// 		if _, err = f.WriteString(sb.String()); err != nil {
+// 			panic(err)
+// 		}
+// 		utils.Define_users(utils.Find_authorfile())
+// 		return m.(model_ca).inputs[0].Value()
+// 	}
+// 	return ""
+// }
+
+// func Entry_TA() string {
+// 	//old_m = old_m
+
+// 	m, err := tea.NewProgram(initialModel("temp")).Run()
+// 	if err != nil {
+// 		fmt.Printf("could not start program: %s\n", err)
+// 		os.Exit(1)
+// 	}
+
+// 	if len(m.(model_ca).inputs) > 0 &&
+// 		m.(model_ca).inputs[0].Value() != "" &&
+// 		m.(model_ca).inputs[1].Value() != "" {
+// 		utils.TempAddUser(m.(model_ca).inputs[0].Value(), m.(model_ca).inputs[1].Value())
+// 		return m.(model_ca).inputs[0].Value() + ":" + m.(model_ca).inputs[1].Value()
+// 	}
+
+// 	return ""
+
+// }
