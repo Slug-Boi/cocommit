@@ -3,6 +3,7 @@ package tui
 import (
 	"bytes"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -25,7 +26,7 @@ func setup() {
 	}
 	os.Setenv("author_file", "author_file_test")
 	envVar = os.Getenv("author_file")
-
+	
 	utils.Define_users("author_file_test")
 }
 
@@ -111,13 +112,16 @@ func TestEntryTA(t *testing.T) {
 		t.Errorf("Expected 3 inputs, got %d", len(m.list.Items()))
 	}
 
-	//TODO: read from utils.Users instead
-	// if m.inputs[0].Value() != "test" {
-	// 	t.Errorf("Expected 'test', got %s", m.inputs[0].Value())
-	// }
-	// if m.inputs[1].Value() != "testtest@temp.io" {
-	// 	t.Errorf("Expected 'testtest@temp.io', got %s", m.inputs[1].Value())
-	// }
+	item := string(m.list.Items()[len(m.list.Items())-1].(item))
+	split := strings.Split(item, " - ")
+
+	if split[0] != "test" {
+		t.Errorf("Expected 'test', got %s", split[0])
+	}
+
+	if split[1] != "testtest@temp.io" {
+		t.Errorf("Expected 'testtest@temp.io', got %s", split[1])
+	}
 }
 
 func Test_EntryCA(t *testing.T) {
@@ -142,7 +146,7 @@ func Test_EntryCA(t *testing.T) {
 		Runes: []rune("enter"),
 	})
 
-	tm.Type("testtest")
+	tm.Type("testing2")
 	tm.Send(tea.KeyMsg{
 		Type:  tea.KeyRunes,
 		Runes: []rune("enter"),
@@ -185,33 +189,32 @@ func Test_EntryCA(t *testing.T) {
 	fm := tm.FinalModel(t)
 	m, ok := fm.(model)
 	if !ok {
-		t.Errorf("Expected model_ca, got %T", fm)
+		t.Errorf("Expected model, got %T", fm)
 	}
 
 	if len(m.list.Items()) != 3 {
 		t.Errorf("Expected 3 inputs, got %d\n%v", len(m.list.Items()), m.list.Items())
 	}
 
-	// TODO: Change this to use the file instead to read and compare
-	// if m.list.Items()[len(m.list.Items())] != "test" {
-	// 	t.Errorf("Expected 'test', got %s", m.inputs[0].Value())
+
+	//TODO: For some reason the test is not writing to the author file despite working in the actual program
+	// var user utils.User
+	// utils.Define_users("author_file_test")
+	// data, _ := os.ReadFile("author_file_test")
+	// t.Errorf("Data: %s", data)	
+
+	// if _, ok := utils.Users["test"]; !ok {
+	// 	t.Errorf("Expected 'testing2' to be in the users map")
 	// }
-	// if m.inputs[1].Value() != "testtest" {
-	// 	t.Errorf("Expected 'testtest', got %s", m.inputs[1].Value())
+
+	// user = utils.Users["testing2"]
+
+	// if user.Username != "TestUser" {
+	// 	t.Errorf("Expected 'TestUser', got %s", user.Username)
 	// }
-	// if m.inputs[2].Value() != "TestUser" {
-	// 	t.Errorf("Expected 'TestUser', got %s", m.inputs[2].Value())
-	// }
-	// if m.inputs[3].Value() != "test@temp.io" {
-	// 	t.Errorf("Expected 'test@temp.io', got %s", m.inputs[2].Value())
-	// }
-	// if m.inputs[4].Value() != "gr1" {
-	// 	t.Errorf("Expected 'gr1', got %s", m.inputs[4].Value())
-	// }
-	// //No clue why the exclude tag isn't working fix later
-	// //TODO: Fix this should be !m.exclude
-	// if m.exclude {
-	// 	t.Errorf("Expected exclude to be true, got %v", m.exclude)
+
+	// if user.Email != "test@temp.io" {
+	// 	t.Errorf("Expected 'test@temp.io', got %s", user.Email)
 	// }
 
 }
@@ -395,3 +398,41 @@ func Test_EntryDeleteAuthor(t *testing.T) {
 }
 
 // tui_list TESTS END
+
+// tui_groups TESTS BEGIN
+
+func Test_GroupSelection(t *testing.T) {
+	setup()
+	defer teardown()
+
+	m := listModel()
+	tm := teatest.NewTestModel(
+		t, m, teatest.WithInitialTermSize(300, 300),
+	)
+	tm.Send(tea.KeyMsg{
+		Type:  tea.KeyRunes,
+		Runes: []rune("f"),
+	})
+
+	tm.Send(tea.KeyMsg{
+		Type:  tea.KeyRunes,
+		Runes: []rune("enter"),
+	})
+
+	tm.Send(tea.KeyMsg{
+		Type:  tea.KeyRunes,
+		Runes: []rune("enter"),
+	})
+
+	fm := tm.FinalModel(t)
+	m, ok := fm.(model)
+	if !ok {
+		t.Errorf("Expected model, got %T", fm)
+	}
+
+	if len(selected) != 1 {
+		t.Errorf("Expected 1 selected item, got %d", len(selected))
+	}
+}
+
+// tui_groups TESTS END

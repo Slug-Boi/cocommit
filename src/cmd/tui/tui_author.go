@@ -291,8 +291,6 @@ func (m *model_ca) TempAddAuthor() {
 		parent_m.list.InsertItem(len(parent_m.list.Items())+1, item(item_str))
 		selectToggle(i)
 		}
-		
-
 }
 
 // func Entry_CA() string {
