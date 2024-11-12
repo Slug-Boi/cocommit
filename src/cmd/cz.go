@@ -14,8 +14,9 @@ var czCmd = &cobra.Command{
 	Use:   "cz",
 	Short: "Allows for commitizen commit messages",
 	Long: `This command will allow the user to use commitizen to craft the commit message
-	after which the user will be able to add co-authors to the commit message. This will require
-	the user to have commitizen installed on their system.`,
+after which the user will be able to add co-authors to the commit message. This command defaults
+to the TUI author selection but flags can be used to make it use the cli syntax. 
+This will require the user to have commitizen installed on their system.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		var message string
 		var authors []string

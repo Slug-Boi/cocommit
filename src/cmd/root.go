@@ -14,12 +14,13 @@ import (
 // rootCmd represents the base command when called without any subcommands
 // func RootCmd() *cobra.Command {
 var rootCmd = &cobra.Command{
-	Use: `cocommit <commit message> <co-author1> [co-author2] ... ||
-  cocommit <commit message> <co-author1:email> [co-author2:email] ... ||
-  cocommit <commit message> all ||
-  cocommit <commit message> ^<co-author1> ^[co-author2] ... ||
-  cocommit <commit message> <group> ||
-  cocommit users ||`,
+	Use: `cocommit *Opens the TUI*
+  cocommit <commit message> <co-author1> [co-author2] ... 
+  cocommit <commit message> <co-author1:email> [co-author2:email] ... 
+  cocommit <commit message> all 
+  cocommit <commit message> ^<co-author1> ^[co-author2] ... 
+  cocommit <commit message> <group> 
+  cocommit users `,
 	DisableFlagsInUseLine: true,
 	Short:                 "A cli tool to help you add co-authors to your git commits",
 	Long:                  `A cli tool to help you add co-authors to your git commits`,

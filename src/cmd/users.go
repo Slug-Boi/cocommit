@@ -19,8 +19,8 @@ var authorfile = utils.Find_authorfile()
 func UsersCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "users",
-		Short: "Displays all users from the author file located at: " + authorfile,
-		Long:  `Displays all users from the author file located at: ` + authorfile,
+		Short: "Displays all users from the author file located at:\n" + authorfile,
+		Long:  `Displays all users from the author file located at:` + "\n" + authorfile,
 		Run: func(cmd *cobra.Command, args []string) {
 			//TODO: make this print a bit prettier (sort it and maybe use a table)
 			// check if the no pretty print flag is set
