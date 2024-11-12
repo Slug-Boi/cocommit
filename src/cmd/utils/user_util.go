@@ -18,6 +18,9 @@ var DefExclude = []string{}
 var Groups = map[string][]User{}
 
 func Define_users(author_file string) {
+	// wipe the users map
+	Users = map[string]User{}
+
 	file, err := os.Open(author_file)
 	if err != nil {
 		print("File not found")
