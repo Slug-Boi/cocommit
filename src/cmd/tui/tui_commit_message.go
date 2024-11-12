@@ -61,7 +61,10 @@ type model_cm struct {
 
 func initialModel_cm() model_cm {
 	ti := textarea.New()
-	ti.FocusedStyle = textarea.Style{Base: lipgloss.NewStyle().Foreground(lipgloss.Color("170"))}
+	ti.FocusedStyle = textarea.Style{
+						Base: lipgloss.NewStyle().Foreground(lipgloss.Color("170")),
+						LineNumber: lipgloss.NewStyle().Foreground(lipgloss.Color("90")),
+					}
 	ti.SetWidth(80)
 	ti.SetHeight(8)
 

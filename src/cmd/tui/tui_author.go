@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	focusedStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+	focusedStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("170"))
 	blurredStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
 	cursorStyle         = focusedStyle
 	noStyle             = lipgloss.NewStyle()
@@ -231,7 +231,7 @@ func (m model_ca) View() string {
 
 	fmt.Fprintf(&b, "\n\n%s\n\n", *button)
 
-	b.WriteString(cursorModeHelpStyle.Render())
+	//b.WriteString(cursorModeHelpStyle.Render())
 
 	return b.String()
 }

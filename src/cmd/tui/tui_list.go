@@ -19,10 +19,10 @@ const listHeight = 14
 
 var (
 	titleStyle             = lipgloss.NewStyle().MarginLeft(2)
-	itemStyle              = lipgloss.NewStyle().PaddingLeft(4)
+	itemStyle              = lipgloss.NewStyle().PaddingLeft(4).Foreground(lipgloss.Color("170"))
 	selectedItemStyle      = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("170"))
-	highlightStyle         = lipgloss.NewStyle().PaddingLeft(4).Background(lipgloss.Color("236")).Foreground(lipgloss.Color("17"))
-	selectedHighlightStyle = lipgloss.NewStyle().PaddingLeft(2).Background(lipgloss.Color("236")).Foreground(lipgloss.Color("170"))
+	highlightStyle         = lipgloss.NewStyle().PaddingLeft(4).Background(lipgloss.Color("236")).Foreground(lipgloss.Color("170"))
+	selectedHighlightStyle = lipgloss.NewStyle().PaddingLeft(2).Background(lipgloss.Color("206")).Foreground(lipgloss.Color("90"))
 	deletionStyle          = lipgloss.NewStyle().MarginLeft(2).Foreground(lipgloss.Color("9"))
 	paginationStyle        = list.DefaultStyles().PaginationStyle.PaddingLeft(4)
 	helpStyle              = list.DefaultStyles().HelpStyle.PaddingLeft(4).PaddingBottom(1)
