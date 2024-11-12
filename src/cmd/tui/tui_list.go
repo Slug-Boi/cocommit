@@ -2,8 +2,8 @@ package tui
 
 import (
 	"fmt"
+	"github.com/Slug-Boi/cocommit/src/cmd/utils"
 	"io"
-	"github.com/Slug-Boi/cocommit/src_code/go_src/cmd/utils"
 	"os"
 	"sort"
 	"strings"
@@ -23,7 +23,7 @@ var (
 	selectedItemStyle      = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("170"))
 	highlightStyle         = lipgloss.NewStyle().PaddingLeft(4).Background(lipgloss.Color("236")).Foreground(lipgloss.Color("17"))
 	selectedHighlightStyle = lipgloss.NewStyle().PaddingLeft(2).Background(lipgloss.Color("236")).Foreground(lipgloss.Color("170"))
-	deletionStyle 		   = lipgloss.NewStyle().MarginLeft(2).Foreground(lipgloss.Color("9"))
+	deletionStyle          = lipgloss.NewStyle().MarginLeft(2).Foreground(lipgloss.Color("9"))
 	paginationStyle        = list.DefaultStyles().PaginationStyle.PaddingLeft(4)
 	helpStyle              = list.DefaultStyles().HelpStyle.PaddingLeft(4).PaddingBottom(1)
 	//quitTextStyle     = lipgloss.NewStyle().Margin(1, 0, 2, 4)
@@ -36,6 +36,8 @@ var selected = map[string]item{}
 var negation = false
 
 var dupProtect = map[string]string{}
+
+var sub_model tea.Model
 
 type listKeyMap struct {
 	selectAll    key.Binding
@@ -146,7 +148,18 @@ func toggleNegation() {
 
 var deletion bool
 
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {	
+func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if sub_model != nil {
+		var cmd tea.Cmd
+		sub_model, cmd = sub_model.Update(msg)
+		if sub_model_mod, ok := sub_model.(model); ok {
+			m.list = sub_model_mod.list
+			sub_model = nil
+			return m, nil
+		}
+		return m, cmd
+	}
+
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.list.SetWidth(msg.Width)
@@ -156,7 +169,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		// deletion toggle with confirmation required
 		b := false
-		defer func(b *bool){deletion = *b}(&b)
+		defer func(b *bool) { deletion = *b }(&b)
 		if m.list.FilterState() == list.Filtering {
 			break
 		}
@@ -183,31 +196,21 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case key.Matches(msg, m.keys.groupSelect):
-			// group code goes here
+			// TODO: Look into how to select multiple groups
+			sub_model = newModel()
+			//group := Entry_GR()
+			return m, tea.ClearScreen
 
 		case key.Matches(msg, m.keys.tempAdd):
 			screen.Clear()
 			screen.MoveTopLeft()
-			tempAuthr := Entry_TA()
-			if tempAuthr != "" {
-				split := strings.Split(tempAuthr, ":")
-				item_str := split[0] + " - " + split[1]
-				dupProtect[item_str] = tempAuthr
-				i := item(item_str)
-				m.list.InsertItem(len(m.list.Items())+1, i)
-				selectToggle(i)
-			}
+			sub_model = tempAuthorModel(&m)
 			return m, tea.ClearScreen
 
 		case key.Matches(msg, m.keys.createAuthor):
 			screen.Clear()
 			screen.MoveTopLeft()
-			author := Entry_CA()
-			if author != "" {
-				item_str := utils.Users[author].Username + " - " + utils.Users[author].Email
-				dupProtect[item_str] = author
-				m.list.InsertItem(len(m.list.Items())+1, item(item_str))
-			}
+			sub_model = createAuthorModel(&m)
 			return m, tea.ClearScreen
 		case key.Matches(msg, m.keys.deleteAuthor):
 			if deletion {
@@ -224,11 +227,21 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// extra key options
 		switch keypress := msg.String(); keypress {
 		case "q", "ctrl+c", "esc":
+			if sub_model != nil {
+				var cmd tea.Cmd
+				sub_model, cmd = sub_model.Update(msg)
+				return m, cmd
+			}
 			m.quitting = true
 			selected = nil
 			return m, tea.Quit
 
 		case "enter":
+			if sub_model != nil {
+				var cmd tea.Cmd
+				sub_model, cmd = sub_model.Update(msg)
+				return m, cmd
+			}
 			m.quitting = true
 			return m, tea.Quit
 		}
@@ -241,6 +254,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
+	if sub_model != nil {
+		return sub_model.View()
+	}
 	if m.quitting {
 		return "" //quitTextStyle.Render(strings.Join(m.choice, " "))
 	}
@@ -301,6 +317,7 @@ func listModel() model {
 				listKeys.negation,
 				listKeys.groupSelect,
 				listKeys.createAuthor,
+				listKeys.tempAdd,
 			}
 		}
 	l.Styles.HelpStyle = helpStyle

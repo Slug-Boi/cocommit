@@ -18,6 +18,11 @@ var DefExclude = []string{}
 var Groups = map[string][]User{}
 
 func Define_users(author_file string) {
+	// wipe the users map
+	Users = map[string]User{}
+	DefExclude = []string{}
+	Groups = map[string][]User{}
+
 	file, err := os.Open(author_file)
 	if err != nil {
 		print("File not found")
@@ -57,7 +62,8 @@ func Define_users(author_file string) {
 			if info[4] == "ex" {
 				DefExclude = append(DefExclude, info[2])
 			}
-		} else if len(group_info) > 0 {
+		}
+		if len(group_info) > 0 {
 			// Group assignment
 			for _, group := range group_info {
 				if Groups[group] == nil {
@@ -89,4 +95,3 @@ func TempAddUser(username, email string) {
 
 	Users[username] = usr
 }
-

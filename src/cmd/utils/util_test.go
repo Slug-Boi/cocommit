@@ -1,7 +1,7 @@
 package utils_test
 
 import (
-	"github.com/Slug-Boi/cocommit/src_code/go_src/cmd/utils"
+	"github.com/Slug-Boi/cocommit/src/cmd/utils"
 	"os"
 	"testing"
 )

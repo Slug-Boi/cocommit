@@ -36,8 +36,31 @@ func CheckAuthorFile() string {
 			println("Error reading response")
 		}
 		if response == "y" {
-			//TODO: Tui response to create author file
-			//createAuthorFile(authorfile)
+			if authorfile == "" {
+				fmt.Println("author_file environment variable not set using default location:")
+				config, err := os.UserConfigDir()
+				if err != nil {
+					fmt.Println("Error getting user config directory")
+					os.Exit(1)
+				}
+				authorfile = config + "/cocommit/authors"
+				fmt.Println(authorfile)
+			}
+
+			// create the author file
+			file, err := os.Create(authorfile)
+			if err != nil {
+				fmt.Println("Error creating file: ", err)
+				os.Exit(1)
+			}
+
+			defer file.Close()
+
+			// write the header to the file
+			file.WriteString("Syntax: name_short|Name|Username|email (opt: |ex) (opt: ;;group1|group2|group3...)\n")
+
+			fmt.Println("Author file created. To add authors please launch the TUI with -a  and press 'C'")
+
 		} else {
 			os.Exit(1)
 		}
@@ -59,14 +82,14 @@ func DeleteOneAuthor(author string) {
 	defer file.Close()
 
 	// create regex to capture author line
-	regexp, err := regexp.Compile(fmt.Sprintf("^(.+\\|%s\\|.+|%s\\|.+\\|.+)$",author,author))
+	regexp, err := regexp.Compile(fmt.Sprintf("^(.+\\|%s\\|.+|%s\\|.+\\|.+)$", author, author))
 	if err != nil {
 		fmt.Println("Error compiling regex: ", err)
 		return
 	}
-	
+
 	var b []byte
-    buf := bytes.NewBuffer(b)
+	buf := bytes.NewBuffer(b)
 
 	// create a scanner for the file
 	scanner := bufio.NewScanner(file)
@@ -85,10 +108,10 @@ func DeleteOneAuthor(author string) {
 
 	}
 	// remove the last newline character
-	buf.Truncate(buf.Len()-1)
+	buf.Truncate(buf.Len() - 1)
 
 	file.Truncate(0)
-	file.Seek(0,0)
+	file.Seek(0, 0)
 	buf.WriteTo(file)
 
 	RemoveUser(author)

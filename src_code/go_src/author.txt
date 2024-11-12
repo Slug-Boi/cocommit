@@ -1,1 +1,0 @@
-Syntax: name_short|Name|Username|email (opt: |ex) (opt: ;;group1|group2|group3...)     !!Remember to set the env var authors_file!!
