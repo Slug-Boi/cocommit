@@ -111,7 +111,20 @@ func (m mainModel) View() string {
 			squares = append(squares, modelStyle.Render(c))
 		}
 	}
+	// Take the first 5 elements and join them horizontally
+	// then take the next 5 and join them horizontally if there are more than 5
+	// then join vertically
+	//TODO: Figure out what width is measured in and tie the number 5 to a variable that
+	// is width_of_term/item_width
+	for len(squares) > 5 {
+		s += lipgloss.JoinHorizontal(lipgloss.Top, squares[:5]...)
+		s += "\n"
+		squares = squares[5:]
+	}
+
 	s += lipgloss.JoinHorizontal(lipgloss.Top, squares...)
+
+	//s += lipgloss.JoinHorizontal(lipgloss.Top, squares...)
 
 	s += helpStyle.Render("\ntab/right: focus next • left: focus previous • enter: select group • q/esq: exit\n")
 	return s
