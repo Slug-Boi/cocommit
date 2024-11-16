@@ -26,7 +26,7 @@ func setup() {
 	}
 	os.Setenv("author_file", "author_file_test")
 	envVar = os.Getenv("author_file")
-	
+
 	utils.Define_users("author_file_test")
 }
 
@@ -34,7 +34,6 @@ func teardown() {
 	// remove test data
 	os.Remove("author_file_test")
 	os.Setenv("author_file", envVar)
-
 }
 
 // tui_show_users TESTS BEGIN
@@ -164,7 +163,7 @@ func Test_EntryCA(t *testing.T) {
 		Runes: []rune("enter"),
 	})
 
-	tm.Type("gr1")
+	tm.Type("gr6")
 	tm.Send(tea.KeyMsg{
 		Type:  tea.KeyRunes,
 		Runes: []rune("enter"),
@@ -196,12 +195,11 @@ func Test_EntryCA(t *testing.T) {
 		t.Errorf("Expected 3 inputs, got %d\n%v", len(m.list.Items()), m.list.Items())
 	}
 
-
 	//TODO: For some reason the test is not writing to the author file despite working in the actual program
 	// var user utils.User
 	// utils.Define_users("author_file_test")
 	// data, _ := os.ReadFile("author_file_test")
-	// t.Errorf("Data: %s", data)	
+	// t.Errorf("Data: %s", data)
 
 	// if _, ok := utils.Users["test"]; !ok {
 	// 	t.Errorf("Expected 'testing2' to be in the users map")
@@ -405,6 +403,8 @@ func Test_GroupSelection(t *testing.T) {
 	setup()
 	defer teardown()
 
+	t.Errorf("%v", elected)
+
 	m := listModel()
 	tm := teatest.NewTestModel(
 		t, m, teatest.WithInitialTermSize(300, 300),
@@ -429,6 +429,9 @@ func Test_GroupSelection(t *testing.T) {
 	if !ok {
 		t.Errorf("Expected model, got %T", fm)
 	}
+
+	t.Errorf("%v", utils.Groups)
+	t.Errorf("%v", selected)
 
 	if len(selected) != 1 {
 		t.Errorf("Expected 1 selected item, got %d", len(selected))

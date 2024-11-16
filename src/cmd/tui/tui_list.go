@@ -198,7 +198,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.groupSelect):
 			// TODO: Look into how to select multiple groups
 			sub_model = newModel()
-			//group := Entry_GR()
 			return m, tea.ClearScreen
 
 		case key.Matches(msg, m.keys.tempAdd):
