@@ -403,8 +403,6 @@ func Test_GroupSelection(t *testing.T) {
 	setup()
 	defer teardown()
 
-	t.Errorf("%v", elected)
-
 	m := listModel()
 	tm := teatest.NewTestModel(
 		t, m, teatest.WithInitialTermSize(300, 300),
@@ -429,9 +427,6 @@ func Test_GroupSelection(t *testing.T) {
 	if !ok {
 		t.Errorf("Expected model, got %T", fm)
 	}
-
-	t.Errorf("%v", utils.Groups)
-	t.Errorf("%v", selected)
 
 	if len(selected) != 1 {
 		t.Errorf("Expected 1 selected item, got %d", len(selected))
