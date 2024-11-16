@@ -1,7 +1,6 @@
 package tui
 
 import (
-	"log"
 	"slices"
 	"strings"
 
@@ -76,11 +75,13 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					delete(selected, string(sel))
 				}
 				users := utils.Groups[group]
+				//TODO: this may be able to be done in a more efficient way currently this would scale poorly
 				for k, v := range dupProtect {
 					if _, ok := selected[k]; !ok {
 						for _, user := range users {
-							if strings.Contains(user.Names, v) {
-								selected[k] = item(k)
+							split := strings.Split(user.Names, "/")
+							if split[0] == v || split[1] == v {
+								selectToggle(item(k))
 							}
 						}
 					}
@@ -143,19 +144,4 @@ func (m *mainModel) Next() {
 	} else {
 		m.index++
 	}
-}
-
-func Entry_GR() string {
-	p := tea.NewProgram(newModel())
-
-	m, err := p.Run()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if m.(mainModel).currentFocusedModel() != "" {
-		// returns the group name
-		return strings.Split(m.(mainModel).currentFocusedModel(), ":")[0]
-	}
-	return ""
 }
