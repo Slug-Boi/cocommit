@@ -2,17 +2,17 @@ package tui
 
 import (
 	"fmt"
-	"github.com/Slug-Boi/cocommit/src/cmd/utils"
 	"io"
 	"os"
 	"sort"
 	"strings"
 
+	"github.com/Slug-Boi/cocommit/src/cmd/utils"
+
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/inancgumus/screen"
 )
 
 const listHeight = 14
@@ -201,14 +201,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.ClearScreen
 
 		case key.Matches(msg, m.keys.tempAdd):
-			screen.Clear()
-			screen.MoveTopLeft()
+
 			sub_model = tempAuthorModel(&m)
 			return m, tea.ClearScreen
 
 		case key.Matches(msg, m.keys.createAuthor):
-			screen.Clear()
-			screen.MoveTopLeft()
+
 			sub_model = createAuthorModel(&m)
 			return m, tea.ClearScreen
 		case key.Matches(msg, m.keys.deleteAuthor):
