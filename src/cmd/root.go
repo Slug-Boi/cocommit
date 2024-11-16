@@ -49,6 +49,10 @@ var rootCmd = &cobra.Command{
 			screen.MoveTopLeft()
 			sel_auth := tui.Entry()
 			message = utils.Commit(args[0], sel_auth)
+			if tflag {
+				fmt.Println(message)
+				return
+			}
 			goto tui
 		case 1:
 			if len(args) == 1 {
