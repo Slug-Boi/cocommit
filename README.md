@@ -42,7 +42,8 @@ $ cocommit
 ```
 From here you will be asked to write a commit message and then select authors from a list. This creates the same message as the CLI way of doing it but is a bit nicer to work with. The TUI has lots of keybinds that can be seen on the list view by pressing `?`. You can create authors, add temp authors or do all of the usual selections like negated selections or select all. Below is a small video showing a run through of the TUI.
 
-<a href="https://asciinema.org/a/OFRu5t0A2cSugw49VV6GvumyF" target="_blank"><img src="https://asciinema.org/a/OFRu5t0A2cSugw49VV6GvumyF.svg" /></a>
+<a href="https://asciinema.org/a/OFRu5t0A2cSugw49VV6GvumyF" target="_blank"><img src="imgs/cocommit_demo.svg" /></a>
+^click me for video with timestamps^
 
 ### CLI
 
