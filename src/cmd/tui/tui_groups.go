@@ -7,6 +7,7 @@ import (
 	"github.com/Slug-Boi/cocommit/src/cmd/utils"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/x/term"
 )
 
 // sessionState is used to track which model is focused
@@ -117,10 +118,16 @@ func (m mainModel) View() string {
 	// then join vertically
 	//TODO: Figure out what width is measured in and tie the number 5 to a variable that
 	// is width_of_term/item_width
-	for len(squares) > 5 {
-		s += lipgloss.JoinHorizontal(lipgloss.Top, squares[:5]...)
+	w, _, err := term.GetSize(0)
+	if err != nil {
+		panic(err)
+	}
+	// 30 is a magic number don't question it
+	cap := w / 30
+	for len(squares) > cap {
+		s += lipgloss.JoinHorizontal(lipgloss.Top, squares[:cap]...)
 		s += "\n"
-		squares = squares[5:]
+		squares = squares[cap:]
 	}
 
 	s += lipgloss.JoinHorizontal(lipgloss.Top, squares...)
