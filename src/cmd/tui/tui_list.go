@@ -2,17 +2,17 @@ package tui
 
 import (
 	"fmt"
-	"github.com/Slug-Boi/cocommit/src/cmd/utils"
 	"io"
 	"os"
 	"sort"
 	"strings"
 
+	"github.com/Slug-Boi/cocommit/src/cmd/utils"
+
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/inancgumus/screen"
 )
 
 const listHeight = 14
@@ -25,8 +25,8 @@ var (
 	selectedHighlightStyle = lipgloss.NewStyle().PaddingLeft(2).Background(lipgloss.Color("206")).Foreground(lipgloss.Color("90"))
 	deletionStyle          = lipgloss.NewStyle().MarginLeft(2).Foreground(lipgloss.Color("9"))
 	paginationStyle        = list.DefaultStyles().PaginationStyle.PaddingLeft(4)
+	ActivePaginationDot    = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "170", Dark: "170"})
 	helpStyle              = list.DefaultStyles().HelpStyle.PaddingLeft(4).PaddingBottom(1)
-	//quitTextStyle     = lipgloss.NewStyle().Margin(1, 0, 2, 4)
 )
 
 type item string
@@ -201,14 +201,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.ClearScreen
 
 		case key.Matches(msg, m.keys.tempAdd):
-			screen.Clear()
-			screen.MoveTopLeft()
+
 			sub_model = tempAuthorModel(&m)
 			return m, tea.ClearScreen
 
 		case key.Matches(msg, m.keys.createAuthor):
-			screen.Clear()
-			screen.MoveTopLeft()
+
 			sub_model = createAuthorModel(&m)
 			return m, tea.ClearScreen
 		case key.Matches(msg, m.keys.deleteAuthor):
@@ -303,6 +301,7 @@ func listModel() model {
 	l.SetFilteringEnabled(true) // Enable filtering
 	l.Styles.Title = titleStyle
 	l.Styles.PaginationStyle = paginationStyle
+	l.Paginator.ActiveDot = ActivePaginationDot.Render("•")
 	l.AdditionalShortHelpKeys = // Add help keys (main page)
 		func() []key.Binding {
 			return []key.Binding{

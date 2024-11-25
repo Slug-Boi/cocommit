@@ -14,7 +14,6 @@ import (
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/inancgumus/screen"
 )
 
 type KeyMap struct {
@@ -43,8 +42,7 @@ func Entry_CM() string {
 		log.Fatal(err)
 	}
 	if m.(model_cm).textarea.Value() == "" {
-		screen.Clear()
-		screen.MoveTopLeft()
+
 		fmt.Println("No commit message provided. Exiting...")
 		os.Exit(0)
 	}
@@ -62,9 +60,9 @@ type model_cm struct {
 func initialModel_cm() model_cm {
 	ti := textarea.New()
 	ti.FocusedStyle = textarea.Style{
-						Base: lipgloss.NewStyle().Foreground(lipgloss.Color("170")),
-						LineNumber: lipgloss.NewStyle().Foreground(lipgloss.Color("90")),
-					}
+		Base:       lipgloss.NewStyle().Foreground(lipgloss.Color("170")),
+		LineNumber: lipgloss.NewStyle().Foreground(lipgloss.Color("90")),
+	}
 	ti.SetWidth(80)
 	ti.SetHeight(8)
 

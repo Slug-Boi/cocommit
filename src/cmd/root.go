@@ -6,8 +6,8 @@ import (
 
 	"github.com/Slug-Boi/cocommit/src/cmd/tui"
 	"github.com/Slug-Boi/cocommit/src/cmd/utils"
-
 	"github.com/inancgumus/screen"
+
 	"github.com/spf13/cobra"
 )
 

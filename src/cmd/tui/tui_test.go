@@ -13,7 +13,7 @@ import (
 )
 
 const author_data = `syntax for the test file
-te|testing|TestUser|test@test.test|ex
+te|testing|TestUser|test@test.test|ex;;gr0
 ti|testtest|UserName2|testing@user.io;;gr1`
 
 var envVar string
@@ -36,6 +36,13 @@ func teardown() {
 	os.Setenv("author_file", envVar)
 }
 
+func keyPress(tm *teatest.TestModel, key string) {
+	tm.Send(tea.KeyMsg{
+		Type:  tea.KeyRunes,
+		Runes: []rune(key),
+	})
+}
+
 // tui_show_users TESTS BEGIN
 func TestShowUser(t *testing.T) {
 	setup()
@@ -50,10 +57,7 @@ func TestShowUser(t *testing.T) {
 		return bytes.Contains(bts, []byte("syntax for the test file"))
 	}, teatest.WithCheckInterval(time.Millisecond*100), teatest.WithDuration(time.Second*2))
 
-	tm.Send(tea.KeyMsg{
-		Type:  tea.KeyRunes,
-		Runes: []rune("q"),
-	})
+	keyPress(tm, "q")
 
 	tm.WaitFinished(t, teatest.WithFinalTimeout(time.Second))
 
@@ -72,34 +76,19 @@ func TestEntryTA(t *testing.T) {
 	tm := teatest.NewTestModel(
 		t, m, teatest.WithInitialTermSize(300, 300),
 	)
-	tm.Send(tea.KeyMsg{
-		Type:  tea.KeyRunes,
-		Runes: []rune("T"),
-	})
+	keyPress(tm, "T")
 
 	tm.Type("test")
 
-	tm.Send(tea.KeyMsg{
-		Type:  tea.KeyRunes,
-		Runes: []rune("enter"),
-	})
+	keyPress(tm, "enter")
 
 	tm.Type("testtest@temp.io")
 
-	tm.Send(tea.KeyMsg{
-		Type:  tea.KeyRunes,
-		Runes: []rune("enter"),
-	})
+	keyPress(tm, "enter")
 
-	tm.Send(tea.KeyMsg{
-		Type:  tea.KeyRunes,
-		Runes: []rune("enter"),
-	})
+	keyPress(tm, "enter")
 
-	tm.Send(tea.KeyMsg{
-		Type:  tea.KeyRunes,
-		Runes: []rune("esc"),
-	})
+	keyPress(tm, "esc")
 
 	fm := tm.FinalModel(t)
 	m, ok := fm.(model)
@@ -133,57 +122,27 @@ func Test_EntryCA(t *testing.T) {
 	tm := teatest.NewTestModel(
 		t, m, teatest.WithInitialTermSize(300, 300),
 	)
-	tm.Send(tea.KeyMsg{
-		Type:  tea.KeyRunes,
-		Runes: []rune("C"),
-	})
+	keyPress(tm, "C")
 
 	tm.Type("test")
 
-	tm.Send(tea.KeyMsg{
-		Type:  tea.KeyRunes,
-		Runes: []rune("enter"),
-	})
+	keyPress(tm, "enter")
 
 	tm.Type("testing2")
-	tm.Send(tea.KeyMsg{
-		Type:  tea.KeyRunes,
-		Runes: []rune("enter"),
-	})
+	keyPress(tm, "enter")
 
 	tm.Type("TestUser")
-	tm.Send(tea.KeyMsg{
-		Type:  tea.KeyRunes,
-		Runes: []rune("enter"),
-	})
+	keyPress(tm, "enter")
 
 	tm.Type("test@temp.io")
-	tm.Send(tea.KeyMsg{
-		Type:  tea.KeyRunes,
-		Runes: []rune("enter"),
-	})
+	keyPress(tm, "enter")
 
 	tm.Type("gr6")
-	tm.Send(tea.KeyMsg{
-		Type:  tea.KeyRunes,
-		Runes: []rune("enter"),
-	})
-	tm.Send(tea.KeyMsg{
-		Type:  tea.KeyRunes,
-		Runes: []rune("enter"),
-	})
-	tm.Send(tea.KeyMsg{
-		Type:  tea.KeyRunes,
-		Runes: []rune("tab"),
-	})
-	tm.Send(tea.KeyMsg{
-		Type:  tea.KeyRunes,
-		Runes: []rune("enter"),
-	})
-	tm.Send(tea.KeyMsg{
-		Type:  tea.KeyRunes,
-		Runes: []rune("esc"),
-	})
+	keyPress(tm, "enter")
+	keyPress(tm, "enter")
+	keyPress(tm, "tab")
+	keyPress(tm, "enter")
+	keyPress(tm, "esc")
 
 	fm := tm.FinalModel(t)
 	m, ok := fm.(model)
@@ -230,10 +189,7 @@ func Test_EntryCM(t *testing.T) {
 	)
 	tm.Type("test commit message")
 
-	tm.Send(tea.KeyMsg{
-		Type:  tea.KeyRunes,
-		Runes: []rune("enter"),
-	})
+	keyPress(tm, "enter")
 
 	fm := tm.FinalModel(t)
 	m, ok := fm.(model_cm)
@@ -259,15 +215,9 @@ func Test_EntrySelectUsers(t *testing.T) {
 	tm := teatest.NewTestModel(
 		t, m, teatest.WithInitialTermSize(300, 300),
 	)
-	tm.Send(tea.KeyMsg{
-		Type:  tea.KeyRunes,
-		Runes: []rune(" "),
-	})
+	keyPress(tm, " ")
 
-	tm.Send(tea.KeyMsg{
-		Type:  tea.KeyRunes,
-		Runes: []rune("enter"),
-	})
+	keyPress(tm, "enter")
 
 	fm := tm.FinalModel(t)
 	m, ok := fm.(model)
@@ -295,15 +245,9 @@ func Test_EntrySelectAll(t *testing.T) {
 	tm := teatest.NewTestModel(
 		t, m, teatest.WithInitialTermSize(300, 300),
 	)
-	tm.Send(tea.KeyMsg{
-		Type:  tea.KeyRunes,
-		Runes: []rune("A"),
-	})
+	keyPress(tm, "A")
 
-	tm.Send(tea.KeyMsg{
-		Type:  tea.KeyRunes,
-		Runes: []rune("enter"),
-	})
+	keyPress(tm, "enter")
 
 	fm := tm.FinalModel(t)
 	m, ok := fm.(model)
@@ -330,15 +274,9 @@ func Test_EntryNegation(t *testing.T) {
 	tm := teatest.NewTestModel(
 		t, m, teatest.WithInitialTermSize(300, 300),
 	)
-	tm.Send(tea.KeyMsg{
-		Type:  tea.KeyRunes,
-		Runes: []rune("n"),
-	})
+	keyPress(tm, "n")
 
-	tm.Send(tea.KeyMsg{
-		Type:  tea.KeyRunes,
-		Runes: []rune("enter"),
-	})
+	keyPress(tm, "enter")
 
 	fm := tm.FinalModel(t)
 	m, ok := fm.(model)
@@ -365,20 +303,11 @@ func Test_EntryDeleteAuthor(t *testing.T) {
 	tm := teatest.NewTestModel(
 		t, m, teatest.WithInitialTermSize(300, 300),
 	)
-	tm.Send(tea.KeyMsg{
-		Type:  tea.KeyRunes,
-		Runes: []rune("D"),
-	})
+	keyPress(tm, "D")
 
-	tm.Send(tea.KeyMsg{
-		Type:  tea.KeyRunes,
-		Runes: []rune("D"),
-	})
+	keyPress(tm, "D")
 
-	tm.Send(tea.KeyMsg{
-		Type:  tea.KeyRunes,
-		Runes: []rune("enter"),
-	})
+	keyPress(tm, "enter")
 
 	fm := tm.FinalModel(t)
 	m, ok := fm.(model)
@@ -407,20 +336,11 @@ func Test_GroupSelection(t *testing.T) {
 	tm := teatest.NewTestModel(
 		t, m, teatest.WithInitialTermSize(300, 300),
 	)
-	tm.Send(tea.KeyMsg{
-		Type:  tea.KeyRunes,
-		Runes: []rune("f"),
-	})
+	keyPress(tm, "f")
 
-	tm.Send(tea.KeyMsg{
-		Type:  tea.KeyRunes,
-		Runes: []rune("enter"),
-	})
+	keyPress(tm, "enter")
 
-	tm.Send(tea.KeyMsg{
-		Type:  tea.KeyRunes,
-		Runes: []rune("enter"),
-	})
+	keyPress(tm, "enter")
 
 	fm := tm.FinalModel(t)
 	m, ok := fm.(model)
@@ -429,7 +349,31 @@ func Test_GroupSelection(t *testing.T) {
 	}
 
 	if len(selected) != 1 {
-		t.Errorf("Expected 1 selected item, got %d", len(selected))
+		t.Errorf("Expected not 1 selected item, got %d", len(selected))
+	}
+}
+
+func Test_pagination(t *testing.T) {
+	setup()
+	defer teardown()
+
+	m := mainModel{}
+	
+	tm := teatest.NewTestModel(
+		t, m, teatest.WithInitialTermSize(25, 25),
+	)
+
+	keyPress(tm, "right")
+	tm.Quit()
+
+	fm := tm.FinalModel(t)
+	m, ok := fm.(mainModel)
+	if !ok {
+		t.Errorf("Expected model, got %T", fm)
+	}
+
+	if m.paginator.Page != 1 {
+		t.Errorf("Expected page 1, got %d", m.paginator.Page)
 	}
 }
 
