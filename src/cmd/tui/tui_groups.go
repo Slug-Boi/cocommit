@@ -53,7 +53,7 @@ func newModel() mainModel {
 	slices.Sort(content)
 
 	// check if terminal 0 is a terminal
-	var w,h int
+	var w, h int
 	var err error
 	if ok := term.IsTerminal(0); ok {
 		// calculate term size
@@ -63,14 +63,14 @@ func newModel() mainModel {
 		}
 	}
 
-	// 25 is a magic number in terms of height but is roughly based on the element height 
+	// 25 is a magic number in terms of height but is roughly based on the element height
 	// of the group squares
 	if h > 25 {
 		lines = 2
 	} else {
 		lines = 1
 	}
-	
+
 	// if the terminal size is 0, then skip
 	if w > 0 {
 		// 30 is a magic number don't question it
@@ -78,7 +78,7 @@ func newModel() mainModel {
 	}
 	cap = max(1, cap)
 
-	if cap * 2 > len(content) {
+	if cap*2 > len(content) {
 		cap = len(content)
 	}
 
@@ -88,6 +88,10 @@ func newModel() mainModel {
 	p.InactiveDot = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "250", Dark: "238"}).Render("•")
 	p.PerPage = cap * lines
 	p.SetTotalPages(len(content))
+
+	if len(content) == 0 {
+		content = append(content, "No groups found")
+	}
 
 	m := mainModel{content: content, paginator: p}
 	return m
@@ -138,7 +142,11 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	// Adrian is a fucking genius thanks for the idea :)
-	m.paginator.Page = m.index / (cap * lines)
+	if m.index == 0 {
+		m.paginator.Page = 0
+	} else {
+		m.paginator.Page = m.index / (cap * lines)
+	}
 	cmds = append(cmds, cmd)
 
 	return m, tea.Batch(cmds...)
