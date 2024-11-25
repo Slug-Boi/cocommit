@@ -35,22 +35,24 @@ func main() {
 	// set the working directory in the container
 	// install application dependencies
 	runner := source.WithWorkdir("/src_d/src/").
-		WithExec([]string{"go", "mod", "tidy"})
+		WithExec([]string{"go", "mod", "tidy"}).WithEnvVariable("CI", "true")
 
 	// run application tests
-	test := runner.WithWorkdir("/src_d/src/").WithExec([]string{"go", "test", "./..."}).WithEnvVariable("CI", "true")
-	
+	test := runner.WithWorkdir("/src_d/src/").WithExec([]string{"go", "test", "./..."})
+	//.WithEnvVariable("CI", "true")
+
 	buildDir := test.Directory("/src/")
 
 	for _, goos := range geese {
 		path := fmt.Sprintf("/dist/")
-		filename := fmt.Sprintf("/dist/cocommit_go-%s", goos) 
+		filename := fmt.Sprintf("/dist/cocommit_go-%s", goos)
 		// build application
 		// write the build output to the host
 		build := test.
 			WithEnvVariable("GOOS", goos).
 			WithEnvVariable("GOARCH", goarch).
-			WithExec([]string{"go", "build", "-o", filename}).WithEnvVariable("CI", "true")
+			WithExec([]string{"go", "build", "-o", filename})
+			//.WithEnvVariable("CI", "true")
 
 		buildDir = buildDir.WithDirectory(path, build.Directory(path))
 
