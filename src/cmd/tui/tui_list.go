@@ -171,6 +171,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		b := false
 		defer func(b *bool) { deletion = *b }(&b)
 		if m.list.FilterState() == list.Filtering {
+			switch msg.String() {
+			case "ctrl+c":
+				selected = nil
+				return m, tea.Quit
+			}
 			break
 		}
 		// Handle keys from keyList (help menu)
