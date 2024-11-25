@@ -25,8 +25,8 @@ var (
 	selectedHighlightStyle = lipgloss.NewStyle().PaddingLeft(2).Background(lipgloss.Color("206")).Foreground(lipgloss.Color("90"))
 	deletionStyle          = lipgloss.NewStyle().MarginLeft(2).Foreground(lipgloss.Color("9"))
 	paginationStyle        = list.DefaultStyles().PaginationStyle.PaddingLeft(4)
+	ActivePaginationDot    = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "170", Dark: "170"})
 	helpStyle              = list.DefaultStyles().HelpStyle.PaddingLeft(4).PaddingBottom(1)
-	//quitTextStyle     = lipgloss.NewStyle().Margin(1, 0, 2, 4)
 )
 
 type item string
@@ -301,6 +301,7 @@ func listModel() model {
 	l.SetFilteringEnabled(true) // Enable filtering
 	l.Styles.Title = titleStyle
 	l.Styles.PaginationStyle = paginationStyle
+	l.Paginator.ActiveDot = ActivePaginationDot.Render("•")
 	l.AdditionalShortHelpKeys = // Add help keys (main page)
 		func() []key.Binding {
 			return []key.Binding{
