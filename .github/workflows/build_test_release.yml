@@ -13,7 +13,7 @@ jobs:
         uses: actions/setup-go@v3
       - uses: actions/checkout@v3
       - name: Setup Go Workfile
-        run: go work init ./ci ./ && rm src_code/go_src/cmd/cmd_test.go
+        run: go work init ./ci ./ 
       - run: cd ci && go get dagger.io/dagger@latest && cd ..
       - run: mkdir ./dist
       - run: go run ci/build_test_release.go
@@ -38,7 +38,7 @@ jobs:
       - name: publish project
         shell: bash
         run: |
-          cp ./src_code/go_src/author.txt ./dist
+          cp ./src/author.txt ./dist
 
           tag=$(git describe --tags --abbrev=0)
           #linux build
