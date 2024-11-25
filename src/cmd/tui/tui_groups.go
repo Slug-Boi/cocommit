@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/Slug-Boi/cocommit/src/cmd/utils"
+	"github.com/charmbracelet/bubbles/paginator"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/x/term"
@@ -28,9 +29,12 @@ var (
 )
 
 type mainModel struct {
-	content []string
-	index   int
+	content   []string
+	index     int
+	paginator paginator.Model
 }
+
+var cap, lines int
 
 func newModel() mainModel {
 	groups := utils.Groups
@@ -48,7 +52,42 @@ func newModel() mainModel {
 
 	slices.Sort(content)
 
-	m := mainModel{content: content}
+	// check if terminal 0 is a terminal
+	var w,h int
+	var err error
+	if ok := term.IsTerminal(0); ok {
+		// calculate term size
+		w, h, err = term.GetSize(0)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	if h > 20 {
+		lines = 2
+	} else {
+		lines = 1
+	}
+	
+	// if the terminal size is 0, then skip
+	if w > 0 {
+		// 30 is a magic number don't question it
+		cap = min(5, w/30)
+	}
+	cap = max(1, cap)
+
+	if cap * 2 > len(content) {
+		cap = len(content)
+	}
+
+	p := paginator.New()
+	p.Type = paginator.Dots
+	p.ActiveDot = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "235", Dark: "252"}).Render("•")
+	p.InactiveDot = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "250", Dark: "238"}).Render("•")
+	p.PerPage = cap * lines
+	p.SetTotalPages(len(content))
+
+	m := mainModel{content: content, paginator: p}
 	return m
 }
 
@@ -58,7 +97,7 @@ func (m mainModel) Init() tea.Cmd {
 }
 
 func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	//var cmd tea.Cmd
+	var cmd tea.Cmd
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -90,15 +129,16 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return nil, nil
 		case "tab", "right":
-			m.Next()
+			m.next()
 		case "left":
-			if m.index == 0 {
-				m.index = len(m.content) - 1
-			} else {
-				m.index--
-			}
+			m.previous()
 		}
 	}
+
+	// Adrian is a fucking genius thanks for the idea :)
+	m.paginator.Page = m.index / (cap * lines)
+	cmds = append(cmds, cmd)
+
 	return m, tea.Batch(cmds...)
 }
 
@@ -116,23 +156,17 @@ func (m mainModel) View() string {
 	// Take the first 5 elements and join them horizontally
 	// then take the next 5 and join them horizontally if there are more than 5
 	// then join vertically
-	//TODO: Figure out what width is measured in and tie the number 5 to a variable that
-	// is width_of_term/item_width
-	w, _, err := term.GetSize(0)
-	if err != nil {
-		panic(err)
-	}
-	// 30 is a magic number don't question it
-	cap := w / 30
-	for len(squares) > cap {
-		s += lipgloss.JoinHorizontal(lipgloss.Top, squares[:cap]...)
+
+	start, end := m.paginator.GetSliceBounds(len(m.content))
+	end = end - 1
+	//println(start, end)
+	for start <= end {
+		s += lipgloss.JoinHorizontal(lipgloss.Top, squares[start:start+cap]...)
 		s += "\n"
-		squares = squares[cap:]
+		start += cap
 	}
 
-	s += lipgloss.JoinHorizontal(lipgloss.Top, squares...)
-
-	//s += lipgloss.JoinHorizontal(lipgloss.Top, squares...)
+	s += "\n" + m.paginator.View()
 
 	s += helpStyle.Render("\ntab/right: focus next • left: focus previous • enter: select group • q/esq: exit\n")
 	return s
@@ -145,10 +179,18 @@ func (m mainModel) currentFocusedModel() string {
 	return ""
 }
 
-func (m *mainModel) Next() {
+func (m *mainModel) next() {
 	if m.index == len(m.content)-1 {
 		m.index = 0
 	} else {
 		m.index++
+	}
+}
+
+func (m *mainModel) previous() {
+	if m.index == 0 {
+		m.index = len(m.content) - 1
+	} else {
+		m.index--
 	}
 }
