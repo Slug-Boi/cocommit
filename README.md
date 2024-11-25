@@ -14,7 +14,12 @@
 
 
 ## Install:
-*Insert blerb about go install if it works*
+It should be possible to install the program using the go install command:
+```
+$ go install github.com/Slug-Boi/cocommit
+```
+You will more than likely have to add the binary to your PATH after the fact if your go bin directory is not in your PATH already. Or you can create an alias to it using the instructions below.
+
 
 Download the binary for your OS on the [release page](https://github.com/Slug-Boi/cocommit/releases)  
 Once downloaded you need to create an alias for your shell guides found below:  
