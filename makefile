@@ -1,5 +1,5 @@
 build:
-	go build -C src_code/go_src/ -o cocommit 
+	go build -C src -o cocommit 
 
 build-nix:
-	GOWORK=off go build -C src_code/go_src/ -o cocommit
+	GOWORK=off go build -C src -o cocommit
