@@ -38,10 +38,9 @@ func main() {
 		WithExec([]string{"go", "mod", "tidy"}).WithEnvVariable("CI", "true")
 
 	// run application tests
-	test := runner.WithWorkdir("/src_d/src/").WithExec([]string{"go", "test", "./..."})
-	//.WithEnvVariable("CI", "true")
+	test := runner.WithWorkdir("/src_d/src/").WithExec([]string{"go", "test", "./..."}).WithEnvVariable("CI", "true")
 
-	buildDir := test.Directory("/src/")
+	buildDir := test.Directory("/src_d/src/")
 
 	for _, goos := range geese {
 		path := fmt.Sprintf("/dist/")
@@ -51,8 +50,7 @@ func main() {
 		build := test.
 			WithEnvVariable("GOOS", goos).
 			WithEnvVariable("GOARCH", goarch).
-			WithExec([]string{"go", "build", "-o", filename})
-			//.WithEnvVariable("CI", "true")
+			WithExec([]string{"go", "build", "-o", filename}).WithEnvVariable("CI", "true")
 
 		buildDir = buildDir.WithDirectory(path, build.Directory(path))
 
