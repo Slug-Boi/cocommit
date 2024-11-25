@@ -63,7 +63,9 @@ func newModel() mainModel {
 		}
 	}
 
-	if h > 20 {
+	// 25 is a magic number in terms of height but is roughly based on the element height 
+	// of the group squares
+	if h > 25 {
 		lines = 2
 	} else {
 		lines = 1
