@@ -44,7 +44,7 @@ func main() {
 
 	for _, goos := range geese {
 		path := fmt.Sprintf("/dist/")
-		filename := fmt.Sprintf("/dist/cocommit_go-%s", goos)
+		filename := fmt.Sprintf("/dist/cocommit-%s", goos)
 		// build application
 		// write the build output to the host
 		build := test.
@@ -55,6 +55,17 @@ func main() {
 		buildDir = buildDir.WithDirectory(path, build.Directory(path))
 
 	}
+
+	// extra step to build for aarch on darwin
+	path := fmt.Sprintf("/dist/")
+	filename := fmt.Sprintf("/dist/cocommit-darwin-aarch64")
+
+	build := test.
+		WithEnvVariable("GOOS", "darwin").
+		WithEnvVariable("GOARCH", "arm64").
+		WithExec([]string{"go", "build", "-o", filename}).WithEnvVariable("CI", "true")
+
+	buildDir = buildDir.WithDirectory(path, build.Directory(path))
 
 	_, err = buildDir.Export(ctx, ".")
 	if err != nil {
