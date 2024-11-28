@@ -40,18 +40,17 @@ jobs:
         run: |
           cp ./src/author.txt ./dist
 
-          tag=$(git describe --tags --abbrev=0)
           #linux build
-          release_name_linux="cocommit_go-$tag-linux"
+          release_name_linux="cocommit-linux"
 
           tar -C ./dist -czvf "${release_name_linux}.tar.gz" cocommit_go-linux ./author.txt
 
           #windows build
-          release_name_win="cocommit_go-$tag-win"
+          release_name_win="cocommit-win"
           tar -C ./dist -czvf "${release_name_win}.tar.gz" cocommit_go-windows ./author.txt
 
           #mac build
-          release_name_mac="cocommit_go-$tag-mac"
+          release_name_mac="cocommit-darwin-x86_64"
           tar -C ./dist -czvf "${release_name_mac}.tar.gz" cocommit_go-darwin ./author.txt
       - name: Release project
         uses: softprops/action-gh-release@v1
