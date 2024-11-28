@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/Slug-Boi/cocommit/src/cmd/tui"
 	"github.com/Slug-Boi/cocommit/src/cmd/utils"
@@ -24,6 +25,7 @@ This will require the user to have commitizen installed on their system.`,
 		// check if the print flag is set
 		pflag, _ := cmd.Flags().GetBool("print")
 		cflag, _ := cmd.Flags().GetBool("cli")
+		gflag, _ := cmd.Flags().GetString("git")
 
 		// run execute commands again as root run will not call this part
 		message = utils.Cz_Call()
@@ -41,12 +43,16 @@ This will require the user to have commitizen installed on their system.`,
 		// call tui
 		authors = tui.Entry()
 
-		skip_tui:
+	skip_tui:
 		// build the commit message
 		message = utils.Commit(message, authors)
 
 		// commit the message
-		utils.GitWrapper(message)
+		var git_flags []string
+		if gflag != "" {
+			git_flags = strings.Split(gflag, " ")
+		}
+		utils.GitWrapper(message, git_flags)
 
 		if pflag {
 			fmt.Println(message)
@@ -56,6 +62,7 @@ This will require the user to have commitizen installed on their system.`,
 
 func init() {
 	rootCmd.AddCommand(czCmd)
+	czCmd.Flags().StringP("git", "g", "", "Passes the flags specified to the git command")
 	czCmd.Flags().BoolP("print", "p", false, "Print the commit message")
 	czCmd.Flags().BoolP("cli", "c", false, "[co-author1] [co-author2] ...")
 }
