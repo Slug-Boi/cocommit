@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/Slug-Boi/cocommit/src/cmd/tui"
 	"github.com/Slug-Boi/cocommit/src/cmd/utils"
@@ -33,6 +34,13 @@ var rootCmd = &cobra.Command{
 		pflag, _ := cmd.Flags().GetBool("print")
 		tflag, _ := cmd.Flags().GetBool("test_print")
 		aflag, _ := cmd.Flags().GetBool("authors")
+		gflag, _ := cmd.Flags().GetString("git")
+
+		var git_flags []string
+		// runs the git commit command
+		if gflag != "" {
+			git_flags = strings.Split(gflag, " ")
+		}
 
 		if aflag {
 			tui.Entry()
@@ -61,7 +69,7 @@ var rootCmd = &cobra.Command{
 					return
 				}
 
-				utils.GitWrapper(args[0])
+				utils.GitWrapper(args[0], git_flags)
 				if pflag {
 					fmt.Println(args[0])
 				}
@@ -79,12 +87,17 @@ var rootCmd = &cobra.Command{
 		message = utils.Commit(args[0], args[1:])
 
 	tui:
+		if tflag {
+			fmt.Println(message)
+			return
+		}
+
 		// prints the commit message to the console if the print flag is set
 		if pflag {
 			fmt.Println(message)
 		}
-		// runs the git commit command
-		utils.GitWrapper(message)
+
+		utils.GitWrapper(message, git_flags)
 	},
 }
 
@@ -108,4 +121,5 @@ func init() {
 	rootCmd.Flags().BoolP("test_print", "t", false, "Prints the commit message to the console without running the git commit command")
 	rootCmd.Flags().BoolP("message", "m", false, "Does nothing but allows for -m to be used in the command")
 	rootCmd.Flags().BoolP("authors", "a", false, "Runs the author list TUI")
+	rootCmd.Flags().StringP("git", "g", "", "Adds the given flags to the git command")
 }

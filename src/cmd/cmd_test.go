@@ -157,4 +157,35 @@ func Test_CommitCmdWithM(t *testing.T) {
 
 }
 
+// output doesnt match the expected terminal behavior very confusing...
+// func Test_CommitWithGitFlags(t *testing.T) {
+// 	skipCI(t)
+// 	setup()
+// 	defer teardown()
+//
+// 	//stdout reader
+// 	outC, r, w, old := StdoutReader()
+//
+// 	go func() {
+// 		var buf bytes.Buffer
+// 		io.Copy(&buf, r)
+// 		outC <- buf.String()
+// 	}()
+//
+// 	cmd := rootCmd
+// 	cmd.SetArgs([]string{"-g", "\"-a --dry-run\"", "Test commit message"})
+// 	cmd.Execute()
+//
+// 	w.Close()
+// 	os.Stdout = old
+// 	outStr := <-outC
+// 	if outStr == "" {
+// 		t.Errorf("Expected output but got nothing")
+// 	}
+//
+// 	if !strings.Contains(outStr, "Changes to be commited:\n") {
+// 		t.Errorf("Expected to find 'Test commit message' in output but got %s", outStr)
+// 	}
+// }
+
 // root CMD TEST END
