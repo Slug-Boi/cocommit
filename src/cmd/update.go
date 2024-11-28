@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -171,9 +172,10 @@ func unzipper(dst string, r io.Reader) error {
 		// the target location where the dir/file should be created
 		target := filepath.Join(dst, header.Name)
 
-		// the following switch could also be done using fi.Mode(), not sure if there
-		// a benefit of using one vs. the other.
-		// fi := header.FileInfo()
+		 // ensure the target path is within the destination directory
+        if !strings.HasPrefix(target, filepath.Clean(dst)+string(os.PathSeparator)) {
+            return fmt.Errorf("illegal file path: %s", target)
+        }
 
 		// check the file type
 		switch header.Typeflag {
