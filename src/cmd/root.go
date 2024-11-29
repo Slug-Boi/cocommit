@@ -11,6 +11,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Variables lives in here in case of possible future check of updates on running the CLI
+var Coco_Version string
+
 // rootCmd represents the base command when called without any subcommands
 // func RootCmd() *cobra.Command {
 var rootCmd = &cobra.Command{
@@ -33,6 +36,12 @@ var rootCmd = &cobra.Command{
 		pflag, _ := cmd.Flags().GetBool("print")
 		tflag, _ := cmd.Flags().GetBool("test_print")
 		aflag, _ := cmd.Flags().GetBool("authors")
+		vflag, _ := cmd.Flags().GetBool("version")
+
+		if vflag {
+			fmt.Println("Cocommit version:", Coco_Version)
+			os.Exit(0)
+		}
 
 		if aflag {
 			tui.Entry()
@@ -108,4 +117,5 @@ func init() {
 	rootCmd.Flags().BoolP("test_print", "t", false, "Prints the commit message to the console without running the git commit command")
 	rootCmd.Flags().BoolP("message", "m", false, "Does nothing but allows for -m to be used in the command")
 	rootCmd.Flags().BoolP("authors", "a", false, "Runs the author list TUI")
+	rootCmd.Flags().BoolP("version", "v", false, "Prints the version of the cocommit cli tool")
 }

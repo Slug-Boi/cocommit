@@ -3,6 +3,7 @@ package cmd
 import (
 	"archive/tar"
 	"compress/gzip"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -17,6 +18,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+
+type github_release struct {
+	TagName string `json:"tag_name"`
+}
+
 // updateCmd represents the update command
 var updateCmd = &cobra.Command{
 	Use:   "update",
@@ -24,6 +30,33 @@ var updateCmd = &cobra.Command{
 	Long:  `This command will try to update the cocommit cli tool by either running the update script or by running the go get Command if the -g flag is set.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		gflag, _ := cmd.Flags().GetBool("go-get")
+
+		// check version of the cli tool
+		Github, err := http.Get("https://api.github.com/repos/Slug-Boi/cocommit/releases/latest")
+		if err != nil {
+			fmt.Println("Error getting latest release version")
+			fmt.Println("Would you still like to update? (y/n)")
+			var input string
+			fmt.Scanln(&input)
+			if input == "y" || input == "Y" || input == "yes" {
+				fmt.Println("Running update script to update cocommit cli tool")
+			} else {
+				fmt.Println("Update cancelled")
+				return
+			}
+		}
+		defer Github.Body.Close()
+
+		var release github_release
+		err = json.NewDecoder(Github.Body).Decode(&release)
+		if err != nil {
+			panic("Error decoding json")
+		}
+
+		if release.TagName == Coco_Version {
+			fmt.Println("Cocommit cli tool is already up to date")
+			return
+		}
 
 		if gflag {
 			fmt.Println("Running go get command to update cocommit cli tool")
@@ -34,7 +67,7 @@ var updateCmd = &cobra.Command{
 			}
 			fmt.Println("Cocommit cli tool updated successfully")
 		} else {
-			fmt.Println("Running update script to update cocommit cli tool")
+			fmt.Println("Running binary replace to update cocommit cli tool")
 			updateScript()
 		}
 
