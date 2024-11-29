@@ -61,9 +61,15 @@ skip_loop:
 	return sb.String()
 }
 
-func GitWrapper(commit string) {
+func GitWrapper(commit string, flags []string) {
 	// commit shell command
-	cmd := exec.Command("git", "commit", "-m", commit)
+	// specify git command
+	input := []string{"commit"}
+	// append the message to the flags
+	flags = append(flags, "-m", commit)
+	// concat the git command and the flags + message
+	input = append(input, flags...)
+	cmd := exec.Command("git", input...)
 
 	// https://stackoverflow.com/questions/18159704/how-to-debug-exit-status-1-error-when-running-exec-command-in-golang
 

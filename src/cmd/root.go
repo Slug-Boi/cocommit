@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/Slug-Boi/cocommit/src/cmd/tui"
 	"github.com/Slug-Boi/cocommit/src/cmd/utils"
@@ -37,10 +38,17 @@ var rootCmd = &cobra.Command{
 		tflag, _ := cmd.Flags().GetBool("test_print")
 		aflag, _ := cmd.Flags().GetBool("authors")
 		vflag, _ := cmd.Flags().GetBool("version")
-
+    gflag, _ := cmd.Flags().GetString("git")
+    
 		if vflag {
 			fmt.Println("Cocommit version:", Coco_Version)
 			os.Exit(0)
+    }
+      
+		var git_flags []string
+		// runs the git commit command
+		if gflag != "" {
+			git_flags = strings.Split(gflag, " ")
 		}
 
 		if aflag {
@@ -70,7 +78,7 @@ var rootCmd = &cobra.Command{
 					return
 				}
 
-				utils.GitWrapper(args[0])
+				utils.GitWrapper(args[0], git_flags)
 				if pflag {
 					fmt.Println(args[0])
 				}
@@ -88,12 +96,17 @@ var rootCmd = &cobra.Command{
 		message = utils.Commit(args[0], args[1:])
 
 	tui:
+		if tflag {
+			fmt.Println(message)
+			return
+		}
+
 		// prints the commit message to the console if the print flag is set
 		if pflag {
 			fmt.Println(message)
 		}
-		// runs the git commit command
-		utils.GitWrapper(message)
+
+		utils.GitWrapper(message, git_flags)
 	},
 }
 
@@ -118,4 +131,5 @@ func init() {
 	rootCmd.Flags().BoolP("message", "m", false, "Does nothing but allows for -m to be used in the command")
 	rootCmd.Flags().BoolP("authors", "a", false, "Runs the author list TUI")
 	rootCmd.Flags().BoolP("version", "v", false, "Prints the version of the cocommit cli tool")
+	rootCmd.Flags().StringP("git", "g", "", "Adds the given flags to the git command")
 }
