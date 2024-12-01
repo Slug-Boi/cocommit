@@ -18,17 +18,17 @@
 The repo contains two different install scripts for unix based system and window. You can copy paste one of the commands below to use it.  
 **Unix:**
 ```console
-$ curl -L -o install.sh https://github.com/Slug-Boi/cocommit/raw/refs/heads/main/installer/install.sh && chmod +x install.sh && ./install.sh
+curl -L -o install.sh https://github.com/Slug-Boi/cocommit/raw/refs/heads/main/installer/install.sh && chmod +x install.sh && ./install.sh
 ```
 **Windows:**  
 *The windows script is untested so please let me know if it works and use at your own risk*
 ```console 
-$ Invoke-WebRequest -Uri https://github.com/Slug-Boi/cocommit/raw/refs/heads/main/installer/install.ps1 -OutFile install.ps1; .\install.ps1
+Invoke-WebRequest -Uri https://github.com/Slug-Boi/cocommit/raw/refs/heads/main/installer/install.ps1 -OutFile install.ps1; .\install.ps1
 ```
 ### Go Install
 It should be possible to install the program using the go install command:
 ```
-$ go install github.com/Slug-Boi/cocommit
+go install github.com/Slug-Boi/cocommit
 ```
 You will more than likely have to add the binary to your PATH after the fact if your go bin directory is not in your PATH already. Or you can create an alias to it using the instructions below.
 
