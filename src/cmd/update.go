@@ -75,6 +75,7 @@ var updateCmd = &cobra.Command{
 }
 
 func cleanup() {
+	fmt.Println("Cleaning up")
 	os.Remove("cocommit.tar.gz")
 }
 
@@ -146,7 +147,7 @@ func updateScript() {
 
 func swapper(exec_path string) {
 
-	regExp, err := regexp.Compile("cocommit_go-darwin")
+	regExp regexp.MustCompile("cocommit-.+")
 	if err != nil {
 		log.Fatal(err)
 	}
