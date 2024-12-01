@@ -24,7 +24,8 @@ func main() {
 	if err != nil {
 		download()
 	} else {
-		update()
+		download()
+		//update()
 	}
 
 }
@@ -40,26 +41,24 @@ func download() {
 	var cmd *exec.Cmd
 
 	// Download the latest release
+	filename := "cocommit.tar.gz"
 	switch runtime.GOOS {
 	case "darwin":
 		fmt.Println("Downloading mac version")
-		filename := ""
 		if runtime.GOARCH == "amd64" {
 			resp, err = http.Get("https://github.com/Slug-Boi/cocommit/releases/latest/download/cocommit-darwin-x86_64.tar.gz")
-			filename = "cocommit-darwin-x86_64.tar.gz"
 		} else {
 			resp, err = http.Get("https://github.com/Slug-Boi/cocommit/releases/latest/download/cocommit-darwin-aarch64.tar.gz")
-			filename = "cocommit-darwin-aarch64.tar.gz"
 		}
 		cmd = exec.Command("tar", "-xvf", filename)
 	case "windows":
 		fmt.Println("Downloading windows version")
 		resp, err = http.Get("https://github.com/Slug-Boi/cocommit/releases/latest/download/cocommit-win.tar.gz")
-		cmd = exec.Command("tar", "-xvf", "cocommit-win.tar.gz")
+		cmd = exec.Command("tar", "-xvf", filename)
 	default:
 		fmt.Println("Downloading linux version")
 		resp, err = http.Get("https://github.com/Slug-Boi/cocommit/releases/latest/download/cocommit-linux.tar.gz")
-		cmd = exec.Command("tar", "-xvf", "cocommit-linux.tar.gz")
+		cmd = exec.Command("tar", "-xvf", filename)
 	}
 	if err != nil {
 		fmt.Println("Error downloading file")
@@ -83,7 +82,7 @@ func download() {
 	// Extract the file
 	err = cmd.Run()
 	if err != nil {
-		fmt.Println("Error extracting file")
+		panic("Error extracting file")
 	}
 
 	regExp := regexp.MustCompile("cocommit-.+")
