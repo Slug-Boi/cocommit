@@ -147,14 +147,11 @@ func updateScript() {
 
 func swapper(exec_path string) {
 
-	regExp regexp.MustCompile("cocommit-.+")
-	if err != nil {
-		log.Fatal(err)
-	}
+	regExp := regexp.MustCompile("cocommit-.+")
 
 	var new_binary string
 
-	err = filepath.Walk("./", func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk("./", func(path string, info os.FileInfo, err error) error {
 		if err == nil && regExp.MatchString(info.Name()) {
 			new_binary = info.Name()
 			return nil
