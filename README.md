@@ -14,13 +14,25 @@
 
 
 ## Install:
+### Install Script
+The repo contains two different install scripts for unix based system and window. You can copy paste one of the commands below to use it.  
+**Unix:**
+```
+$ curl -L -o install.sh https://github.com/Slug-Boi/cocommit/raw/refs/heads/main/installer/install.sh && chmod +x install.sh && ./install.sh
+```
+**Windows:**  
+*The windows script is untested so please let me know if it works and use at your own risk*
+```
+$ Invoke-WebRequest -Uri https://github.com/Slug-Boi/cocommit/raw/refs/heads/main/installer/install.ps1 -OutFile install.ps1; .\install.ps1
+```
+### Go Install
 It should be possible to install the program using the go install command:
 ```
 $ go install github.com/Slug-Boi/cocommit
 ```
 You will more than likely have to add the binary to your PATH after the fact if your go bin directory is not in your PATH already. Or you can create an alias to it using the instructions below.
 
-
+### Manual Binary Install
 Download the binary for your OS on the [release page](https://github.com/Slug-Boi/cocommit/releases)  
 Once downloaded you need to create an alias for your shell guides found below:  
 [Bash Guide for alias](https://linuxize.com/post/how-to-create-bash-aliases/)  
