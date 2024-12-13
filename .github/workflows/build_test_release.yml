@@ -17,7 +17,7 @@ jobs:
       - run: cd ci && go get dagger.io/dagger@latest && cd ..
       - run: mkdir ./dist
       - run: |
-          export Coco_Version=$(git describe --abbrev=0)
+          export Coco_Version=${GITHUB_REF#refs/*/}
           go run ci/build_test_release.go
       - name: Auto Changelog
         uses: ardalanamini/auto-changelog@v4.0.1
