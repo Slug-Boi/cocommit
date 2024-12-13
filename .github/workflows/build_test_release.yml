@@ -16,7 +16,9 @@ jobs:
         run: go work init ./ci ./ 
       - run: cd ci && go get dagger.io/dagger@latest && cd ..
       - run: mkdir ./dist
-      - run: go run ci/build_test_release.go
+      - run: |
+          export Coco_Version=$(git describe --abbrev=0)
+          go run ci/build_test_release.go
       - name: Auto Changelog
         uses: ardalanamini/auto-changelog@v4.0.1
         id  : changelog
@@ -43,19 +45,19 @@ jobs:
           #linux build
           release_name_linux="cocommit-linux"
 
-          tar -C ./dist -czvf "${release_name_linux}.tar.gz" cocommit-linux ./author.txt
+          tar -C ./dist -czvf "${release_name_linux}.tar.gz" cocommit-linux
 
           #windows build
           release_name_win="cocommit-win"
-          tar -C ./dist -czvf "${release_name_win}.tar.gz" cocommit-windows ./author.txt
+          tar -C ./dist -czvf "${release_name_win}.tar.gz" cocommit-windows
 
           #mac x86 build
           release_name_mac="cocommit-darwin-x86_64"
-          tar -C ./dist -czvf "${release_name_mac}.tar.gz" cocommit-darwin ./author.txt
+          tar -C ./dist -czvf "${release_name_mac}.tar.gz" cocommit-darwin
 
           # mac arm build
           release_name_mac_arm="cocommit-darwin-aarch64"
-          tar -C ./dist -czvf "${release_name_mac_arm}.tar.gz" cocommit-darwin-aarch64 ./author.txt
+          tar -C ./dist -czvf "${release_name_mac_arm}.tar.gz" cocommit-darwin-aarch64
 
       - name: Release project
         uses: softprops/action-gh-release@v1
