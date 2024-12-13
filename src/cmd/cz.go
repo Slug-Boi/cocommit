@@ -23,9 +23,10 @@ This will require the user to have commitizen installed on their system.`,
 		var authors []string
 
 		// check if the print flag is set
-		pflag, _ := cmd.Flags().GetBool("print")
+		pflag, _ := cmd.Flags().GetBool("print-output")
 		cflag, _ := cmd.Flags().GetBool("cli")
 		gflag, _ := cmd.Flags().GetString("git")
+		gpflag, _ := cmd.Flags().GetBool("git-push")
 
 		// run execute commands again as root run will not call this part
 		message = utils.Cz_Call()
@@ -57,12 +58,17 @@ This will require the user to have commitizen installed on their system.`,
 		if pflag {
 			fmt.Println(message)
 		}
+
+		if gpflag {
+			utils.GitPush()
+		}
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(czCmd)
 	czCmd.Flags().StringP("git", "g", "", "Passes the flags specified to the git command")
-	czCmd.Flags().BoolP("print", "p", false, "Print the commit message")
+	czCmd.Flags().BoolP("print-output", "o", false, "Print the commit message")
 	czCmd.Flags().BoolP("cli", "c", false, "[co-author1] [co-author2] ...")
+	czCmd.Flags().BoolP("git-push", "p", false, "Runs the git push command after the commit")
 }

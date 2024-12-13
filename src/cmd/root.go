@@ -34,17 +34,18 @@ var rootCmd = &cobra.Command{
 		var message string
 
 		// check if the print flag is set
-		pflag, _ := cmd.Flags().GetBool("print")
+		pflag, _ := cmd.Flags().GetBool("print-output")
 		tflag, _ := cmd.Flags().GetBool("test_print")
 		aflag, _ := cmd.Flags().GetBool("authors")
 		vflag, _ := cmd.Flags().GetBool("version")
-    gflag, _ := cmd.Flags().GetString("git")
-    
+		gflag, _ := cmd.Flags().GetString("git")
+		gpflag, _ := cmd.Flags().GetBool("git-push")
+
 		if vflag {
 			fmt.Println("Cocommit version:", Coco_Version)
 			os.Exit(0)
-    }
-      
+		}
+
 		var git_flags []string
 		// runs the git commit command
 		if gflag != "" {
@@ -82,6 +83,10 @@ var rootCmd = &cobra.Command{
 				if pflag {
 					fmt.Println(args[0])
 				}
+
+				if gpflag {
+					utils.GitPush()
+				}
 				os.Exit(0)
 			}
 		}
@@ -101,12 +106,14 @@ var rootCmd = &cobra.Command{
 			return
 		}
 
+		utils.GitWrapper(message, git_flags)
 		// prints the commit message to the console if the print flag is set
 		if pflag {
 			fmt.Println(message)
 		}
-
-		utils.GitWrapper(message, git_flags)
+		if gpflag {
+			utils.GitPush()
+		}
 	},
 }
 
@@ -126,10 +133,11 @@ func Execute() {
 
 func init() {
 	//rootCmD := RootCmd()
-	rootCmd.Flags().BoolP("print", "p", false, "Prints the commit message to the console")
+	rootCmd.Flags().BoolP("print-output", "o", false, "Prints the commit message to the console")
 	rootCmd.Flags().BoolP("test_print", "t", false, "Prints the commit message to the console without running the git commit command")
 	rootCmd.Flags().BoolP("message", "m", false, "Does nothing but allows for -m to be used in the command")
 	rootCmd.Flags().BoolP("authors", "a", false, "Runs the author list TUI")
 	rootCmd.Flags().BoolP("version", "v", false, "Prints the version of the cocommit cli tool")
 	rootCmd.Flags().StringP("git", "g", "", "Adds the given flags to the git command")
+	rootCmd.Flags().BoolP("git-push", "p", false, "Runs git push after the commit")
 }

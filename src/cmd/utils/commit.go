@@ -82,6 +82,18 @@ func GitWrapper(commit string, flags []string) {
 	}
 }
 
+func GitPush() {
+	cmd := exec.Command("git", "push")
+
+	cmd_output, err := cmd.CombinedOutput()
+
+	if err != nil {
+		println(fmt.Sprint(err) + " : " + string(cmd_output))
+	} else {
+		println(string(cmd_output))
+	}
+}
+
 // helper function to add an author to the commit message
 func sb_author(committer string) {
 	sb.WriteString("\nCo-authored-by: ")
