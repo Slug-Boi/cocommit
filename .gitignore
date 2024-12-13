@@ -1,6 +1,7 @@
 # Custom
 dist
 author_file
+cover.out
 
 go.work
 go.sum

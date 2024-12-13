@@ -57,7 +57,7 @@ if [ ! -d "$(dirname "$target_dir")" ]; then
     exit 1
 fi
 
-mv $file "$target_dir"
+sudo mv $file "$target_dir"
 if [ $? -ne 0 ]; then
     echo "Failed to move the binary to $target_dir"
     exit 1
