@@ -15,7 +15,7 @@
 
 ## Install:
 ### Install Script
-The repo contains two different install scripts for unix based system and window. You can copy paste one of the commands below to use it.  
+The repo contains two different install scripts for unix based system and windows. You can copy paste one of the commands below to use it.  
 **Unix:**
 ```console
 curl -L -o install.sh https://github.com/Slug-Boi/cocommit/raw/refs/heads/main/installer/install.sh && chmod +x install.sh && ./install.sh
