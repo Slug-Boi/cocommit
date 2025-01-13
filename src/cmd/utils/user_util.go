@@ -2,6 +2,7 @@ package utils
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"strings"
 )
@@ -47,11 +48,19 @@ func Define_users(author_file string) {
 		info := strings.Split(input_str, "|")
 		if len(info) < 4 {
 			if len(info) > 0 {
-				println("Error: User ", info[0], " is missing information")
+				if info[0] == "" {
+					info[0] = "(empty string)"
+				}
+				fmt.Println("Error: User", info[0], "is missing information")
+				} else {
+					fmt.Println("Error: Some user is missing information")
+				}
+				fmt.Println("Please check the author file for proper syntax")
+			if input_str == "" {
+				fmt.Println("empty line found in author file")
 			} else {
-				println("Error: Some user is missing information")
+				fmt.Println("author file input:", input_str)
 			}
-			println("Please check the author file for proper syntax")
 			os.Exit(1)
 		}
 		usr := User{Username: info[2], Email: info[3], Names: info[0] + "/" + info[1]}
