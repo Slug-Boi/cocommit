@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strings"
 )
 
 // Author file utils is a package that contains functions that are used to read
@@ -26,6 +27,7 @@ func Find_authorfile() string {
 }
 
 func CheckAuthorFile() string {
+	var cocommit_folder string
 	authorfile := Find_authorfile()
 	if _, err := os.Stat(authorfile); os.IsNotExist(err) {
 		println("Author file not found at: ", authorfile)
@@ -36,18 +38,15 @@ func CheckAuthorFile() string {
 			println("Error reading response")
 		}
 		if response == "y" {
-			if authorfile == "" {
-				fmt.Println("author_file environment variable not set using default location:")
-				config, err := os.UserConfigDir()
-				if err != nil {
-					fmt.Println("Error getting user config directory")
-					os.Exit(1)
-				}
-				authorfile = config + "/cocommit/authors"
-				fmt.Println(authorfile)
-			}
+			parts := strings.Split(authorfile, "/")
+			cocommit_folder = strings.Join(parts[:len(parts)-1], "/")
 
 			// create the author file
+			err := os.Mkdir(cocommit_folder, 0766)
+			if err != nil {
+				fmt.Println("Error creating directory: ", err, cocommit_folder)
+				os.Exit(1)
+			}
 			file, err := os.Create(authorfile)
 			if err != nil {
 				fmt.Println("Error creating file: ", err)
