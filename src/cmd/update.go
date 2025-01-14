@@ -30,6 +30,17 @@ var updateCmd = &cobra.Command{
 	Long:  `This command will try to update the cocommit cli tool by either running the update script or by running the go get Command if the -g flag is set.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		gflag, _ := cmd.Flags().GetBool("go-get")
+		cflag, _ := cmd.Flags().GetBool("check")
+
+		if cflag {
+			fmt.Println("Checking if Cocommit is up to date")
+			if update {
+				update_msg()
+			} else {
+				fmt.Println("Cocommit is up to date")
+			}
+			os.Exit(0)
+		}
 
 		// check version of the cli tool
 		Github, err := http.Get("https://api.github.com/repos/Slug-Boi/cocommit/releases/latest")
@@ -137,12 +148,12 @@ func updateScript() {
 	}
 	err = unzipper("./", r)
 	if err != nil {
-		fmt.Println("Error unzipping file")
+		panic("Error unzipping file - " + err.Error())
 	}
 
 	swapper(exec_path)
 
-	fmt.Println("Cocommit cli tool updated successfully")
+	fmt.Println(update_style.Render("Cocommit cli tool updated successfully"))
 }
 
 func swapper(exec_path string) {
@@ -203,10 +214,18 @@ func unzipper(dst string, r io.Reader) error {
 		// the target location where the dir/file should be created
 		target := filepath.Join(dst, header.Name)
 
-		 // ensure the target path is within the destination directory
-        if !strings.HasPrefix(target, filepath.Clean(dst)+string(os.PathSeparator)) {
-            return fmt.Errorf("illegal file path: %s", target)
-        }
+		// ensure the target path is within the destination directory
+		cleanTarget, err := filepath.Abs(target)
+		if err != nil {
+			return fmt.Errorf("failed to get absolute path: %v", err)
+		}
+		cleanDst, err := filepath.Abs(dst)
+		if err != nil {
+			return fmt.Errorf("failed to get absolute path: %v", err)
+		}
+		if !strings.HasPrefix(cleanTarget, cleanDst+string(os.PathSeparator)) {
+			return fmt.Errorf("illegal file path: %s\nExpected: %s", cleanTarget, cleanDst+string(os.PathSeparator))
+		}
 
 		// check the file type
 		switch header.Typeflag {
@@ -241,4 +260,5 @@ func unzipper(dst string, r io.Reader) error {
 func init() {
 	rootCmd.AddCommand(updateCmd)
 	updateCmd.Flags().BoolP("go-get", "g", false, "Use the go get command to update the cocommit cli tool")
+	updateCmd.Flags().BoolP("check", "c", false, "Check if the cocommit cli tool is up to date")
 }

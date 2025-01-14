@@ -55,6 +55,10 @@ This will require the user to have commitizen installed on their system.`,
 		}
 		utils.GitWrapper(message, git_flags)
 
+		if update {
+			update_msg()
+		}
+
 		if pflag {
 			fmt.Println(message)
 		}
