@@ -10,6 +10,7 @@ import (
 	"github.com/Slug-Boi/cocommit/src/cmd/tui"
 	"github.com/Slug-Boi/cocommit/src/cmd/utils"
 	"github.com/inancgumus/screen"
+	"github.com/charmbracelet/lipgloss"
 
 	"github.com/spf13/cobra"
 )
@@ -17,6 +18,10 @@ import (
 // Variables lives in here in case of possible future check of updates on running the CLI
 var Coco_Version string
 var update bool
+
+// print styling for the output for the CLI
+var update_style = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#1aff00"))
+var msg_style = lipgloss.NewStyle().BorderStyle(lipgloss.RoundedBorder()).BorderForeground(lipgloss.Color("170"))
 
 // github_tag struct to hold the tag name from the github api response
 
@@ -38,6 +43,12 @@ var rootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var message string
 
+		// check if user included -m tag and remove. Wrap around for safety's sake
+		if len(args) > 0 && args[0] == "-m" {
+			// maybe change to a walk in case it pops up later?
+			args = args[1:]
+		}
+
 		// check if the print flag is set
 		pflag, _ := cmd.Flags().GetBool("print-output")
 		tflag, _ := cmd.Flags().GetBool("test_print")
@@ -48,6 +59,9 @@ var rootCmd = &cobra.Command{
 
 		if vflag {
 			fmt.Println("Cocommit version:", Coco_Version)
+			if update {
+				update_msg()
+			}
 			os.Exit(0)
 		}
 
@@ -58,68 +72,42 @@ var rootCmd = &cobra.Command{
 		}
 
 		if aflag {
-			tui.Entry()
-			os.Exit(0)
-		}
-		// run execute commands again as root run will not call this part
-		// redundant check for now but will be useful later when we add tui
-	wrap_around:
-		switch len(args) {
-		case 0:
-			// launch the tui
-			args = append(args, tui.Entry_CM())
-			screen.Clear()
-			screen.MoveTopLeft()
 			sel_auth := tui.Entry()
-			message = utils.Commit(args[0], sel_auth)
-			if update {
-				fmt.Print("--* A new version of cocommit is available. Please update to the latest version *-- \n\n")
-			}
-			if tflag {
-				fmt.Println(message)
-				return
-			}
-			goto tui
-		case 1:
-			if len(args) == 1 {
+			if len(args) == 0 {
 				if update {
-					fmt.Print("--* A new version of cocommit is available. Please update to the latest version *-- \n\n")
-				}
-				if tflag {
-					fmt.Println(args[0])
-					return
-				}
-
-				utils.GitWrapper(args[0], git_flags)
-				if pflag {
-					fmt.Println(args[0])
-				}
-
-				if gpflag {
-					utils.GitPush()
+					update_msg()
 				}
 				os.Exit(0)
 			}
+			args = append(args, sel_auth...)
+			goto skip
+		}
+		// run execute commands again as root run will not call this part
+		// redundant check for now but will be useful later when we add tui
+		switch len(args) {
+		case 0:
+			// launch the tui
+			args = call_tui(args)
+		case 1:
+			if len(args) == 1 {
+				message = args[0]
+			}
 		}
 
-		// check if user included -m tag and remove. Wrap around for safety's sake
-		if args[0] == "-m" {
-			args = args[1:]
-			goto wrap_around
-		}
-
+		skip:
 		// builds the commit message with the selected authors
-		message = utils.Commit(args[0], args[1:])
+		if len(args) > 1 {
+			message = utils.Commit(args[0], args[1:])
+		} 
 
-	tui:
+		if update {
+			update_msg()
+		}
+
 		if tflag {
 			fmt.Println(message)
 			return
 		}
-
-		// if update {
-		// 	fmt.Print("--* A new version of cocommit is available. Please update to the latest version *-- \n\n")
-		// }
 
 		utils.GitWrapper(message, git_flags)
 		// prints the commit message to the console if the print flag is set
@@ -149,6 +137,23 @@ func Execute() {
 	}
 }
 
+func call_tui(args []string) []string {
+	// append commit message to args
+	args = append(args, tui.Entry_CM())
+
+	// clear the screen
+	screen.Clear()
+	screen.MoveTopLeft()
+
+	// run the tui and append authors to args
+	args = append(args, tui.Entry()...)
+	return args
+}
+
+func update_msg() {
+	fmt.Print(update_style.Render("--* A new version of cocommit is available. Please update to the latest version *--")+"\n\n")
+}
+
 // function to check for updates (check tag version from repo with the current version)
 func check_update() {
 	var tag github_release
@@ -166,7 +171,7 @@ func check_update() {
 	}
 
 	// NOTE: maybe change to a split and parse method idk if this can cause issues
-	if tag.TagName != Coco_Version {
+	if tag.TagName != Coco_Version && Coco_Version != "" {
 		update = true
 	}
 }
