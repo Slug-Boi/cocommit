@@ -1,0 +1,18 @@
+customCommands:
+    - key: '<c-A>'
+      context: 'global'
+      showOutput: true
+      prompts:
+        - type: 'input'
+          title: 'Commit message'
+          key: 'message'
+          initialValue: ''
+        - type: 'input'
+          title: 'Authors'
+          key: 'authors'
+          initialValue: ''
+      command: 'cocommit -p "{{.Form.message}}" {{.Form.authors}}'
+    - key: '<c-a>'
+      context: 'global'
+      subprocess: true
+      command: 'cocommit -p; exit'

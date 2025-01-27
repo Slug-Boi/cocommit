@@ -100,6 +100,30 @@ $ cocommit cz -c
 ```
 This should allow for all the same utility as the normal CLI mode in terms of author selection
 
+### Lazygit Config
+If you use lazygit you can add the following to your lazygit config file to use cocommit:
+```
+customCommands:
+    - key: '<c-A>'
+      context: 'global'
+      showOutput: true
+      prompts:
+        - type: 'input'
+          title: 'Commit message'
+          key: 'message'
+          initialValue: ''
+        - type: 'input'
+          title: 'Authors'
+          key: 'authors'
+          initialValue: ''
+      command: 'cocommit -p "{{.Form.message}}" {{.Form.authors}}'
+    - key: '<c-a>'
+      context: 'global'
+      subprocess: true
+      command: 'cocommit -p; exit'
+```
+A sample lazygit config file can be found [here](https://github.com/Slug-Boi/cocommit/blob/main/lazygit_config/config.yml)
+
 # Syntax for the author file
 The syntax for the author file can be found at the top of the template file included in the repo. It should look like this (opt) is optional syntax:  
 ```
