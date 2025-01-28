@@ -86,6 +86,9 @@ $ cocommit "message"
 
 $ cocommit users
 *prints list of users*
+
+$ cocommit update
+*updates the cocommit binary to the newest version hosted on github*
 ```
 
 ### Commitizen Integration
