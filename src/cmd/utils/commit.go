@@ -119,7 +119,7 @@ func add_x_users(excludeMode []string) {
 // helper function to select groups of users to exclude in the commit message
 func group_selection(group []User, excludeMode []string) []string {
 	for _, user := range Users {
-		if !(slices.Contains(group, user)) {
+		if !(ContainsUser(group, user)) {
 			excludeMode = append(excludeMode, user.Username)
 		}
 	}

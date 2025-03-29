@@ -125,8 +125,7 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				for k, v := range dupProtect {
 					if _, ok := selected[k]; !ok {
 						for _, user := range users {
-							split := strings.Split(user.Names, "/")
-							if split[0] == v || split[1] == v {
+							if user.Shortname == v || user.Longname == v {
 								selectToggle(item(k))
 							}
 						}

@@ -3,7 +3,6 @@ package cmd
 import (
 	"os"
 	"os/exec"
-	"slices"
 	"sort"
 	"strings"
 
@@ -34,8 +33,8 @@ func UsersCmd() *cobra.Command {
 				seen_users := []utils.User{}
 				user_sb := []string{}
 				for name, usr := range utils.Users {
-					if !slices.Contains(seen_users, usr) {
-						user_sb = append(user_sb, utils.Users[name].Names+" ->"+" Username: "+usr.Username+" Email: "+usr.Email+"\n")
+					if !utils.ContainsUser(seen_users, usr) {
+						user_sb = append(user_sb, utils.Users[name].Shortname+"/"+utils.Users[name].Longname+" ->"+" Username: "+usr.Username+" Email: "+usr.Email+"\n")
 						seen_users = append(seen_users, usr)
 					}
 				}
