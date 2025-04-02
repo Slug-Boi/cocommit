@@ -18,7 +18,7 @@ func Find_authorfile() string {
 			fmt.Println("Error getting user config directory")
 			os.Exit(2)
 		}
-		return (authors + "/cocommit/authors")
+		return (authors + "/cocommit/authors.json")
 	} else {
 		return os.Getenv("author_file")
 	}
@@ -40,10 +40,12 @@ func CheckAuthorFile() string {
 			cocommit_folder = strings.Join(parts[:len(parts)-1], "/")
 
 			// create the author file
-			err := os.Mkdir(cocommit_folder, 0766)
-			if err != nil {
-				fmt.Println("Error creating directory: ", err, cocommit_folder)
-				os.Exit(1)
+			if os.Stat(cocommit_folder); os.IsNotExist(err) {
+				err := os.Mkdir(cocommit_folder, 0766)
+				if err != nil {
+					fmt.Println("Error creating directory: ", err, cocommit_folder)
+					os.Exit(1)
+				}
 			}
 			file, err := os.Create(authorfile)
 			if err != nil {
@@ -54,10 +56,15 @@ func CheckAuthorFile() string {
 			defer file.Close()
 
 			// write the header to the file
-			file.WriteString("Syntax: name_short|Name|Username|email (opt: |ex) (opt: ;;group1|group2|group3...)\n")
+			json_string := 
+			`{
+	"Authors": {
+	}
+}`
+
+			file.Write([]byte(json_string))
 
 			fmt.Println("Author file created. To add authors please launch the TUI with -a  and press 'C'")
-
 		} else {
 			os.Exit(1)
 		}
