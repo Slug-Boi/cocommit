@@ -128,13 +128,49 @@ customCommands:
 A sample lazygit config file can be found [here](https://github.com/Slug-Boi/cocommit/blob/main/lazygit_config/config.yml)
 
 # Syntax for the author file
-The syntax for the author file can be found at the top of the template file included in the repo. It should look like this (opt) is optional syntax:  
+The syntax for the author file is json below is a small example with fake information to show what it looks like. The author file can be edited safely from the tool so there is no real need to edit this manually. Whilst this format is a little heavier than the old custom CSV format it is much easier to work with and handle json so rest assured this is best way forward
+```json
+{
+   "authors":{
+      "Morgan Rivers":{
+         "shortname":"mr",
+         "longname":"Morgan Rivers",
+         "username":"morgan-rivers",
+         "email":"mrivers@example.com",
+         "ex":false,
+         "groups":[
+            "dev",
+            "qa",
+            "design"
+         ]
+      },
+      "Taylor Chen":{
+         "shortname":"tc",
+         "longname":"Taylor Chen",
+         "username":"tchen",
+         "email":"tchen@example.org",
+         "ex":true,
+         "groups":[
+            "dev",
+            "admin",
+            "support"
+         ]
+      },
+      "Jordan Smithfield":{
+         "shortname":"js",
+         "longname":"Jordan Smithfield",
+         "username":"jsmith",
+         "email":"j.smithfield@test.net",
+         "ex":false,
+         "groups":[
+            "marketing",
+            "content",
+            "social"
+         ]
+      }
+   }
+}
 ```
-name_short|Name|Username|email (opt: |ex) (opt: ;;group1 or ;;group1|group2|group3...)
-```
-opt explained:  
-ex -> excludes the given author for all and negation selection commands  
-group -> groups an author which can then be called as an argument to add all people from that group. An author can be a part of multiple groups 
 
 # Why?
 Co-authoring commits is a feature that is supported by github and gitlab and other git hosting services but creating the commits can be a bit of a pain. Co-authoring is extremely useful as teams can be much more transparent in who worked on what and it can be a great way to give credit to people who have helped on projects. This will make git-blame a lot more useful as you can quickly see who to contact or talk to about a specific part of the code. I strongly believe that this feature is underutilized and i attribute it mostly to the fact that is combersome to use. This tool aims to fix and streamline that process. (It even allows for automation of the process with the CLI mode)
