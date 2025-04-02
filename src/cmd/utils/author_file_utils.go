@@ -1,11 +1,9 @@
 package utils
 
 import (
-	"bufio"
-	"bytes"
+	"encoding/json"
 	"fmt"
 	"os"
-	"regexp"
 	"strings"
 )
 
@@ -71,47 +69,43 @@ func CheckAuthorFile() string {
 func DeleteOneAuthor(author string) {
 	author_file := Find_authorfile()
 
+	if _, exists := Users[author]; !exists {
+		fmt.Println("User not found")
+		return
+	}
+
 	// open author_file
-	file, err := os.OpenFile(author_file, os.O_RDWR, 0644)
+	file, err := os.OpenFile(author_file, os.O_RDWR, 0666)
 	if err != nil {
 		fmt.Println("Error opening file: ", err)
 		return
 	}
 
-	defer file.Close()
-
-	// create regex to capture author line
-	regexp, err := regexp.Compile(fmt.Sprintf("^(.+\\|%s\\|.+|%s\\|.+\\|.+)$", author, author))
-	if err != nil {
-		fmt.Println("Error compiling regex: ", err)
+	// check that users aren't empty
+	if len(Users) < 1 {
+		fmt.Println("No users to remove")
 		return
 	}
 
-	var b []byte
-	buf := bytes.NewBuffer(b)
+	usr := Users[author]
 
-	// create a scanner for the file
-	scanner := bufio.NewScanner(file)
+	// Remove the user from the Author struct (try both short and long name)
+	delete(Authors.Authors, usr.Shortname)
+	delete(Authors.Authors, usr.Longname)
 
-	// write the header to the buffer
-	scanner.Scan()
-	buf.WriteString(scanner.Text() + "\n")
-
-	// check if author matches the regex and skip
-	for scanner.Scan() {
-		line := scanner.Text()
-		if regexp.MatchString(line) {
-			continue
-		}
-		buf.WriteString(line + "\n")
-
+	// marshal the struct back to json
+	data, err  := json.MarshalIndent(Authors, "", "    ")
+	if err != nil {
+		fmt.Println("Error marshalling json: ", err)
+		return
 	}
-	// remove the last newline character
-	buf.Truncate(buf.Len() - 1)
 
+
+	// write the data to the file
 	file.Truncate(0)
 	file.Seek(0, 0)
-	buf.WriteTo(file)
+	file.Write(data)
+	file.Close()
 
 	RemoveUser(author)
 }

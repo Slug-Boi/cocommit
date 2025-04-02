@@ -23,6 +23,9 @@ type Author struct {
 	Authors map[string]User
 }
 
+// purely used for editing the author file later
+var Authors = Author{}
+
 var Users = map[string]User{}
 var DefExclude = []string{}
 var Groups = map[string][]User{}
@@ -45,7 +48,7 @@ func Define_users(author_file string) {
 	Groups = map[string][]User{}
 
 	var auth Author
-
+	
 	data, err := os.ReadFile(author_file)
 	if err != nil {
 		fmt.Println("Error reading author file: ", err)
@@ -56,7 +59,9 @@ func Define_users(author_file string) {
 		fmt.Println("Error unmarshalling json: ", err)
 		os.Exit(2)
 	}
-
+	
+	Authors = auth
+	
 	for _, usr := range auth.Authors {
 		Users[usr.Shortname] = usr
 		Users[usr.Longname] = usr
