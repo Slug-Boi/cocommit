@@ -40,7 +40,7 @@ func CheckAuthorFile() string {
 			cocommit_folder = strings.Join(parts[:len(parts)-1], "/")
 
 			// create the author file
-			if os.Stat(cocommit_folder); os.IsNotExist(err) {
+			if _, dirErr := os.Stat(cocommit_folder); os.IsNotExist(dirErr) {
 				err := os.Mkdir(cocommit_folder, 0766)
 				if err != nil {
 					fmt.Println("Error creating directory: ", err, cocommit_folder)
