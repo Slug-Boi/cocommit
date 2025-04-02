@@ -6,9 +6,29 @@ import (
 	"testing"
 )
 
-const author_data = `syntax for the test file
-te|testing|TestUser|test@test.test|ex
-ti|testtest|UserName2|testing@user.io;;gr1`
+const author_data = `
+{
+    "Authors": {
+        "testing": {
+            "shortname": "te",
+            "longname": "testing",
+            "username": "TestUser",
+            "email": "test@test.test",
+            "ex": true,
+            "groups": []
+        },
+        "testtest": {
+            "shortname": "ti",
+            "longname": "testtest",
+            "username": "UserName2",
+            "email": "testing@user.io",
+            "ex": false,
+            "groups": [
+                "gr1"
+            ]
+        }
+    }
+}`
 
 var envVar = os.Getenv("author_file")
 

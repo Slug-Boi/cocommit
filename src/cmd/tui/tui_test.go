@@ -12,9 +12,29 @@ import (
 	"github.com/charmbracelet/x/exp/teatest"
 )
 
-const author_data = `syntax for the test file
-te|testing|TestUser|test@test.test|ex;;gr0
-ti|testtest|UserName2|testing@user.io;;gr1`
+const author_data = `
+{
+    "Authors": {
+        "testing": {
+            "shortname": "te",
+            "longname": "testing",
+            "username": "TestUser",
+            "email": "test@test.test",
+            "ex": true,
+            "groups": []
+        },
+        "testtest": {
+            "shortname": "ti",
+            "longname": "testtest",
+            "username": "UserName2",
+            "email": "testing@user.io",
+            "ex": false,
+            "groups": [
+                "gr1"
+            ]
+        }
+    }
+}`
 
 var envVar string
 
@@ -54,7 +74,7 @@ func TestShowUser(t *testing.T) {
 		teatest.WithInitialTermSize(300, 300),
 	)
 	teatest.WaitFor(t, tm.Output(), func(bts []byte) bool {
-		return bytes.Contains(bts, []byte("syntax for the test file"))
+		return bytes.Contains(bts, []byte("\"Authors\": {"))
 	}, teatest.WithCheckInterval(time.Millisecond*100), teatest.WithDuration(time.Second*2))
 
 	keyPress(tm, "q")

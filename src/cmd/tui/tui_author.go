@@ -4,6 +4,7 @@ package tui
 // from the Bubbles component library.
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -249,29 +250,45 @@ func (m *model_ca) AddAuthor() {
 		}
 
 		defer f.Close()
-
-		sb := strings.Builder{}
-		sb.WriteRune('\n')
-
-		sb.WriteString(fmt.Sprintf("%s|%s|%s|%s",
-			m.inputs[0].Value(),
-			m.inputs[1].Value(),
-			m.inputs[2].Value(),
-			m.inputs[3].Value()))
-
-		if m.exclude {
-			sb.WriteString(fmt.Sprintf("|%s", "ex"))
+		var groups []string
+		if m.inputs[4].Value() == "" {
+			groups = []string{}
+		} else {
+			groups = strings.Split(m.inputs[4].Value(), "|")
 		}
 
-		if m.inputs[4].Value() != "" {
-			sb.WriteString(fmt.Sprintf(";;%s", m.inputs[4].Value()))
+
+
+
+		// create and add the user to the users map
+		usr := utils.User{
+			Shortname: m.inputs[0].Value(),
+			Longname:  m.inputs[1].Value(),
+			Username:  m.inputs[2].Value(),
+			Email:     m.inputs[3].Value(),
+			Ex:        m.exclude,
+			Groups:   groups,
 		}
 
-		//sb.WriteRune('\n')
+		utils.Users[m.inputs[0].Value()] = usr
+		utils.Users[m.inputs[1].Value()] = usr
+		
+		
+		utils.Authors.Authors[m.inputs[1].Value()] = usr
 
-		if _, err = f.WriteString(sb.String()); err != nil {
-			panic(err)
+		data, err := json.MarshalIndent(utils.Authors, "", "    ")
+		if err != nil {
+			panic(fmt.Sprintf("Error marshalling json: %v", err))
+			
 		}
+
+		// write the data to the file
+		f.Truncate(0)
+		f.Seek(0, 0)
+		f.Write(data)
+		f.Close()
+
+		// redefine the users map for the tui to use
 		utils.Define_users(utils.Find_authorfile())
 
 		author := m.inputs[0].Value()
