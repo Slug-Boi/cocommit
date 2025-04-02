@@ -80,6 +80,7 @@ func DeleteOneAuthor(author string) {
 		fmt.Println("Error opening file: ", err)
 		return
 	}
+	defer file.Close()
 
 	// check that users aren't empty
 	if len(Users) < 1 {
