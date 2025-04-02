@@ -131,7 +131,7 @@ A sample lazygit config file can be found [here](https://github.com/Slug-Boi/coc
 The syntax for the author file is json below is a small example with fake information to show what it looks like. The author file can be edited safely from the tool so there is no real need to edit this manually. Whilst this format is a little heavier than the old custom CSV format it is much easier to work with and handle json so rest assured this is best way forward
 ```json
 {
-   "authors":{
+   "Authors":{
       "Morgan Rivers":{
          "shortname":"mr",
          "longname":"Morgan Rivers",
