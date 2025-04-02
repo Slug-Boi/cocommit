@@ -250,6 +250,15 @@ func (m *model_ca) AddAuthor() {
 		}
 
 		defer f.Close()
+		var groups []string
+		if m.inputs[4].Value() == "" {
+			groups = []string{}
+		} else {
+			groups = strings.Split(m.inputs[4].Value(), "|")
+		}
+
+
+
 
 		// create and add the user to the users map
 		usr := utils.User{
@@ -258,7 +267,7 @@ func (m *model_ca) AddAuthor() {
 			Username:  m.inputs[2].Value(),
 			Email:     m.inputs[3].Value(),
 			Ex:        m.exclude,
-			Groups:   strings.Split(m.inputs[4].Value(), "|"),
+			Groups:   groups,
 		}
 
 		utils.Users[m.inputs[0].Value()] = usr
