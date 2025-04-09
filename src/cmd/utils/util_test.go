@@ -121,6 +121,108 @@ func Test_CreateAuthor(t *testing.T) {
 	}
 }
 
+func Test_FindAuthorFilePanic(t *testing.T) {
+	// Save original environment variables
+	originalAuthorFile := os.Getenv("author_file")
+	originalHome := os.Getenv("HOME")
+
+	// Test Find_authorfile panic
+	defer func() {
+		// Reset environment variables
+		os.Setenv("author_file", originalAuthorFile)
+		os.Setenv("HOME", originalHome)
+
+		if r := recover(); r == nil {
+			t.Errorf("Find_authorfile() did not panic")
+		}
+	}()
+
+	os.Setenv("author_file", "")
+	os.Setenv("HOME", "")
+	utils.Find_authorfile()
+}
+
+func Test_FindAuthorFileEnv(t *testing.T) {
+	// Test Find_authorfile with env var
+	setup()
+	defer teardown()
+	os.Setenv("author_file", "")
+	authorfile := utils.Find_authorfile()
+	configdir, err := os.UserConfigDir()
+	if err != nil {
+		t.Fatalf("Failed to get user config directory: %v", err)
+	}
+	if authorfile != configdir+"/cocommit/authors.json" {
+		t.Errorf("Find_authorfile() = %v; want %v", authorfile, configdir+"/cocommit/authors.json")
+	}
+	
+}
+
+func Test_CreateAuthorPanicOnFileError(t *testing.T) {
+	setup()
+	defer teardown()
+
+	// Set an invalid author file path to trigger file open error
+	os.Setenv("author_file", "/invalid/path/author_file_test")
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("CreateAuthor() did not panic on file open error")
+		}
+	}()
+
+	validUser := utils.User{
+		Shortname: "valid",
+		Longname:  "ValidUser",
+		Username:  "ValidUser",
+		Email:     "valid@test.io",
+		Ex:        false,
+		Groups:    []string{},
+	}
+
+	utils.CreateAuthor(validUser)
+}
+
+func Test_DeleteOneAuthorPrints(t *testing.T) {
+	setup()
+	defer teardown()
+
+	// Redirect stdout to capture fmt.Println outputs
+	oldStdout := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	// Test case: User not found
+	utils.Define_users("author_file_test")
+	utils.DeleteOneAuthor("nonexistent_user")
+	w.Close()
+	out, _ := io.ReadAll(r)
+	os.Stdout = oldStdout
+
+	if !strings.Contains(string(out), "User not found") {
+		t.Errorf("Expected 'User not found' message, got: %s", string(out))
+	}
+
+	// Test case: Error opening file
+	
+	// Test case: No users to remove
+	setup()
+	defer teardown()
+	utils.Define_users("author_file_test")
+	utils.Users = make(map[string]utils.User) // Clear users
+	r, w, _ = os.Pipe()
+	os.Stdout = w
+
+	utils.DeleteOneAuthor("te")
+	w.Close()
+	out, _ = io.ReadAll(r)
+	os.Stdout = oldStdout
+
+	if !strings.Contains(string(out), "No users to remove") {
+		t.Errorf("Expected 'No users to remove' message, got: %s", string(out))
+	}
+}
+
 // Author tests END
 
 // User tests BEGIN
@@ -326,6 +428,73 @@ func Test_CommitWithInvalidGroup(t *testing.T) {
 	// Verify that no co-author lines are added for the invalid group
 	if strings.Contains(commit, "Co-authored-by:") {
 		t.Errorf("Commit() should not include co-author lines for an invalid group msg: %s ", commit)
+	}
+}
+
+func Test_CommitWithInlineAdd(t *testing.T) {
+	setup()
+	defer teardown()
+	utils.Define_users("author_file_test")
+
+	// Test Commit with inline addition of authors
+	authors := []string{"te:testtest"}
+	message := "Test commit message with inline addition"
+	commit := utils.Commit(message, authors)
+
+	// Verify that the commit message includes the inline addition
+	splitAuthors := strings.Split(authors[0], ":")
+	
+	if !strings.Contains(commit, fmt.Sprintf("Co-authored-by: %s <%s>", splitAuthors[0], splitAuthors[1])) {
+		t.Errorf("Commit() missing co-author line for inline addition: %v:%v\n%s", splitAuthors[0],splitAuthors[1] ,commit)
+	}
+}
+
+func Test_CommitWithNegation(t *testing.T) {
+	setup()
+	defer teardown()
+	utils.Define_users("author_file_test")
+
+	// Test Commit with negation
+	authors := []string{"^testtest"}
+	message := "Test commit message with negation"
+	commit := utils.Commit(message, authors)
+
+	// Verify that the commit message does not include the negated author
+	if strings.Contains(commit, "Co-authored-by: testtest") {
+		t.Errorf("Commit() should not include co-author line for negated author")
+	}
+}
+
+func Test_GitWrapper(t *testing.T) {
+	setup()
+	defer teardown()
+	utils.Define_users("author_file_test")
+
+
+	// Test GitWrapper with --dry-run flag
+	authors := []string{"te"}
+	message := "Test commit message for GitWrapper"
+
+	commit := utils.Commit(message, authors)
+	flags := []string{"-a","--dry-run"}
+
+	err := utils.GitWrapper(commit, flags) 
+	if err != nil {
+		t.Errorf("GitWrapper() returned error: %v", err)
+	}
+}
+
+func Test_GitPush(t *testing.T) {
+	setup()
+	defer teardown()
+	utils.Define_users("author_file_test")
+
+	// Test GitPush with --dry-run flag
+	flags := []string{"--dry-run"}
+
+	err := utils.GitPush(flags)
+	if err != nil {
+		t.Errorf("GitPush() returned error: %v", err)
 	}
 }
 
