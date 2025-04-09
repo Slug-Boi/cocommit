@@ -58,13 +58,11 @@ func Define_users(author_file string) {
 	
 	data, err := os.ReadFile(author_file)
 	if err != nil {
-		fmt.Println("Error reading author file: ", err)
-		os.Exit(2)
+		panic(fmt.Sprintf("Error reading author file: %v", err))
 	}
 	err = json.Unmarshal(data, &auth)
 	if err != nil {
-		fmt.Println("Error unmarshalling json: ", err)
-		os.Exit(2)
+		panic(fmt.Sprintf("Error unmarshalling json: %v", err))
 	}
 	
 	Authors = auth
