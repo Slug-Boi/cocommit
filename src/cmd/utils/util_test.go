@@ -490,7 +490,7 @@ func Test_GitPush(t *testing.T) {
 	utils.Define_users("author_file_test")
 
 	// Test GitPush with --dry-run flag
-	flags := []string{"--dry-run"}
+	flags := []string{"--all","--dry-run"}
 
 	err := utils.GitPush(flags)
 	if err != nil {
