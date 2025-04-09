@@ -56,6 +56,7 @@ var rootCmd = &cobra.Command{
 		vflag, _ := cmd.Flags().GetBool("version")
 		gflag, _ := cmd.Flags().GetString("git")
 		gpflag, _ := cmd.Flags().GetBool("git-push")
+		gpflagsflag, _ := cmd.Flags().GetString("git-push-flags")
 
 		if vflag {
 			fmt.Println("Cocommit version:", Coco_Version)
@@ -109,13 +110,24 @@ var rootCmd = &cobra.Command{
 			return
 		}
 
-		utils.GitWrapper(message, git_flags)
+		err := utils.GitWrapper(message, git_flags)
+		if err != nil {
+			fmt.Println("Error committing:", err)
+		}
 		// prints the commit message to the console if the print flag is set
 		if pflag {
 			fmt.Println(message)
 		}
+		var gp_flags []string
+		if gpflagsflag != "" {
+			gp_flags = strings.Split(gpflagsflag, " ")
+		}
+
 		if gpflag {
-			utils.GitPush()
+			err := utils.GitPush(gp_flags)
+			if err != nil {
+				fmt.Println("Error pushing to remote:", err)
+			}
 		}
 	},
 }
@@ -185,4 +197,5 @@ func init() {
 	rootCmd.Flags().BoolP("version", "v", false, "Prints the version of the cocommit cli tool")
 	rootCmd.Flags().StringP("git", "g", "", "Adds the given flags to the git command")
 	rootCmd.Flags().BoolP("git-push", "p", false, "Runs git push after the commit")
+	rootCmd.Flags().StringP("git-push-flags", "f", "", "Adds the given flags to the git push command")
 }
