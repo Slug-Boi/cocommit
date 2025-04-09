@@ -58,7 +58,7 @@ if len(excludeMode) > 0 {
 	return sb.String()
 }
 
-func GitWrapper(commit string, flags []string) {
+func GitWrapper(commit string, flags []string) error {
 	// commit shell command
 	// specify git command
 	input := []string{"commit"}
@@ -73,22 +73,27 @@ func GitWrapper(commit string, flags []string) {
 	cmd_output, err := cmd.CombinedOutput()
 
 	if err != nil {
-		println(fmt.Sprint(err) + " : " + string(cmd_output))
+		return fmt.Errorf("error: %s : %s", err, string(cmd_output))
 	} else {
 		println(string(cmd_output))
 	}
+	return nil
 }
 
-func GitPush() {
-	cmd := exec.Command("git", "push")
+func GitPush(flags []string) error {
+
+	input := []string{"push"}
+	input = append(input, flags...)
+	cmd := exec.Command("git", input...)
 
 	cmd_output, err := cmd.CombinedOutput()
 
 	if err != nil {
-		println(fmt.Sprint(err) + " : " + string(cmd_output))
+		return fmt.Errorf("error: %s : %s", err, string(cmd_output))
 	} else {
 		println(string(cmd_output))
 	}
+	return nil
 }
 
 // helper function to add an author to the commit message
