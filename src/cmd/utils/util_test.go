@@ -1,9 +1,11 @@
 package utils_test
 
 import (
-	"github.com/Slug-Boi/cocommit/src/cmd/utils"
+	"encoding/json"
 	"os"
 	"testing"
+
+	"github.com/Slug-Boi/cocommit/src/cmd/utils"
 )
 
 const author_data = `
@@ -77,6 +79,45 @@ func Test_DeleteAuthor(t *testing.T) {
 	}
 }
 
+func Test_CreateAuthor(t *testing.T) {
+	setup()
+	defer teardown()
+
+	// Test CreateAuthor
+	author := utils.User{
+		Shortname: "epic",
+		Longname:  "Test",
+		Username:  "TestUser",
+		Email: "bestemailever@github.io",
+		Ex:       false,
+		Groups:   []string{"test"},
+	}
+	utils.CreateAuthor(author)
+	// Check if author was added
+	_, ok := utils.Users["epic"]
+	if !ok {
+		t.Errorf("CreateAuthor() did not add author")
+	}
+
+	// Check if author was added to the file
+	author_file := utils.Find_authorfile()
+	author_data, err := os.ReadFile(author_file)
+	if err != nil {
+		t.Errorf("Error reading file: %v", err)
+	}
+	 
+	//unmarshal the data
+	var authors utils.Author
+	err = json.Unmarshal(author_data, &authors)
+	if err != nil {
+		t.Errorf("Error unmarshalling file: %v", err)
+	}
+	if authors.Authors["Test"].Shortname != "epic" {
+		t.Errorf("CreateAuthor() did not add author to file: %v", authors.Authors)
+	}
+}
+
+
 // Author tests END
 
 // User tests BEGIN
@@ -140,3 +181,31 @@ func Test_Commit(t* testing.T) {
 	}
 }
 // Commit tests END
+
+// Github tests BEGIN
+func Test_FetchGHProfile(t *testing.T) {
+	setup()
+	defer teardown()
+	// Test FetchGithubProfile
+	profile := utils.FetchGithubProfile("Slug-Boi")
+	if profile.Username != "Slug-Boi" {
+		t.Errorf("FetchGithubProfile() = %v; want Slug-Boi", profile.Username)
+	}
+	if profile.Email != "" {
+		t.Errorf("FetchGithubProfile() = %v; want empty email", profile.Email)
+	}
+	if profile.Shortname != "th" {
+		t.Errorf("FetchGithubProfile() = %v; want th", profile.Shortname)
+	}
+	if profile.Longname != "Theis" {
+		t.Errorf("FetchGithubProfile() = %v; want Theis", profile.Longname)
+	}
+	if profile.Ex != false {
+		t.Errorf("FetchGithubProfile() = %v; want false", profile.Ex)
+	}
+	if len(profile.Groups) != 0 {
+		t.Errorf("FetchGithubProfile() = %v; want 0", len(profile.Groups))
+	}
+}
+// Github tests END
+
