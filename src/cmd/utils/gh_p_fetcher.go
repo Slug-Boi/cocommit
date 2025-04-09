@@ -48,19 +48,15 @@ func FetchGithubProfile(username string) User {
 	var profile GithubProfile
 
 	check := checkGHCLI()
-
+	
+	var err error
 	if check {
 		// If the gh command line tool is installed, use it to fetch the github profile
 		fmt.Println("Using gh-cli to fetch github profile")
 		data := useGHCLI(username)
 
-		err := json.Unmarshal(data, &profile)
-		if err != nil {
-			panic(fmt.Sprint("Error parsing github profile: ", err))
-		}
-		if profile.Name == "" {
-			panic(fmt.Sprint("Error: No name found in github profile something went wrong whilst fetching using gh-cli \n(output from cmd:)", string(data)))
-		}
+		err = json.Unmarshal(data, &profile)
+		
 	} else {
 
 		fmt.Println("Using http request to fetch github profile")
@@ -74,17 +70,19 @@ func FetchGithubProfile(username string) User {
 		defer resp.Body.Close()
 
 		// Parse the response and create a user
-		err = json.NewDecoder(resp.Body).Decode(&profile)
-		if err != nil {
-			panic(fmt.Sprint("Error parsing github profile: ", err))
-		}
-
-		if profile.Name == "" {
-			panic(fmt.Sprintf("Error: No name found in github profile something went wrong whilst fetching \n(http response): %s", resp.Status))
+		if err = json.NewDecoder(resp.Body).Decode(&profile); err != nil {
+			panic(fmt.Sprint("Error decoding github profile: ", err))
 		}
 	}
+	// Check error
+	if err != nil {
+		panic(fmt.Sprint("Error parsing github profile: ", err))
+	}
 
-	
+	// Check if the profile has a name
+	if profile.Name == "" {
+		panic(fmt.Sprint("Error: No name found in github profile something went wrong whilst fetching the profile: ", err))
+	}	
 
 	// Create a user with the github profile
 	return User{
