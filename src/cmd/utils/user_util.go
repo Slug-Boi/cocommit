@@ -41,6 +41,13 @@ func ContainsUser(users []User, user User) bool {
     })
 }
 
+func CheckUserFields(user User) bool {
+	if user.Shortname == "" || user.Longname == "" || user.Username == "" || user.Email == "" {
+		return false
+	}
+	return true
+}
+
 func Define_users(author_file string) {
 	// wipe the users map
 	Users = map[string]User{}

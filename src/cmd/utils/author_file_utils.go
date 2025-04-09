@@ -73,6 +73,38 @@ func CheckAuthorFile() string {
 	return authorfile
 }
 
+func CreateAuthor(user User) {
+		Users[user.Shortname] = user
+		Users[user.Longname] = user
+		
+		// Specifically for the json file
+		Authors.Authors[user.Longname] = user
+
+		data, err := json.MarshalIndent(Authors, "", "    ")
+		if err != nil {
+			panic(fmt.Sprintf("Error marshalling json: %v", err))
+			
+		}
+
+		// open author_file
+		author_file := Find_authorfile()
+		f, err := os.OpenFile(author_file, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+		if err != nil {
+			panic(err)
+		}
+
+		defer f.Close()
+
+		// write the data to the file
+		f.Truncate(0)
+		f.Seek(0, 0)
+		f.Write(data)
+		f.Close()
+
+		// redefine the users map for the tui to use
+		Define_users(Find_authorfile())
+}
+
 func DeleteOneAuthor(author string) {
 	author_file := Find_authorfile()
 
