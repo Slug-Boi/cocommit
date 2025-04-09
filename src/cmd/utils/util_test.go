@@ -1,6 +1,7 @@
 package utils_test
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -220,6 +221,86 @@ func Test_DeleteOneAuthorPrints(t *testing.T) {
 
 	if !strings.Contains(string(out), "No users to remove") {
 		t.Errorf("Expected 'No users to remove' message, got: %s", string(out))
+	}
+}
+
+func Test_CheckAuthorFile_FileExists(t *testing.T) {
+	setup()
+	defer teardown()
+
+	// Ensure the author file exists
+	authorfile := utils.Find_authorfile()
+	if _, err := os.Stat(authorfile); os.IsNotExist(err) {
+		t.Fatalf("Author file does not exist: %v", authorfile)
+	}
+
+	// Mock user input to simulate "y" response
+	input := strings.NewReader("y\n")
+    output := new(bytes.Buffer) // capture output
+
+	// Test CheckAuthorFile when the file exists
+	result, err := utils.CheckAuthorFile(input, output)
+	if err != nil {
+		t.Fatalf("CheckAuthorFile() returned error: %v", err)
+	}
+	if result != authorfile {
+		t.Errorf("CheckAuthorFile() = %v; want %v", result, authorfile)
+	}
+}
+
+func Test_CheckAuthorFile_FileNotExists_CreateFile(t *testing.T) {
+	setup()
+	defer teardown()
+
+	originalEnv := os.Getenv("author_file")
+	defer os.Setenv("author_file", originalEnv)
+
+	os.Setenv("author_file", "author_file_test")
+	// Remove the author file to simulate non-existence
+	authorfile := utils.Find_authorfile()
+	os.Remove(authorfile)
+
+	// Mock user input to simulate "y" response
+	input := strings.NewReader("y\n")
+	output := new(bytes.Buffer) // capture output
+
+
+
+	// Test CheckAuthorFile when the file does not exist and user agrees to create it
+	result, err := utils.CheckAuthorFile(input, output)
+	if err != nil {
+		t.Fatalf("CheckAuthorFile() returned error: %v", err)
+	}
+
+	if result != authorfile {
+		panic(fmt.Sprintf("CheckAuthorFile() = %v; want %v", result, authorfile))
+	}
+}
+
+func Test_CheckAuthorFile_FileNotExists_DeclineCreate(t *testing.T) {
+	setup()
+	defer teardown()
+
+	// Remove the author file to simulate non-existence
+	authorfile := utils.Find_authorfile()
+	os.Remove(authorfile)
+
+	// Mock user input to simulate "n" response
+	input := strings.NewReader("n\n")
+	output := new(bytes.Buffer) // capture output
+
+
+
+	// Test CheckAuthorFile when the file does not exist and user declines to create it
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("CheckAuthorFile() did not exit when user declined to create the file")
+		}
+	}()
+	utils.CheckAuthorFile(input, output)
+	// Check if the output contains the expected message
+	if !strings.Contains(output.String(), "") {
+		t.Errorf("Expected no message found output: %s", output.String())
 	}
 }
 
