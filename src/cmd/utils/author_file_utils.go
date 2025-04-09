@@ -13,12 +13,11 @@ import (
 // An example of the author file can be found in the examples folder of the repo
 func Find_authorfile() string {
 	if os.Getenv("author_file") == "" {
-		authors, err := os.UserConfigDir()
+		dirs, err := os.UserConfigDir()
 		if err != nil {
-			fmt.Println("Error getting user config directory")
-			os.Exit(2)
+			panic(fmt.Sprintf("Error getting user config directory: %v", err))
 		}
-		return (authors + "/cocommit/authors.json")
+		return (dirs + "/cocommit/authors.json")
 	} else {
 		return os.Getenv("author_file")
 	}
@@ -106,6 +105,12 @@ func CreateAuthor(user User) {
 }
 
 func DeleteOneAuthor(author string) {
+	// check that users aren't empty
+	if len(Users) < 1 {
+		fmt.Println("No users to remove")
+		return
+	}
+
 	author_file := Find_authorfile()
 
 	if _, exists := Users[author]; !exists {
@@ -120,12 +125,6 @@ func DeleteOneAuthor(author string) {
 		return
 	}
 	defer file.Close()
-
-	// check that users aren't empty
-	if len(Users) < 1 {
-		fmt.Println("No users to remove")
-		return
-	}
 
 	usr := Users[author]
 
