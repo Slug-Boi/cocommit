@@ -139,11 +139,14 @@ func Execute() {
 	check_update()
 
 	// author file check
-	author_file := utils.CheckAuthorFile()
+	author_file, err := utils.CheckAuthorFile(os.Stdin, os.Stdout)
+	if err != nil {
+		panic(fmt.Sprintf("Error checking author file: %v", err))
+	}
 	// define users
 	utils.Define_users(author_file)
 
-	err := rootCmd.Execute()
+	err = rootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
 	}
