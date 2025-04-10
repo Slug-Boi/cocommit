@@ -126,20 +126,25 @@ func Test_FindAuthorFilePanic(t *testing.T) {
 	// Save original environment variables
 	originalAuthorFile := os.Getenv("author_file")
 	originalHome := os.Getenv("HOME")
+	orignalXDG := os.Getenv("XDG_CONFIG_HOME")
 
 	// Test Find_authorfile panic
 	defer func() {
 		// Reset environment variables
 		os.Setenv("author_file", originalAuthorFile)
 		os.Setenv("HOME", originalHome)
+		os.Setenv("XDG_CONFIG_HOME", orignalXDG)
 
 		if r := recover(); r == nil {
 			t.Errorf("Find_authorfile() did not panic")
 		}
 	}()
 
+	// Set environment variables to empty strings
+	// to trigger the panic
 	os.Setenv("author_file", "")
 	os.Setenv("HOME", "")
+	os.Setenv("XDG_CONFIG_HOME", "")
 	utils.Find_authorfile()
 }
 
