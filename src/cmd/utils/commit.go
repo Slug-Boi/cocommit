@@ -10,58 +10,55 @@ import (
 
 // This util file is used to create a commit message using a string builder
 
-// string builder for the commit message
-var sb strings.Builder
-
-// list of excluded authors based on the author file
-var excludeMode = []string{}
-
 // Regex pattern used to create temp users to add to the commit message
 var reg, _ = regexp.Compile("([^:]+):([^:]+)")
 
 func Commit(message string, authors []string) string {
+	// string builder for the commit message
+	var sb strings.Builder
+	excludeMode := []string{}
+
 	// write the commit message to the string builder
 	sb.WriteString(message + "\n")
 	fst := authors[0]
 
 	if fst == "all" || fst == "All" {
-		add_x_users(excludeMode)
-		goto skip_loop
+		add_x_users(excludeMode, &sb)
+		return sb.String()
 	} else if Groups[fst] != nil {
 		excludeMode = group_selection(Groups[fst], excludeMode)
-		add_x_users(excludeMode)
-		goto skip_loop
+		add_x_users(excludeMode, &sb)
+		return sb.String()
 	}
 
-	// Loop that adds users
-	for _, committer := range authors {
-		if _, ok := Users[committer]; ok {
-			sb_author(committer)
-		} else if match := reg.MatchString(committer); match {
-			str := strings.Split(committer, ":")
+// Loop that adds users
+for _, committer := range authors {
+	if _, ok := Users[committer]; ok {
+		sb_author(committer, &sb)
+	} else if match := reg.MatchString(committer); match {
+		str := strings.Split(committer, ":")
 
-			sb.WriteString("\nCo-authored-by: ")
-			sb.WriteString(str[0])
-			sb.WriteString(" <")
-			sb.WriteString(str[1])
-			sb.WriteRune('>')
+		sb.WriteString("\nCo-authored-by: ")
+		sb.WriteString(str[0])
+		sb.WriteString(" <")
+		sb.WriteString(str[1])
+		sb.WriteRune('>')
 
-		} else if committer[0] == '^' { // Negations
-			excludeMode = append(excludeMode, Users[committer[1:]].Username)
-		} else {
-			println(committer, " was unknown. User either not defined or name typed wrong")
-		}
+	} else if committer[0] == '^' { // Negations
+		excludeMode = append(excludeMode, Users[committer[1:]].Username)
+	} else {
+		println(committer, " was unknown. User either not defined or name typed wrong")
 	}
-	if len(excludeMode) > 0 {
-		add_x_users(excludeMode)
-	}
+}
 
-	// Skip label for edge cases at top of function
-skip_loop:
+// Add excluded users after processing all authors
+if len(excludeMode) > 0 {
+	add_x_users(excludeMode, &sb)
+}
 	return sb.String()
 }
 
-func GitWrapper(commit string, flags []string) {
+func GitWrapper(commit string, flags []string) error {
 	// commit shell command
 	// specify git command
 	input := []string{"commit"}
@@ -76,26 +73,31 @@ func GitWrapper(commit string, flags []string) {
 	cmd_output, err := cmd.CombinedOutput()
 
 	if err != nil {
-		println(fmt.Sprint(err) + " : " + string(cmd_output))
+		return fmt.Errorf("error: %s : %s", err, string(cmd_output))
 	} else {
 		println(string(cmd_output))
 	}
+	return nil
 }
 
-func GitPush() {
-	cmd := exec.Command("git", "push")
+func GitPush(flags []string) error {
+
+	input := []string{"push"}
+	input = append(input, flags...)
+	cmd := exec.Command("git", input...)
 
 	cmd_output, err := cmd.CombinedOutput()
 
 	if err != nil {
-		println(fmt.Sprint(err) + " : " + string(cmd_output))
+		return fmt.Errorf("error: %s : %s", err, string(cmd_output))
 	} else {
 		println(string(cmd_output))
 	}
+	return nil
 }
 
 // helper function to add an author to the commit message
-func sb_author(committer string) {
+func sb_author(committer string, sb *strings.Builder) {
 	sb.WriteString("\nCo-authored-by: ")
 	sb.WriteString(Users[committer].Username)
 	sb.WriteString(" <")
@@ -104,13 +106,13 @@ func sb_author(committer string) {
 }
 
 // helper function to add x amount of users to the commit message
-func add_x_users(excludeMode []string) {
+func add_x_users(excludeMode []string, sb *strings.Builder) {
 	if len(DefExclude) > 0 {
 		excludeMode = append(excludeMode, DefExclude...)
 	}
 	for key, user := range Users {
 		if !slices.Contains(excludeMode, user.Username) {
-			sb_author(key)
+			sb_author(key, sb)
 			excludeMode = append(excludeMode, user.Username)
 		}
 	}

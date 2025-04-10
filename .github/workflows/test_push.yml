@@ -21,3 +21,15 @@ jobs:
           run: cd ci && go get dagger.io/dagger@latest && cd ..
         - name: Run Dagger Test Workflow
           run: go run ci/test_on_push.go
+        # - name: Generate Coverage Report
+        #   run: go test -v ./...
+        - name: Update coverage report
+          uses: ncruces/go-coverage-report@v0
+          with:
+            report: true
+            chart: true
+            amend: true
+          if: |
+            matrix.os == 'ubuntu-latest' &&
+            github.event_name == 'push'  
+          continue-on-error: true
