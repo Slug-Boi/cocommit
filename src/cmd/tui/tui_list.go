@@ -47,6 +47,7 @@ type listKeyMap struct {
 	createAuthor key.Binding
 	deleteAuthor key.Binding
 	tempAdd      key.Binding
+	ghAdd        key.Binding
 }
 
 func newListKeyMap() *listKeyMap {
@@ -78,6 +79,10 @@ func newListKeyMap() *listKeyMap {
 		tempAdd: key.NewBinding(
 			key.WithKeys("T"),
 			key.WithHelp("T", "Add temporary author"),
+		),
+		ghAdd: key.NewBinding(
+			key.WithKeys("c"),
+			key.WithHelp("c", "Add GitHub author"),
 		),
 	}
 }
@@ -180,6 +185,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		// Handle keys from keyList (help menu)
 		switch {
+		case key.Matches(msg, m.keys.ghAdd):
+			sub_model = NewGitHubUserForm(&m)
+			return m, tea.ClearScreen
+
 		case key.Matches(msg, m.keys.negation):
 			i, ok := m.list.SelectedItem().(item)
 			if ok {
