@@ -22,15 +22,9 @@ jobs:
         - name: Run Dagger Test Workflow
           run: go run ci/test_on_push.go
         - name: Generate Coverage Report
-          run: CI=true go test -coverprofile=coverage.out ./...
-        - name: Update coverage report
-          uses: ncruces/go-coverage-report@v0.3.0
+          run: CI=true go test -coverprofile=coverage.txt ./...
+        - name: Upload coverage reports to Codecov
+          uses: codecov/codecov-action@v5
           with:
-            coverage-file: coverage.out
-            report: true
-            chart: true
-            amend: true
-          if: |
-            matrix.os == 'ubuntu-latest' &&
-            github.event_name == 'push'  
+            token: ${{ secrets.CODECOV_TOKEN }}  
           continue-on-error: true
