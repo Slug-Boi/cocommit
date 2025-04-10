@@ -43,7 +43,7 @@ func main() {
 	fmt.Println(out)
 
 	// export the coverage report
-	_, err = client.Host().Directory(".").WithFile("cover.out", runner.File("/src_d/src/cover.out")).Export(ctx, ".")
+	_, err = client.Host().Directory(".").WithFile("cover.out", runner.File("./cover.out")).Export(ctx, ".")
 	if err != nil {
 		panic(err)
 	}
