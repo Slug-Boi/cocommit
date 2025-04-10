@@ -35,10 +35,16 @@ func main() {
 		WithExec([]string{"go", "mod", "tidy"}).WithEnvVariable("CI", "true")
 
 		// run application tests
-	out, err := runner.WithWorkdir("/src_d/src").WithExec([]string{"go", "test", "./..."}).
+	out, err := runner.WithWorkdir("/src_d/src").WithExec([]string{"go", "test", "./cmd/utils", "./cmd/tui", "-coverprofile cover.out"}).
 		Stderr(ctx)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println(out)
+
+	// export the coverage report
+	_, err = client.Host().Directory(".").WithFile("cover.out", runner.File("/src_d/src/cover.out")).Export(ctx, ".")
+	if err != nil {
+		panic(err)
+	}
 }
