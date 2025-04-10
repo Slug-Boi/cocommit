@@ -27,6 +27,7 @@ This will require the user to have commitizen installed on their system.`,
 		cflag, _ := cmd.Flags().GetBool("cli")
 		gflag, _ := cmd.Flags().GetString("git")
 		gpflag, _ := cmd.Flags().GetBool("git-push")
+		gpflagsflag, _ := cmd.Flags().GetString("git-push-flags")
 
 		// run execute commands again as root run will not call this part
 		message = utils.Cz_Call()
@@ -53,7 +54,10 @@ This will require the user to have commitizen installed on their system.`,
 		if gflag != "" {
 			git_flags = strings.Split(gflag, " ")
 		}
-		utils.GitWrapper(message, git_flags)
+		err := utils.GitWrapper(message, git_flags)
+		if err != nil {
+			fmt.Println("Error committing:", err)
+		}
 
 		if update {
 			update_msg()
@@ -63,8 +67,16 @@ This will require the user to have commitizen installed on their system.`,
 			fmt.Println(message)
 		}
 
+		var gp_flags []string
+		if gpflagsflag != "" {
+			gp_flags = strings.Split(gpflagsflag, " ")
+		}
+
 		if gpflag {
-			utils.GitPush()
+			err := utils.GitPush(gp_flags)
+			if err != nil {
+				fmt.Println("Error pushing to git:", err)
+			}
 		}
 	},
 }
@@ -75,4 +87,5 @@ func init() {
 	czCmd.Flags().BoolP("print-output", "o", false, "Print the commit message")
 	czCmd.Flags().BoolP("cli", "c", false, "[co-author1] [co-author2] ...")
 	czCmd.Flags().BoolP("git-push", "p", false, "Runs the git push command after the commit")
+	czCmd.Flags().StringP("git-push-flags", "f", "", "Passes the flags specified to the git push command")
 }
