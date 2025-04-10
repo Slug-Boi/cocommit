@@ -42,7 +42,7 @@ func main() {
 	}
 	fmt.Println(out)
 
-	out, err = runner.WithExec([]string{"find", "-name", "cover.out"}).Stdout(ctx)
+	out, err = runner.WithExec([]string{"ls"}).Stdout(ctx)
 	fmt.Println(out)
 
 	// export the coverage report
