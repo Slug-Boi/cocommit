@@ -21,7 +21,8 @@ jobs:
           run: cd ci && go get dagger.io/dagger@latest && cd ..
         - name: Run Dagger Test Workflow
           run: go run ci/test_on_push.go
-
+        - name: Generate Coverage Report
+          run: go test -coverprofile=cover.out ./src/cmd/utils ./src/cmd/tui
         - name: Update coverage report
           uses: ncruces/go-coverage-report@v0
           with:
