@@ -137,6 +137,33 @@ func intitialErrorModel() *errorModel {
 	}
 }
 
+func createGHTempAuthorModel(old_m *model, user utils.User) model_ca {
+	parent_m = old_m
+	m := model_ca{
+		inputs: make([]textinput.Model, 2),
+		errorModel: intitialErrorModel(),
+	}
+	var t textinput.Model
+	for i := range m.inputs {
+		t = textinput.New()
+		t.Cursor.Style = cursorStyle
+		switch i {
+		case 0:
+			t.Placeholder = "Username (e.g. JohnDoe-gh)"
+			t.SetValue(user.Username)
+			t.Focus()
+			t.PromptStyle = focusedStyle
+			t.TextStyle = focusedStyle
+		case 1:
+			t.Placeholder = "Email (e.g. JohnDoe@domain.do)"
+			t.SetValue(user.Email)
+		}
+		m.inputs[i] = t
+	}
+	tempAuthorToggle = true
+	return m
+}
+
 func createGHAuthorModel(old_m *model, user utils.User) model_ca {
 	parent_m = old_m
 
