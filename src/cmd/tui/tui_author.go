@@ -50,9 +50,9 @@ func errorGetMissingFields(m model_ca) {
 	}
 
 	if len(m.inputs) > 0 {
-		for i := 0; i < inpLen; i++ {
+		for i := 0; i < inpLen-1; i++ {
 			if m.inputs[i].Value() == "" {
-				m.errorModel.missing = append(m.errorModel.missing, "- "+strings.Split(m.inputs[i].Placeholder,"(")[0])
+				m.errorModel.missing = append(m.errorModel.missing, "- "+strings.Split(m.inputs[i].Placeholder," (")[0])
 			}
 		}
 	} else {
@@ -115,7 +115,7 @@ func createAuthorModel(old_m *model) model_ca {
 			t.PromptStyle = focusedStyle
 			t.TextStyle = focusedStyle
 		case 1:
-			t.Placeholder = "Long name (e.g. JohnDoe)"
+			t.Placeholder = "Longname (e.g. JohnDoe)"
 		case 2:
 			t.Placeholder = "Username (e.g. JohnDoe-gh)"
 		case 3:
@@ -158,7 +158,7 @@ func createGHAuthorModel(old_m *model, user utils.User) model_ca {
 			t.PromptStyle = focusedStyle
 			t.TextStyle = focusedStyle
 		case 1:
-			t.Placeholder = "Long name (e.g. JohnDoe)"
+			t.Placeholder = "Longname (e.g. JohnDoe)"
 			t.SetValue(user.Longname)
 		case 2:
 			t.Placeholder = "Username (e.g. JohnDoe-gh)"

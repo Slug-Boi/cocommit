@@ -2,12 +2,14 @@ package tui
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/Slug-Boi/cocommit/src/cmd/utils"
+	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/x/exp/teatest"
 )
@@ -77,10 +79,45 @@ func TestShowUser(t *testing.T) {
 		return bytes.Contains(bts, []byte("\"Authors\": {"))
 	}, teatest.WithCheckInterval(time.Millisecond*100), teatest.WithDuration(time.Second*2))
 
+	keyPress(tm, "enter")
+
 	keyPress(tm, "q")
 
 	tm.WaitFinished(t, teatest.WithFinalTimeout(time.Second))
 
+}
+
+func TestShowUserPanicFileNotFound(t *testing.T) {
+	setup()
+	defer teardown()
+
+	// Use defer with recover to catch panics
+	defer func() {
+		if r := recover(); r != nil {
+			t.Logf("Recovered from expected panic: %v", r)
+			// You can optionally verify the panic message here
+			if !strings.Contains(fmt.Sprint(r), "Could not open author file:") {
+				t.Errorf("Unexpected panic message: %v", r)
+			}
+		}
+	}()
+
+	m := intialModel_US("non_existent_file")
+	tm := teatest.NewTestModel(
+		t, m,
+		teatest.WithInitialTermSize(300, 300),
+	)
+
+	// Verify error message appears in output
+	teatest.WaitFor(t, tm.Output(), func(bts []byte) bool {
+		return bytes.Contains(bts, []byte("could not open author file"))
+	}, teatest.WithCheckInterval(time.Millisecond*100), teatest.WithDuration(time.Second*2))
+
+	// Send quit command
+	keyPress(tm, "q")
+
+	// Wait for clean shutdown
+	tm.WaitFinished(t, teatest.WithFinalTimeout(time.Second))
 }
 
 // tui_show_users TESTS END
@@ -129,6 +166,89 @@ func TestEntryTA(t *testing.T) {
 
 	if split[1] != "testtest@temp.io" {
 		t.Errorf("Expected 'testtest@temp.io', got %s", split[1])
+	}
+}
+
+func TestErrorGetMissingFields(t *testing.T) {
+	setup()
+	defer teardown()
+
+	// Test case 1: No inputs
+	m := createAuthorModel(nil)
+	errorGetMissingFields(m)
+	if len(m.errorModel.missing) != 4 {
+		t.Errorf("Expected 4 missing fields, got %d\n%v", len(m.errorModel.missing), m.errorModel.missing)
+	}
+
+	m = createAuthorModel(nil)
+
+	m.inputs[0].SetValue("")
+	m.inputs[1].SetValue("value")
+	m.inputs[2].SetValue("")
+	m.inputs[3].SetValue("value")
+
+	tempAuthorToggle = false
+	errorGetMissingFields(m)
+	expectedMissing := []string{"- Shortname", "- Username"}
+	if len(m.errorModel.missing) != len(expectedMissing) {
+		t.Errorf("Expected %d missing fields, got %d", len(expectedMissing), len(m.errorModel.missing))
+	}
+	for i, missing := range expectedMissing {
+		if m.errorModel.missing[i] != missing {
+			t.Errorf("Expected '%s', got '%s'", missing, m.errorModel.missing[i])
+		}
+	}
+
+	m = createAuthorModel(nil)
+
+	m.inputs[0].SetValue("value1")
+	m.inputs[1].SetValue("value2")
+	m.inputs[2].SetValue("value3")
+	m.inputs[3].SetValue("value4")
+	m.inputs[4].SetValue("value5")
+
+	tempAuthorToggle = true
+	errorGetMissingFields(m)
+	if len(m.errorModel.missing) != 0 {
+		t.Errorf("Expected no missing fields, got %v", m.errorModel.missing)
+	}
+}
+
+func Test_EntryCA_TriggerError(t *testing.T) {
+	setup()
+	defer teardown()
+
+	m := listModel()
+
+	tm := teatest.NewTestModel(
+		t, m, teatest.WithInitialTermSize(300, 300),
+	)
+	keyPress(tm, "C")
+
+	keyPress(tm, "enter")
+
+	tm.Type("test")
+
+	keyPress(tm, "enter")
+
+	tm.Type("testing2")
+	keyPress(tm, "enter")
+
+	keyPress(tm, "enter")
+	keyPress(tm, "tab")
+	keyPress(tm, "enter")
+	keyPress(tm, "esc")
+	keyPress(tm, "esc")
+	keyPress(tm, "esc")
+
+	fm := tm.FinalModel(t)
+	mm, ok := fm.(model)
+	if !ok {
+		t.Errorf("Expected model_ca, got %T", fm)
+	}
+
+	if len(mm.list.Items()) != 2 {
+		t.Errorf("Expected 2 inputs, got %d\n%v", len(mm.list.Items()), mm.list.Items())
 	}
 }
 
@@ -196,6 +316,67 @@ func Test_EntryCA(t *testing.T) {
 
 }
 
+func TestModelCAInit(t *testing.T) {
+	setup()
+	defer teardown()
+
+	m := model_ca{}
+	cmd := m.Init()
+
+	if cmd == nil {
+		t.Errorf("Expected a non-nil command, got nil")
+	}
+
+	if cmd() != textinput.Blink() {
+		t.Errorf("Expected textinput.Blink command, got a different command")
+	}
+}
+
+
+func TestCreateGHAuthorModel(t *testing.T) {
+	setup()
+	defer teardown()
+
+	// Define a test user
+	testUser := utils.User{
+		Shortname: "gh",
+		Longname:  "GitHubUser",
+		Username:  "GitHubUser-gh",
+		Email:     "github@user.com",
+		Groups:    []string{"grp1", "grp2"},
+	}
+
+	// Create the model using the test user
+	m := createGHAuthorModel(nil, testUser)
+
+	// Verify the inputs are correctly initialized
+	if m.inputs[0].Value() != testUser.Shortname {
+		t.Errorf("Expected Shortname '%s', got '%s'", testUser.Shortname, m.inputs[0].Value())
+	}
+
+	if m.inputs[1].Value() != testUser.Longname {
+		t.Errorf("Expected Longname '%s', got '%s'", testUser.Longname, m.inputs[1].Value())
+	}
+
+	if m.inputs[2].Value() != testUser.Username {
+		t.Errorf("Expected Username '%s', got '%s'", testUser.Username, m.inputs[2].Value())
+	}
+
+	if m.inputs[3].Value() != "" {
+		t.Errorf("Expected Email to be empty, got '%s'", m.inputs[3].Value())
+	}
+
+	expectedGroups := strings.Join(testUser.Groups, "|")
+	if m.inputs[4].Value() != expectedGroups {
+		t.Errorf("Expected Groups '%s', got '%s'", expectedGroups, m.inputs[4].Value())
+	}
+
+	// Verify the first input is focused
+	if !m.inputs[0].Focused() {
+		t.Errorf("Expected first input to be focused")
+	}
+}
+
 // tui_author TESTS END
 
 // tui_commit_message TESTS BEGIN
@@ -208,6 +389,8 @@ func Test_EntryCM(t *testing.T) {
 		t, m, teatest.WithInitialTermSize(300, 300),
 	)
 	tm.Type("test commit message")
+	keyPress(tm, "shift+tab")
+	tm.Type("new line")
 
 	keyPress(tm, "enter")
 
@@ -217,8 +400,54 @@ func Test_EntryCM(t *testing.T) {
 		t.Errorf("Expected model_cm, got %T", fm)
 	}
 
-	if m.textarea.Value() != "test commit message" {
+	if m.textarea.Value() != "test commit message\nnew line" {
 		t.Errorf("Expected 'test commit message', got %s", m.textarea.Value())
+	}
+}
+
+func Test_EntryCM_Quit(t *testing.T) {
+	setup()
+	defer teardown()
+
+	m := initialModel_cm()
+	tm := teatest.NewTestModel(
+		t, m, teatest.WithInitialTermSize(300, 300),
+	)
+	keyPress(tm, "esc")
+
+	fm := tm.FinalModel(t)
+	m, ok := fm.(model_cm)
+	if !ok {
+		t.Errorf("Expected model_cm, got %T", fm)
+	}
+
+	if m.textarea.Value() != "" {
+		t.Errorf("Expected empty textarea, got %s", m.textarea.Value())
+	}
+}
+
+// cannot test sigkill as it does not play nicely with these types of tests :(
+
+func Test_EntryCM_Unfocuse(t *testing.T) {
+	setup()
+	defer teardown()
+
+	m := initialModel_cm()
+	tm := teatest.NewTestModel(
+		t, m, teatest.WithInitialTermSize(300, 300),
+	)
+	keyPress(tm, "down")
+
+	keyPress(tm, "esc")
+
+	fm := tm.FinalModel(t)
+	m, ok := fm.(model_cm)
+	if !ok {
+		t.Errorf("Expected model_cm, got %T", fm)
+	}
+
+	if m.textarea.Value() != "" {
+		t.Errorf("Expected empty textarea, got %s", m.textarea.Value())
 	}
 }
 
@@ -363,7 +592,7 @@ func Test_GroupSelection(t *testing.T) {
 	keyPress(tm, "enter")
 
 	fm := tm.FinalModel(t)
-	m, ok := fm.(model)
+	_, ok := fm.(model)
 	if !ok {
 		t.Errorf("Expected model, got %T", fm)
 	}
@@ -377,8 +606,20 @@ func Test_pagination(t *testing.T) {
 	setup()
 	defer teardown()
 
-	m := mainModel{}
-	
+	// Add 20 authors to the test data
+	for i := 0; i < 20; i++ {
+		utils.Users[fmt.Sprintf("author%d", i)] = utils.User{
+			Shortname: fmt.Sprintf("a%d", i),
+			Longname:  fmt.Sprintf("Author %d", i),
+			Username:  fmt.Sprintf("AuthorUser%d", i),
+			Email:     fmt.Sprintf("author%d@test.com", i),
+			Ex:        false,
+			Groups:    []string{},
+		}
+	}
+
+	m := listModel()
+
 	tm := teatest.NewTestModel(
 		t, m, teatest.WithInitialTermSize(25, 25),
 	)
@@ -387,13 +628,13 @@ func Test_pagination(t *testing.T) {
 	tm.Quit()
 
 	fm := tm.FinalModel(t)
-	m, ok := fm.(mainModel)
+	m, ok := fm.(model)
 	if !ok {
 		t.Errorf("Expected model, got %T", fm)
 	}
 
-	if m.paginator.Page != 1 {
-		t.Errorf("Expected page 1, got %d", m.paginator.Page)
+	if m.list.Paginator.Page != 1 {
+		t.Errorf("Expected page 1, got %d", m.list.Paginator.Page)
 	}
 }
 

@@ -87,8 +87,7 @@ func intialModel_US(author_file string) tea.Model {
 
 	model, err := newExample()
 	if err != nil {
-		fmt.Println("Could not initialize Bubble Tea model:", err)
-		os.Exit(1)
+		panic(fmt.Sprintf("Could not initialize Bubble Tea model: %v", err))
 	}
 	return model
 }
@@ -96,8 +95,7 @@ func intialModel_US(author_file string) tea.Model {
 func loadData(author_file string) {
 	file, err := os.Open(author_file)
 	if err != nil {
-		fmt.Println("Could not open file:", err)
-		os.Exit(1)
+		panic(fmt.Sprintf("Could not open author file: %v", err))
 	}
 
 	scanner := bufio.NewScanner(file)
