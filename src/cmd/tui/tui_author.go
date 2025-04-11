@@ -50,7 +50,7 @@ func errorGetMissingFields(m model_ca) {
 	}
 
 	if len(m.inputs) > 0 {
-		for i := 0; i < inpLen; i++ {
+		for i := 0; i < inpLen-1; i++ {
 			if m.inputs[i].Value() == "" {
 				m.errorModel.missing = append(m.errorModel.missing, "- "+strings.Split(m.inputs[i].Placeholder," (")[0])
 			}
