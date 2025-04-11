@@ -50,7 +50,7 @@ func errorGetMissingFields(m model_ca) {
 	}
 
 	if len(m.inputs) > 0 {
-		for i := 0; i < inpLen-1; i++ {
+		for i := 0; i < inpLen; i++ {
 			if m.inputs[i].Value() == "" {
 				m.errorModel.missing = append(m.errorModel.missing, "- "+strings.Split(m.inputs[i].Placeholder," (")[0])
 			}
@@ -330,10 +330,15 @@ func (m model_ca) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.focusIndex++
 			}
 
-			if m.focusIndex > len(m.inputs)+1 {
+			inpNum := len(m.inputs)
+			if !tempAuthorToggle {
+				inpNum++
+			}
+
+			if m.focusIndex > inpNum {
 				m.focusIndex = 0
 			} else if m.focusIndex < 0 {
-				m.focusIndex = len(m.inputs)
+				m.focusIndex = inpNum
 			}
 
 			cmds := make([]tea.Cmd, len(m.inputs))
