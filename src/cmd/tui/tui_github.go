@@ -88,9 +88,9 @@ func (m GitHubUserModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					user.Email = m.inputs[1].Value()
 				}
 				if m.tempAuth {
-					return createGHTempAuthorModel(parent_m,user), nil
+					return createGHTempAuthorModel(parent_m,user), tea.ClearScreen
 				}
-				return createGHAuthorModel(parent_m,user), nil
+				return createGHAuthorModel(parent_m,user), tea.ClearScreen
 				
 			} else if s == "enter" && m.focusIndex == len(m.inputs) && m.tempAuthShow {
 				//toggle temp mode
