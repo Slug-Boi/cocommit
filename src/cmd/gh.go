@@ -1,13 +1,13 @@
-/*
-Copyright © 2025 NAME HERE <EMAIL ADDRESS>
-*/
 package cmd
 
 import (
 	"fmt"
+	"os"
+	"strings"
 
 	"github.com/Slug-Boi/cocommit/src/cmd/tui"
 	"github.com/Slug-Boi/cocommit/src/cmd/utils"
+
 	//"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 )
@@ -20,7 +20,7 @@ func GHCmd () *cobra.Command {
 		Long: `This command will create add a github profile to your author list.
 		You just have to run the command with a username of the github profile you want to add.
 		The email will be added manually by following the TUI or adding the email flag to the command.`,
-		Args: cobra.ExactArgs(1),
+		Args: cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			email, _ := cmd.Flags().GetString("email")
 			shortname, _ := cmd.Flags().GetString("shortname")
@@ -28,6 +28,19 @@ func GHCmd () *cobra.Command {
 			username, _ := cmd.Flags().GetString("username")
 			groups, _ := cmd.Flags().GetStringSlice("groups")
 			exclude, _ := cmd.Flags().GetBool("exclude")
+
+			if len(args) == 0 {
+				username, email_out, err := tui.RunForm()
+				if err != nil {
+					panic(fmt.Sprintf("Error: %v", err))
+				}
+				if username == "" {
+					os.Exit(0)
+				}
+
+				args = append(args, username)
+				email = strings.TrimSpace(email_out)
+			}
 
 			user := utils.FetchGithubProfile(args[0])
 
