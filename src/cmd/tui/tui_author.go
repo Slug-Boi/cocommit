@@ -50,7 +50,7 @@ func errorGetMissingFields(m model_ca) {
 	}
 
 	if len(m.inputs) > 0 {
-		for i := 0; i < inpLen-1; i++ {
+		for i := 0; i < inpLen; i++ {
 			if m.inputs[i].Value() == "" {
 				m.errorModel.missing = append(m.errorModel.missing, "- "+strings.Split(m.inputs[i].Placeholder," (")[0])
 			}
@@ -276,6 +276,7 @@ func (m model_ca) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "esc":
+			tempAuthorToggle = false
 			m.inputs = nil
 			if parent_m.keys != nil {
 				return nil, nil
@@ -297,7 +298,7 @@ func (m model_ca) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 					if parent_m.keys != nil {
 						return model{list: parent_m.list}, tea.ClearScreen
-					} else {
+						} else {
 						m.quitting = true
 						return m, tea.Quit
 					}
@@ -315,9 +316,11 @@ func (m model_ca) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						return m, nil
 					}
 					if parent_m.keys != nil {
+						tempAuthorToggle = false
 						return model{list: parent_m.list}, tea.ClearScreen
 					} else {
 						m.quitting = true
+						tempAuthorToggle = false
 						return m, tea.Quit
 					}
 				}
