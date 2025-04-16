@@ -66,6 +66,9 @@ func (m GitHubUserModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "esc":
+			if parent_m != nil {
+				return nil, nil
+			}
 			return m, tea.Quit
 		case "ctrl+t":  // Toggle temp mode
 			if m.tempAuthShow {
