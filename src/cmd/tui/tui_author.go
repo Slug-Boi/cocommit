@@ -278,7 +278,7 @@ func (m model_ca) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c", "esc":
 			tempAuthorToggle = false
 			m.inputs = nil
-			if parent_m.keys != nil {
+			if parent_m != nil {
 				return nil, nil
 			}
 			return m, tea.Quit
