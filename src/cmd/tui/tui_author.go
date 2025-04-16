@@ -296,7 +296,7 @@ func (m model_ca) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.quitting = false
 						return m, nil
 					}
-					if parent_m.keys != nil {
+					if parent_m != nil {
 						return model{list: parent_m.list}, tea.ClearScreen
 						} else {
 						m.quitting = true
@@ -462,7 +462,7 @@ func (m *model_ca) AddAuthor() bool {
 
 		author := m.inputs[0].Value()
 
-		if parent_m.keys != nil {
+		if parent_m != nil {
 			item_str := utils.Users[author].Username + " - " + utils.Users[author].Email
 			dupProtect[item_str] = author
 			parent_m.list.InsertItem(len(parent_m.list.Items())+1, item(item_str))
