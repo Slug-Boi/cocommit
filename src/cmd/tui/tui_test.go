@@ -392,42 +392,50 @@ func TestNewGitHubUserForm(t *testing.T) {
 	}
 }
 
-// // Test form submission with required field
-// func TestSubmitWithRequiredField(t *testing.T) {
-// 	m := NewGitHubUserForm(nil)
-// 	tm := teatest.NewTestModel(
-// 		t, m, teatest.WithInitialTermSize(300, 300),
-// 	)
+// Test form submission with required field
+func TestSubmitWithRequiredField(t *testing.T) {
+	setup()
+	defer teardown()
 
-// 	// Simulate filling in the required field
-// 	tm.Type("Slug-Boi")
-// 	tm.Send(tea.KeyMsg{Type: tea.KeyTab}) // Move to next field
-// 	tm.Send(tea.KeyMsg{Type: tea.KeyTab})
-// 	tm.Send(tea.KeyMsg{Type: tea.KeyEnter}) // Submit
-// 	tm.WaitFinished(t, teatest.WithFinalTimeout(time.Second*5))
-// 	// Check if the form was submitted
-// 	updated, _ := tm.FinalModel(t).(GitHubUserModel)
+
+	m := NewGitHubUserForm(nil)
+	tm := teatest.NewTestModel(
+		t, m, teatest.WithInitialTermSize(300, 300),
+	)
+
+	// Simulate filling in the required field
+	tm.Type("Slug-Boi")
+	tm.Send(tea.KeyMsg{Type: tea.KeyTab}) // Move to next field
+	tm.Send(tea.KeyMsg{Type: tea.KeyTab}) // Move to submit button
+	tm.Send(tea.KeyMsg{Type: tea.KeyEnter}) // Submit
+	tm.Send(tea.KeyMsg{Type: tea.KeyTab}) 
+	tm.Send(tea.KeyMsg{Type: tea.KeyTab})
+	tm.Send(tea.KeyMsg{Type: tea.KeyTab})
+	tm.Type("input@mail")
+	tm.Send(tea.KeyMsg{Type: tea.KeyTab})
+	tm.Send(tea.KeyMsg{Type: tea.KeyTab})
+	tm.Send(tea.KeyMsg{Type: tea.KeyTab})
+	tm.Send(tea.KeyMsg{Type: tea.KeyEnter}) // Submit
+
+	tm.WaitFinished(t, teatest.WithFinalTimeout(time.Second*5))
+	// Check if the form was submitted
+	updated, _ := tm.FinalModel(t).(model_ca)
 
 	
 	
-// 	// Check if the form was submitted
-// 	if !updated.submitted {
-// 		t.Error("Form should submit with required field filled")
-// 	}
-// }
-
-// // Test error when required field missing
-// func TestSubmitWithoutRequiredField(t *testing.T) {
-// 	m := NewGitHubUserForm(nil)
-
-// 	// Simulate submit with empty username
-// 	updated, _ := m.Update(tea.KeyMsg{Type: tea.KeyTab})
-// 	updated, _ = updated.(GitHubUserModel).Update(tea.KeyMsg{Type: tea.KeyEnter})
-
-// 	if !updated.(GitHubUserModel).showError {
-// 		t.Error("Should show error when required field missing")
-// 	}
-// }
+	if updated.inputs[0].Value() != "th" {
+		t.Errorf("Expected 'Slug-Boi', got '%s'", updated.inputs[0].Value())
+	}
+	if updated.inputs[1].Value() != "Theis" {
+		t.Errorf("Expected 'Slug-Boi', got '%s'", updated.inputs[1].Value())
+	}
+	if updated.inputs[2].Value() != "Slug-Boi" {
+		t.Errorf("Expected 'Slug-Boi', got '%s'", updated.inputs[2].Value())
+	}
+	if updated.inputs[3].Value() != "input@mail" {
+		t.Errorf("Expected 'input@mail', got '%s'", updated.inputs[3].Value())
+	}
+}
 
 // Test temp auth toggle visibility
 func TestTempAuthToggleVisibility(t *testing.T) {
