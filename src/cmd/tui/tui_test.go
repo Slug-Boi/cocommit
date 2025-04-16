@@ -332,7 +332,6 @@ func TestModelCAInit(t *testing.T) {
 	}
 }
 
-
 func TestCreateGHAuthorModel(t *testing.T) {
 	setup()
 	defer teardown()
@@ -374,6 +373,140 @@ func TestCreateGHAuthorModel(t *testing.T) {
 	// Verify the first input is focused
 	if !m.inputs[0].Focused() {
 		t.Errorf("Expected first input to be focused")
+	}
+}
+
+func TestNewGitHubUserForm(t *testing.T) {
+	model := NewGitHubUserForm(nil)
+
+	if len(model.inputs) != 2 {
+		t.Errorf("Expected 2 input fields, got %d", len(model.inputs))
+	}
+
+	if model.inputs[0].Placeholder != "GitHub username *" {
+		t.Errorf("First input placeholder incorrect")
+	}
+
+	if model.tempAuthShow {
+		t.Error("tempAuthShow should be false when no parent model provided")
+	}
+}
+
+// // Test form submission with required field
+// func TestSubmitWithRequiredField(t *testing.T) {
+// 	m := NewGitHubUserForm(nil)
+// 	tm := teatest.NewTestModel(
+// 		t, m, teatest.WithInitialTermSize(300, 300),
+// 	)
+
+// 	// Simulate filling in the required field
+// 	tm.Type("Slug-Boi")
+// 	tm.Send(tea.KeyMsg{Type: tea.KeyTab}) // Move to next field
+// 	tm.Send(tea.KeyMsg{Type: tea.KeyTab})
+// 	tm.Send(tea.KeyMsg{Type: tea.KeyEnter}) // Submit
+// 	tm.WaitFinished(t, teatest.WithFinalTimeout(time.Second*5))
+// 	// Check if the form was submitted
+// 	updated, _ := tm.FinalModel(t).(GitHubUserModel)
+
+	
+	
+// 	// Check if the form was submitted
+// 	if !updated.submitted {
+// 		t.Error("Form should submit with required field filled")
+// 	}
+// }
+
+// // Test error when required field missing
+// func TestSubmitWithoutRequiredField(t *testing.T) {
+// 	m := NewGitHubUserForm(nil)
+
+// 	// Simulate submit with empty username
+// 	updated, _ := m.Update(tea.KeyMsg{Type: tea.KeyTab})
+// 	updated, _ = updated.(GitHubUserModel).Update(tea.KeyMsg{Type: tea.KeyEnter})
+
+// 	if !updated.(GitHubUserModel).showError {
+// 		t.Error("Should show error when required field missing")
+// 	}
+// }
+
+// Test temp auth toggle visibility
+func TestTempAuthToggleVisibility(t *testing.T) {
+	// With parent model (should show toggle)
+	m1 := NewGitHubUserForm(&model{})
+	if !m1.tempAuthShow {
+		t.Error("tempAuthShow should be true with parent model")
+	}
+
+	// Without parent model (should hide toggle)
+	m2 := NewGitHubUserForm(nil)
+	if m2.tempAuthShow {
+		t.Error("tempAuthShow should be false without parent model")
+	}
+}
+
+// Test temp auth toggle functionality
+func TestTempAuthToggle(t *testing.T) {
+	m := NewGitHubUserForm(&model{})
+
+	// Initial state
+	if m.tempAuth {
+		t.Error("tempAuth should be false initially")
+	}
+
+	// Toggle on
+	updated, _ := m.Update(tea.KeyMsg{Type: tea.KeyCtrlT})
+	if !updated.(GitHubUserModel).tempAuth {
+		t.Error("Ctrl+T should toggle tempAuth to true")
+	}
+
+	// Toggle off
+	updated, _ = updated.(GitHubUserModel).Update(tea.KeyMsg{Type: tea.KeyCtrlT})
+	if updated.(GitHubUserModel).tempAuth {
+		t.Error("Ctrl+T should toggle tempAuth to false")
+	}
+}
+
+// Test navigation between fields
+func TestFieldNavigation(t *testing.T) {
+	m := NewGitHubUserForm(nil)
+
+	// Initial focus should be on username
+	if m.focusIndex != 0 {
+		t.Error("Initial focus should be on username field")
+	}
+
+	// Tab to email
+	updated, _ := m.Update(tea.KeyMsg{Type: tea.KeyTab})
+	if updated.(GitHubUserModel).focusIndex != 1 {
+		t.Error("Tab should move focus to email field")
+	}
+
+	// Tab to submit
+	updated, _ = updated.(GitHubUserModel).Update(tea.KeyMsg{Type: tea.KeyTab})
+	if updated.(GitHubUserModel).focusIndex != 2 {
+		t.Error("Tab should move focus to submit button")
+	}
+}
+
+// Test view rendering
+func TestViewRendering(t *testing.T) {
+	m := NewGitHubUserForm(nil)
+	view := m.View()
+
+	if !strings.Contains(view, "GitHub username *") {
+		t.Error("View should render username field")
+	}
+
+	if !strings.Contains(view, "tab to navigate") {
+		t.Error("View should render help text")
+	}
+
+	// Test error message rendering
+	m.showError = true
+	m.errorMsg = "Test error"
+	errorView := m.View()
+	if !strings.Contains(errorView, "Test error") {
+		t.Error("View should render error message")
 	}
 }
 
