@@ -30,6 +30,9 @@ var Users = map[string]User{}
 var DefExclude = []string{}
 var Groups = map[string][]User{}
 
+var Git_Users = map[string]User{}
+var Git_Groups = map[string][]User{}
+
 func ContainsUser(users []User, user User) bool {
     return slices.ContainsFunc(users, func(u User) bool {
         return u.Shortname == user.Shortname && 
@@ -83,6 +86,35 @@ func Define_users(author_file string) {
 					usr_lst := Groups[group]
 					usr_lst = append(usr_lst, usr)
 					Groups[group] = usr_lst
+				}
+			}
+		}
+	}
+}
+
+func Define_git_users() {
+	// wipe the git users map
+	Git_Users = map[string]User{}
+	Git_Groups = map[string][]User{}
+
+	// get all authors from git
+	git_authors := GitCheckAuthors()
+	
+	for _, usr := range git_authors {
+		if _, ok := Users[usr.Shortname]; !ok {
+			Git_Users[usr.Shortname] = usr
+			Git_Users[usr.Longname] = usr
+			
+			group_info := usr.Groups
+			if len(group_info) > 0 {
+				for _, group := range group_info {
+					if Git_Groups[group] == nil {
+						Git_Groups[group] = []User{usr}
+					} else {
+						usr_lst := Git_Groups[group]
+						usr_lst = append(usr_lst, usr)
+						Git_Groups[group] = usr_lst
+					}
 				}
 			}
 		}
