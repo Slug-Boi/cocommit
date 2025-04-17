@@ -148,7 +148,7 @@ func TestEntryTA(t *testing.T) {
 	keyPress(tm, "esc")
 
 	fm := tm.FinalModel(t)
-	m, ok := fm.(model)
+	m, ok := fm.(Model)
 	if !ok {
 		t.Errorf("Expected model_ca, got %T", fm)
 	}
@@ -242,7 +242,7 @@ func Test_EntryCA_TriggerError(t *testing.T) {
 	keyPress(tm, "esc")
 
 	fm := tm.FinalModel(t)
-	mm, ok := fm.(model)
+	mm, ok := fm.(Model)
 	if !ok {
 		t.Errorf("Expected model_ca, got %T", fm)
 	}
@@ -285,7 +285,7 @@ func Test_EntryCA(t *testing.T) {
 	keyPress(tm, "esc")
 
 	fm := tm.FinalModel(t)
-	m, ok := fm.(model)
+	m, ok := fm.(Model)
 	if !ok {
 		t.Errorf("Expected model, got %T", fm)
 	}
@@ -397,7 +397,6 @@ func TestSubmitWithRequiredField(t *testing.T) {
 	setup()
 	defer teardown()
 
-
 	m := NewGitHubUserForm(nil)
 	tm := teatest.NewTestModel(
 		t, m, teatest.WithInitialTermSize(300, 300),
@@ -405,10 +404,10 @@ func TestSubmitWithRequiredField(t *testing.T) {
 
 	// Simulate filling in the required field
 	tm.Type("Slug-Boi")
-	tm.Send(tea.KeyMsg{Type: tea.KeyTab}) // Move to next field
-	tm.Send(tea.KeyMsg{Type: tea.KeyTab}) // Move to submit button
+	tm.Send(tea.KeyMsg{Type: tea.KeyTab})   // Move to next field
+	tm.Send(tea.KeyMsg{Type: tea.KeyTab})   // Move to submit button
 	tm.Send(tea.KeyMsg{Type: tea.KeyEnter}) // Submit
-	tm.Send(tea.KeyMsg{Type: tea.KeyTab}) 
+	tm.Send(tea.KeyMsg{Type: tea.KeyTab})
 	tm.Send(tea.KeyMsg{Type: tea.KeyTab})
 	tm.Send(tea.KeyMsg{Type: tea.KeyTab})
 	tm.Type("input@mail")
@@ -421,8 +420,6 @@ func TestSubmitWithRequiredField(t *testing.T) {
 	// Check if the form was submitted
 	updated, _ := tm.FinalModel(t).(model_ca)
 
-	
-	
 	if updated.inputs[0].Value() != "th" {
 		t.Errorf("Expected 'Slug-Boi', got '%s'", updated.inputs[0].Value())
 	}
@@ -440,7 +437,7 @@ func TestSubmitWithRequiredField(t *testing.T) {
 // Test temp auth toggle visibility
 func TestTempAuthToggleVisibility(t *testing.T) {
 	// With parent model (should show toggle)
-	m1 := NewGitHubUserForm(&model{})
+	m1 := NewGitHubUserForm(&Model{})
 	if !m1.tempAuthShow {
 		t.Error("tempAuthShow should be true with parent model")
 	}
@@ -454,7 +451,7 @@ func TestTempAuthToggleVisibility(t *testing.T) {
 
 // Test temp auth toggle functionality
 func TestTempAuthToggle(t *testing.T) {
-	m := NewGitHubUserForm(&model{})
+	m := NewGitHubUserForm(&Model{})
 
 	// Initial state
 	if m.tempAuth {
@@ -610,7 +607,7 @@ func Test_EntrySelectUsers(t *testing.T) {
 	keyPress(tm, "enter")
 
 	fm := tm.FinalModel(t)
-	m, ok := fm.(model)
+	m, ok := fm.(Model)
 	if !ok {
 		t.Errorf("Expected model, got %T", fm)
 	}
@@ -640,7 +637,7 @@ func Test_EntrySelectAll(t *testing.T) {
 	keyPress(tm, "enter")
 
 	fm := tm.FinalModel(t)
-	m, ok := fm.(model)
+	m, ok := fm.(Model)
 	if !ok {
 		t.Errorf("Expected model, got %T", fm)
 	}
@@ -669,7 +666,7 @@ func Test_EntryNegation(t *testing.T) {
 	keyPress(tm, "enter")
 
 	fm := tm.FinalModel(t)
-	m, ok := fm.(model)
+	m, ok := fm.(Model)
 	if !ok {
 		t.Errorf("Expected model, got %T", fm)
 	}
@@ -700,7 +697,7 @@ func Test_EntryDeleteAuthor(t *testing.T) {
 	keyPress(tm, "enter")
 
 	fm := tm.FinalModel(t)
-	m, ok := fm.(model)
+	m, ok := fm.(Model)
 	if !ok {
 		t.Errorf("Expected model, got %T", fm)
 	}
@@ -733,7 +730,7 @@ func Test_GroupSelection(t *testing.T) {
 	keyPress(tm, "enter")
 
 	fm := tm.FinalModel(t)
-	_, ok := fm.(model)
+	_, ok := fm.(Model)
 	if !ok {
 		t.Errorf("Expected model, got %T", fm)
 	}
@@ -769,7 +766,7 @@ func Test_pagination(t *testing.T) {
 	tm.Quit()
 
 	fm := tm.FinalModel(t)
-	m, ok := fm.(model)
+	m, ok := fm.(Model)
 	if !ok {
 		t.Errorf("Expected model, got %T", fm)
 	}

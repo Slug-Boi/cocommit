@@ -52,13 +52,13 @@ func errorGetMissingFields(m model_ca) {
 	if len(m.inputs) > 0 {
 		for i := 0; i < inpLen; i++ {
 			if m.inputs[i].Value() == "" {
-				m.errorModel.missing = append(m.errorModel.missing, "- "+strings.Split(m.inputs[i].Placeholder," (")[0])
+				m.errorModel.missing = append(m.errorModel.missing, "- "+strings.Split(m.inputs[i].Placeholder, " (")[0])
 			}
 		}
 	} else {
 		m.errorModel.missing = append(m.errorModel.missing, "GIGA ERROR NO INPUTS")
 	}
-	
+
 }
 
 func (e errorModel) View() string {
@@ -68,38 +68,37 @@ func (e errorModel) View() string {
 		sb.WriteString("\nMissing fields: \n")
 		sb.WriteString(strings.Join(e.missing, "\n"))
 	}
-	
-    // Create centered content
-    content := lipgloss.JoinVertical(
-        lipgloss.Left,  // Changed from Center to Left for better alignment
-        sb.String(),
+
+	// Create centered content
+	content := lipgloss.JoinVertical(
+		lipgloss.Left, // Changed from Center to Left for better alignment
+		sb.String(),
 		"\n\n[enter/esc]",
-		
-    )
+	)
 
-    // Create the error box
-    errorBox := lipgloss.NewStyle().
-        Border(lipgloss.RoundedBorder()).
-        BorderForeground(lipgloss.Color("9")).
-        Padding(1, 2).
-        Width(40).
-        Foreground(lipgloss.Color("9")).
-        Background(lipgloss.Color("0")).
+	// Create the error box
+	errorBox := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(lipgloss.Color("9")).
+		Padding(1, 2).
+		Width(40).
+		Foreground(lipgloss.Color("9")).
+		Background(lipgloss.Color("0")).
 		Align(lipgloss.Center).
-        Render(content)
+		Render(content)
 
-    return lipgloss.NewStyle().
-        Padding(1, 0).
-        Render(errorBox)
+	return lipgloss.NewStyle().
+		Padding(1, 0).
+		Render(errorBox)
 }
 
-var parent_m *model
+var parent_m *Model
 
-func createAuthorModel(old_m *model) model_ca {
+func createAuthorModel(old_m *Model) model_ca {
 	parent_m = old_m
 
 	m := model_ca{
-		inputs: make([]textinput.Model, 5),
+		inputs:     make([]textinput.Model, 5),
 		errorModel: intitialErrorModel(),
 	}
 
@@ -137,10 +136,10 @@ func intitialErrorModel() *errorModel {
 	}
 }
 
-func createGHTempAuthorModel(old_m *model, user utils.User) model_ca {
+func createGHTempAuthorModel(old_m *Model, user utils.User) model_ca {
 	parent_m = old_m
 	m := model_ca{
-		inputs: make([]textinput.Model, 2),
+		inputs:     make([]textinput.Model, 2),
 		errorModel: intitialErrorModel(),
 	}
 	var t textinput.Model
@@ -164,11 +163,11 @@ func createGHTempAuthorModel(old_m *model, user utils.User) model_ca {
 	return m
 }
 
-func createGHAuthorModel(old_m *model, user utils.User) model_ca {
+func createGHAuthorModel(old_m *Model, user utils.User) model_ca {
 	parent_m = old_m
 
 	m := model_ca{
-		inputs: make([]textinput.Model, 5),
+		inputs:     make([]textinput.Model, 5),
 		errorModel: intitialErrorModel(),
 	}
 
@@ -195,7 +194,7 @@ func createGHAuthorModel(old_m *model, user utils.User) model_ca {
 			t.SetValue("")
 		case 4:
 			t.Placeholder = "Group tags (e.g. gr1|gr2)"
-			t.SetValue(strings.Join(user.Groups, "|")) 
+			t.SetValue(strings.Join(user.Groups, "|"))
 		}
 
 		m.inputs[i] = t
@@ -205,7 +204,7 @@ func createGHAuthorModel(old_m *model, user utils.User) model_ca {
 }
 
 func EntryGHAuthorModel(user utils.User) {
-	model := createGHAuthorModel(&model{}, user)
+	model := createGHAuthorModel(&Model{}, user)
 
 	print(model.inputs[0].Value())
 
@@ -215,12 +214,11 @@ func EntryGHAuthorModel(user utils.User) {
 	}
 }
 
-
-func tempAuthorModel(old_m *model) model_ca {
+func tempAuthorModel(old_m *Model) model_ca {
 	parent_m = old_m
 
 	m := model_ca{
-		inputs: make([]textinput.Model, 2),
+		inputs:     make([]textinput.Model, 2),
 		errorModel: intitialErrorModel(),
 	}
 
@@ -270,7 +268,7 @@ func updateErrorPopup(m model_ca, msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m model_ca) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if m.errorModel.visible {
 		return updateErrorPopup(m, msg)
-	}	
+	}
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -297,8 +295,8 @@ func (m model_ca) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						return m, nil
 					}
 					if parent_m != nil {
-						return model{list: parent_m.list}, tea.ClearScreen
-						} else {
+						return Model{list: parent_m.list}, tea.ClearScreen
+					} else {
 						m.quitting = true
 						return m, tea.Quit
 					}
@@ -317,7 +315,7 @@ func (m model_ca) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 					if parent_m.keys != nil {
 						tempAuthorToggle = false
-						return model{list: parent_m.list}, tea.ClearScreen
+						return Model{list: parent_m.list}, tea.ClearScreen
 					} else {
 						m.quitting = true
 						tempAuthorToggle = false
@@ -440,7 +438,7 @@ func (m *model_ca) AddAuthor() bool {
 		m.inputs[1].Value() != "" &&
 		m.inputs[2].Value() != "" &&
 		m.inputs[3].Value() != "" {
-	
+
 		var groups []string
 		if m.inputs[4].Value() == "" {
 			groups = []string{}
@@ -455,7 +453,7 @@ func (m *model_ca) AddAuthor() bool {
 			Username:  m.inputs[2].Value(),
 			Email:     m.inputs[3].Value(),
 			Ex:        m.exclude,
-			Groups:   groups,
+			Groups:    groups,
 		}
 
 		utils.CreateAuthor(usr)
@@ -468,7 +466,7 @@ func (m *model_ca) AddAuthor() bool {
 			parent_m.list.InsertItem(len(parent_m.list.Items())+1, item(item_str))
 		}
 		return false
-	} 
+	}
 	return true
 }
 
@@ -480,7 +478,7 @@ func (m *model_ca) TempAddAuthor() bool {
 		parent_m.list.InsertItem(len(parent_m.list.Items())+1, item(item_str))
 		selectToggle(i)
 
-		return false 
+		return false
 	}
 	return true
 }
