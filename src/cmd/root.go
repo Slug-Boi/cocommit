@@ -145,6 +145,7 @@ func Execute() {
 	}
 	// define users
 	utils.Define_users(author_file)
+	utils.Define_git_users()
 
 	err = rootCmd.Execute()
 	if err != nil {
