@@ -50,7 +50,7 @@ func errorGetMissingFields(m model_ca) {
 	}
 
 	if len(m.inputs) > 0 {
-		for i := 0; i < inpLen-1; i++ {
+		for i := 0; i < inpLen; i++ {
 			if m.inputs[i].Value() == "" {
 				m.errorModel.missing = append(m.errorModel.missing, "- "+strings.Split(m.inputs[i].Placeholder," (")[0])
 			}
@@ -135,6 +135,33 @@ func intitialErrorModel() *errorModel {
 		missing: []string{},
 		visible: false,
 	}
+}
+
+func createGHTempAuthorModel(old_m *model, user utils.User) model_ca {
+	parent_m = old_m
+	m := model_ca{
+		inputs: make([]textinput.Model, 2),
+		errorModel: intitialErrorModel(),
+	}
+	var t textinput.Model
+	for i := range m.inputs {
+		t = textinput.New()
+		t.Cursor.Style = cursorStyle
+		switch i {
+		case 0:
+			t.Placeholder = "Username (e.g. JohnDoe-gh)"
+			t.SetValue(user.Username)
+			t.Focus()
+			t.PromptStyle = focusedStyle
+			t.TextStyle = focusedStyle
+		case 1:
+			t.Placeholder = "Email (e.g. JohnDoe@domain.do)"
+			t.SetValue(user.Email)
+		}
+		m.inputs[i] = t
+	}
+	tempAuthorToggle = true
+	return m
 }
 
 func createGHAuthorModel(old_m *model, user utils.User) model_ca {
@@ -249,8 +276,9 @@ func (m model_ca) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "esc":
+			tempAuthorToggle = false
 			m.inputs = nil
-			if parent_m.keys != nil {
+			if parent_m != nil {
 				return nil, nil
 			}
 			return m, tea.Quit
@@ -268,9 +296,9 @@ func (m model_ca) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.quitting = false
 						return m, nil
 					}
-					if parent_m.keys != nil {
+					if parent_m != nil {
 						return model{list: parent_m.list}, tea.ClearScreen
-					} else {
+						} else {
 						m.quitting = true
 						return m, tea.Quit
 					}
@@ -288,9 +316,11 @@ func (m model_ca) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						return m, nil
 					}
 					if parent_m.keys != nil {
+						tempAuthorToggle = false
 						return model{list: parent_m.list}, tea.ClearScreen
 					} else {
 						m.quitting = true
+						tempAuthorToggle = false
 						return m, tea.Quit
 					}
 				}
@@ -303,10 +333,15 @@ func (m model_ca) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.focusIndex++
 			}
 
-			if m.focusIndex > len(m.inputs)+1 {
+			inpNum := len(m.inputs)
+			if !tempAuthorToggle {
+				inpNum++
+			}
+
+			if m.focusIndex > inpNum {
 				m.focusIndex = 0
 			} else if m.focusIndex < 0 {
-				m.focusIndex = len(m.inputs)
+				m.focusIndex = inpNum
 			}
 
 			cmds := make([]tea.Cmd, len(m.inputs))
@@ -427,7 +462,7 @@ func (m *model_ca) AddAuthor() bool {
 
 		author := m.inputs[0].Value()
 
-		if parent_m.keys != nil {
+		if parent_m != nil {
 			item_str := utils.Users[author].Username + " - " + utils.Users[author].Email
 			dupProtect[item_str] = author
 			parent_m.list.InsertItem(len(parent_m.list.Items())+1, item(item_str))
