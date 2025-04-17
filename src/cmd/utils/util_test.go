@@ -556,6 +556,26 @@ func Test_GitWrapper(t *testing.T) {
 	defer teardown()
 	utils.Define_users("author_file_test")
 
+	// create a temporary file to test git wrapper
+	tmpFile, err := os.CreateTemp("", "test_git_wrapper")
+	if err != nil {
+		t.Fatalf("Failed to create temporary file: %v", err)
+	}
+
+	defer os.Remove(tmpFile.Name())
+	defer tmpFile.Close()
+
+	// Write some content to the temporary file
+	_, err = tmpFile.WriteString("Test content")
+	if err != nil {
+		t.Fatalf("Failed to write to temporary file: %v", err)
+	}
+
+	// Close the file to flush the content
+	err = tmpFile.Close()
+	if err != nil {
+		t.Fatalf("Failed to close temporary file: %v", err)
+	}
 
 	// Test GitWrapper with --dry-run flag
 	authors := []string{"te"}
@@ -564,7 +584,7 @@ func Test_GitWrapper(t *testing.T) {
 	commit := utils.Commit(message, authors)
 	flags := []string{"-a","--dry-run"}
 
-	err := utils.GitWrapper(commit, flags) 
+	err = utils.GitWrapper(commit, flags) 
 	if err != nil {
 		t.Errorf("GitWrapper() returned error: %v", err)
 	}
