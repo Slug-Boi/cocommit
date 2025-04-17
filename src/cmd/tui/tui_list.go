@@ -387,7 +387,7 @@ func (m Model) View() string {
 
 const title_text = "Select authors to add to commit \t|\t"
 
-func listModel() Model {
+func listModel(scope ...int) Model {
 
 	selected = map[string]item{}
 
@@ -396,7 +396,10 @@ func listModel() Model {
 	listKeys := newListKeyMap()
 
 	// Add items to the list
-	items := generate_list(git_scope)
+	if len(scope) == 0 {
+		scope = append(scope, git_scope)
+	}
+	items := generate_list(scope[0])
 
 	sort.Slice(items, func(i, j int) bool {
 		return items[i].(item) < items[j].(item)

@@ -127,7 +127,7 @@ func TestEntryTA(t *testing.T) {
 	setup()
 	defer teardown()
 
-	m := listModel()
+	m := listModel(local_scope)
 
 	// m := tempAuthorModel(&old_m)
 	tm := teatest.NewTestModel(
@@ -218,7 +218,7 @@ func Test_EntryCA_TriggerError(t *testing.T) {
 	setup()
 	defer teardown()
 
-	m := listModel()
+	m := listModel(local_scope)
 
 	tm := teatest.NewTestModel(
 		t, m, teatest.WithInitialTermSize(300, 300),
@@ -256,7 +256,7 @@ func Test_EntryCA(t *testing.T) {
 	setup()
 	defer teardown()
 
-	m := listModel()
+	m := listModel(local_scope)
 
 	// mm := createAuthorModel(&m)
 	tm := teatest.NewTestModel(
@@ -598,7 +598,7 @@ func Test_EntrySelectUsers(t *testing.T) {
 
 	utils.Define_users("author_file_test")
 
-	m := listModel()
+	m := listModel(local_scope)
 	tm := teatest.NewTestModel(
 		t, m, teatest.WithInitialTermSize(300, 300),
 	)
@@ -628,7 +628,7 @@ func Test_EntrySelectAll(t *testing.T) {
 
 	utils.Define_users("author_file_test")
 
-	m := listModel()
+	m := listModel(local_scope)
 	tm := teatest.NewTestModel(
 		t, m, teatest.WithInitialTermSize(300, 300),
 	)
@@ -657,7 +657,7 @@ func Test_EntryNegation(t *testing.T) {
 
 	utils.Define_users("author_file_test")
 
-	m := listModel()
+	m := listModel(local_scope)
 	tm := teatest.NewTestModel(
 		t, m, teatest.WithInitialTermSize(300, 300),
 	)
@@ -686,7 +686,7 @@ func Test_EntryDeleteAuthor(t *testing.T) {
 
 	utils.Define_users("author_file_test")
 
-	m := listModel()
+	m := listModel(local_scope)
 	tm := teatest.NewTestModel(
 		t, m, teatest.WithInitialTermSize(300, 300),
 	)
@@ -719,7 +719,7 @@ func Test_GroupSelection(t *testing.T) {
 	setup()
 	defer teardown()
 
-	m := listModel()
+	m := listModel(local_scope)
 	tm := teatest.NewTestModel(
 		t, m, teatest.WithInitialTermSize(300, 300),
 	)
@@ -756,7 +756,7 @@ func Test_pagination(t *testing.T) {
 		}
 	}
 
-	m := listModel()
+	m := listModel(local_scope)
 
 	tm := teatest.NewTestModel(
 		t, m, teatest.WithInitialTermSize(25, 25),
