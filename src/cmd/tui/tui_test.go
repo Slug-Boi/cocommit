@@ -592,6 +592,119 @@ func Test_EntryCM_Unfocuse(t *testing.T) {
 // tui_commit_message TESTS END
 
 // tui_list TESTS BEGIN
+func Test_ScopesLocal(t *testing.T) {
+	setup()
+	defer teardown()
+
+	m := listModel(local_scope)
+	tm := teatest.NewTestModel(
+		t, m, teatest.WithInitialTermSize(300, 300),
+	)
+	keyPress(tm, "S")
+	keyPress(tm, "space")
+	keyPress(tm, "enter")
+
+	fm := tm.FinalModel(t)
+	m, ok := fm.(Model)
+	if !ok {
+		t.Errorf("Expected model, got %T", fm)
+	}
+
+	if m.scope!= local_scope {
+		t.Errorf("Expected scope to be %v, got %v", local_scope, m.scope)
+	}
+}
+
+func Test_ScopesMixed(t *testing.T) {
+	setup()
+	defer teardown()
+
+	m := listModel(mixed_scope)
+	tm := teatest.NewTestModel(
+		t, m, teatest.WithInitialTermSize(300, 300),
+	)
+	keyPress(tm, "S")
+	keyPress(tm, "S")
+	keyPress(tm, " ")
+	keyPress(tm, "enter")
+
+	fm := tm.FinalModel(t)
+	m, ok := fm.(Model)
+	if !ok {
+		t.Errorf("Expected model, got %T", fm)
+	}
+
+	if m.scope != mixed_scope {
+		t.Errorf("Expected scope to be %v, got %v", mixed_scope, m.scope)
+	}
+}
+
+func Test_ScopesGitBase(t *testing.T) {
+	setup()
+	defer teardown()
+
+	m := listModel(git_scope)
+	tm := teatest.NewTestModel(
+		t, m, teatest.WithInitialTermSize(300, 300),
+	)
+
+	keyPress(tm, " ")
+	keyPress(tm, "enter")
+
+	fm := tm.FinalModel(t)
+	m, ok := fm.(Model)
+	if !ok {
+		t.Errorf("Expected model, got %T", fm)
+	}
+
+	if m.scope != git_scope {
+		t.Errorf("Expected scope to be %v, got %v", git_scope, m.scope)
+	}
+}
+
+func Test_ScopeGitWrapAround(t *testing.T) {
+	setup()
+	defer teardown()
+
+	m := listModel(git_scope)
+	tm := teatest.NewTestModel(
+		t, m, teatest.WithInitialTermSize(300, 300),
+	)
+
+	keyPress(tm, "S")
+	keyPress(tm, "S")
+	keyPress(tm, "S")
+	keyPress(tm, " ")
+	keyPress(tm, "enter")
+
+	fm := tm.FinalModel(t)
+	m, ok := fm.(Model)
+	if !ok {
+		t.Errorf("Expected model, got %T", fm)
+	}
+
+	if m.scope != git_scope {
+		t.Errorf("Expected scope to be %v, got %v", git_scope, m.scope)
+	}
+}
+
+func Test_GenerateList(t *testing.T) {
+	setup()
+	defer teardown()
+
+	mixed := generate_list(mixed_scope)
+	git := generate_list(git_scope)
+
+	if len(mixed) > 2 {
+		t.Errorf("Expected more than 2 items, got %d", len(mixed))
+	}
+
+	if len(git) > 2 {
+		t.Errorf("Expected more than 2 items, got %d", len(git))
+	}
+
+}
+
 func Test_EntrySelectUsers(t *testing.T) {
 	setup()
 	defer teardown()
@@ -620,6 +733,37 @@ func Test_EntrySelectUsers(t *testing.T) {
 		t.Errorf("Expected 1 selected item, got %d", len(selected))
 	}
 
+}
+
+func Test_EntrySelectUnselectSelect(t *testing.T) {
+	setup()
+	defer teardown()
+
+	utils.Define_users("author_file_test")
+
+	m := listModel(local_scope)
+	tm := teatest.NewTestModel(
+		t, m, teatest.WithInitialTermSize(300, 300),
+	)
+	keyPress(tm, " ")
+
+	keyPress(tm, " ")
+
+	keyPress(tm, "enter")
+
+	fm := tm.FinalModel(t)
+	m, ok := fm.(Model)
+	if !ok {
+		t.Errorf("Expected model, got %T", fm)
+	}
+
+	if !m.quitting {
+		t.Errorf("Expected quitting to be true, got %v", m.quitting)
+	}
+
+	if len(selected) != 0 {
+		t.Errorf("Expected 0 selected item, got %d", len(selected))
+	}
 }
 
 func Test_EntrySelectAll(t *testing.T) {
