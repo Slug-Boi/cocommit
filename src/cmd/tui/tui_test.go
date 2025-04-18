@@ -127,7 +127,7 @@ func TestEntryTA(t *testing.T) {
 	setup()
 	defer teardown()
 
-	m := listModel()
+	m := listModel(local_scope)
 
 	// m := tempAuthorModel(&old_m)
 	tm := teatest.NewTestModel(
@@ -148,7 +148,7 @@ func TestEntryTA(t *testing.T) {
 	keyPress(tm, "esc")
 
 	fm := tm.FinalModel(t)
-	m, ok := fm.(model)
+	m, ok := fm.(Model)
 	if !ok {
 		t.Errorf("Expected model_ca, got %T", fm)
 	}
@@ -218,7 +218,7 @@ func Test_EntryCA_TriggerError(t *testing.T) {
 	setup()
 	defer teardown()
 
-	m := listModel()
+	m := listModel(local_scope)
 
 	tm := teatest.NewTestModel(
 		t, m, teatest.WithInitialTermSize(300, 300),
@@ -242,7 +242,7 @@ func Test_EntryCA_TriggerError(t *testing.T) {
 	keyPress(tm, "esc")
 
 	fm := tm.FinalModel(t)
-	mm, ok := fm.(model)
+	mm, ok := fm.(Model)
 	if !ok {
 		t.Errorf("Expected model_ca, got %T", fm)
 	}
@@ -256,7 +256,7 @@ func Test_EntryCA(t *testing.T) {
 	setup()
 	defer teardown()
 
-	m := listModel()
+	m := listModel(local_scope)
 
 	// mm := createAuthorModel(&m)
 	tm := teatest.NewTestModel(
@@ -285,7 +285,7 @@ func Test_EntryCA(t *testing.T) {
 	keyPress(tm, "esc")
 
 	fm := tm.FinalModel(t)
-	m, ok := fm.(model)
+	m, ok := fm.(Model)
 	if !ok {
 		t.Errorf("Expected model, got %T", fm)
 	}
@@ -397,7 +397,6 @@ func TestSubmitWithRequiredField(t *testing.T) {
 	setup()
 	defer teardown()
 
-
 	m := NewGitHubUserForm(nil)
 	tm := teatest.NewTestModel(
 		t, m, teatest.WithInitialTermSize(300, 300),
@@ -405,10 +404,10 @@ func TestSubmitWithRequiredField(t *testing.T) {
 
 	// Simulate filling in the required field
 	tm.Type("Slug-Boi")
-	tm.Send(tea.KeyMsg{Type: tea.KeyTab}) // Move to next field
-	tm.Send(tea.KeyMsg{Type: tea.KeyTab}) // Move to submit button
+	tm.Send(tea.KeyMsg{Type: tea.KeyTab})   // Move to next field
+	tm.Send(tea.KeyMsg{Type: tea.KeyTab})   // Move to submit button
 	tm.Send(tea.KeyMsg{Type: tea.KeyEnter}) // Submit
-	tm.Send(tea.KeyMsg{Type: tea.KeyTab}) 
+	tm.Send(tea.KeyMsg{Type: tea.KeyTab})
 	tm.Send(tea.KeyMsg{Type: tea.KeyTab})
 	tm.Send(tea.KeyMsg{Type: tea.KeyTab})
 	tm.Type("input@mail")
@@ -421,8 +420,6 @@ func TestSubmitWithRequiredField(t *testing.T) {
 	// Check if the form was submitted
 	updated, _ := tm.FinalModel(t).(model_ca)
 
-	
-	
 	if updated.inputs[0].Value() != "th" {
 		t.Errorf("Expected 'Slug-Boi', got '%s'", updated.inputs[0].Value())
 	}
@@ -440,7 +437,7 @@ func TestSubmitWithRequiredField(t *testing.T) {
 // Test temp auth toggle visibility
 func TestTempAuthToggleVisibility(t *testing.T) {
 	// With parent model (should show toggle)
-	m1 := NewGitHubUserForm(&model{})
+	m1 := NewGitHubUserForm(&Model{})
 	if !m1.tempAuthShow {
 		t.Error("tempAuthShow should be true with parent model")
 	}
@@ -454,7 +451,7 @@ func TestTempAuthToggleVisibility(t *testing.T) {
 
 // Test temp auth toggle functionality
 func TestTempAuthToggle(t *testing.T) {
-	m := NewGitHubUserForm(&model{})
+	m := NewGitHubUserForm(&Model{})
 
 	// Initial state
 	if m.tempAuth {
@@ -595,13 +592,126 @@ func Test_EntryCM_Unfocuse(t *testing.T) {
 // tui_commit_message TESTS END
 
 // tui_list TESTS BEGIN
+func Test_ScopesLocal(t *testing.T) {
+	setup()
+	defer teardown()
+
+	m := listModel(local_scope)
+	tm := teatest.NewTestModel(
+		t, m, teatest.WithInitialTermSize(300, 300),
+	)
+	keyPress(tm, "S")
+	keyPress(tm, "space")
+	keyPress(tm, "enter")
+
+	fm := tm.FinalModel(t)
+	m, ok := fm.(Model)
+	if !ok {
+		t.Errorf("Expected model, got %T", fm)
+	}
+
+	if m.scope!= local_scope {
+		t.Errorf("Expected scope to be %v, got %v", local_scope, m.scope)
+	}
+}
+
+func Test_ScopesMixed(t *testing.T) {
+	setup()
+	defer teardown()
+
+	m := listModel(mixed_scope)
+	tm := teatest.NewTestModel(
+		t, m, teatest.WithInitialTermSize(300, 300),
+	)
+	keyPress(tm, "S")
+	keyPress(tm, "S")
+	keyPress(tm, " ")
+	keyPress(tm, "enter")
+
+	fm := tm.FinalModel(t)
+	m, ok := fm.(Model)
+	if !ok {
+		t.Errorf("Expected model, got %T", fm)
+	}
+
+	if m.scope != mixed_scope {
+		t.Errorf("Expected scope to be %v, got %v", mixed_scope, m.scope)
+	}
+}
+
+func Test_ScopesGitBase(t *testing.T) {
+	setup()
+	defer teardown()
+
+	m := listModel(git_scope)
+	tm := teatest.NewTestModel(
+		t, m, teatest.WithInitialTermSize(300, 300),
+	)
+
+	keyPress(tm, " ")
+	keyPress(tm, "enter")
+
+	fm := tm.FinalModel(t)
+	m, ok := fm.(Model)
+	if !ok {
+		t.Errorf("Expected model, got %T", fm)
+	}
+
+	if m.scope != git_scope {
+		t.Errorf("Expected scope to be %v, got %v", git_scope, m.scope)
+	}
+}
+
+func Test_ScopeGitWrapAround(t *testing.T) {
+	setup()
+	defer teardown()
+
+	m := listModel(git_scope)
+	tm := teatest.NewTestModel(
+		t, m, teatest.WithInitialTermSize(300, 300),
+	)
+
+	keyPress(tm, "S")
+	keyPress(tm, "S")
+	keyPress(tm, "S")
+	keyPress(tm, " ")
+	keyPress(tm, "enter")
+
+	fm := tm.FinalModel(t)
+	m, ok := fm.(Model)
+	if !ok {
+		t.Errorf("Expected model, got %T", fm)
+	}
+
+	if m.scope != git_scope {
+		t.Errorf("Expected scope to be %v, got %v", git_scope, m.scope)
+	}
+}
+
+func Test_GenerateList(t *testing.T) {
+	setup()
+	defer teardown()
+
+	mixed := generate_list(mixed_scope)
+	git := generate_list(git_scope)
+
+	if len(mixed) > 2 {
+		t.Errorf("Expected more than 2 items, got %d", len(mixed))
+	}
+
+	if len(git) > 2 {
+		t.Errorf("Expected more than 2 items, got %d", len(git))
+	}
+
+}
+
 func Test_EntrySelectUsers(t *testing.T) {
 	setup()
 	defer teardown()
 
 	utils.Define_users("author_file_test")
 
-	m := listModel()
+	m := listModel(local_scope)
 	tm := teatest.NewTestModel(
 		t, m, teatest.WithInitialTermSize(300, 300),
 	)
@@ -610,7 +720,7 @@ func Test_EntrySelectUsers(t *testing.T) {
 	keyPress(tm, "enter")
 
 	fm := tm.FinalModel(t)
-	m, ok := fm.(model)
+	m, ok := fm.(Model)
 	if !ok {
 		t.Errorf("Expected model, got %T", fm)
 	}
@@ -625,13 +735,44 @@ func Test_EntrySelectUsers(t *testing.T) {
 
 }
 
+func Test_EntrySelectUnselectSelect(t *testing.T) {
+	setup()
+	defer teardown()
+
+	utils.Define_users("author_file_test")
+
+	m := listModel(local_scope)
+	tm := teatest.NewTestModel(
+		t, m, teatest.WithInitialTermSize(300, 300),
+	)
+	keyPress(tm, " ")
+
+	keyPress(tm, " ")
+
+	keyPress(tm, "enter")
+
+	fm := tm.FinalModel(t)
+	m, ok := fm.(Model)
+	if !ok {
+		t.Errorf("Expected model, got %T", fm)
+	}
+
+	if !m.quitting {
+		t.Errorf("Expected quitting to be true, got %v", m.quitting)
+	}
+
+	if len(selected) != 0 {
+		t.Errorf("Expected 0 selected item, got %d", len(selected))
+	}
+}
+
 func Test_EntrySelectAll(t *testing.T) {
 	setup()
 	defer teardown()
 
 	utils.Define_users("author_file_test")
 
-	m := listModel()
+	m := listModel(local_scope)
 	tm := teatest.NewTestModel(
 		t, m, teatest.WithInitialTermSize(300, 300),
 	)
@@ -640,7 +781,7 @@ func Test_EntrySelectAll(t *testing.T) {
 	keyPress(tm, "enter")
 
 	fm := tm.FinalModel(t)
-	m, ok := fm.(model)
+	m, ok := fm.(Model)
 	if !ok {
 		t.Errorf("Expected model, got %T", fm)
 	}
@@ -660,7 +801,7 @@ func Test_EntryNegation(t *testing.T) {
 
 	utils.Define_users("author_file_test")
 
-	m := listModel()
+	m := listModel(local_scope)
 	tm := teatest.NewTestModel(
 		t, m, teatest.WithInitialTermSize(300, 300),
 	)
@@ -669,7 +810,7 @@ func Test_EntryNegation(t *testing.T) {
 	keyPress(tm, "enter")
 
 	fm := tm.FinalModel(t)
-	m, ok := fm.(model)
+	m, ok := fm.(Model)
 	if !ok {
 		t.Errorf("Expected model, got %T", fm)
 	}
@@ -689,7 +830,7 @@ func Test_EntryDeleteAuthor(t *testing.T) {
 
 	utils.Define_users("author_file_test")
 
-	m := listModel()
+	m := listModel(local_scope)
 	tm := teatest.NewTestModel(
 		t, m, teatest.WithInitialTermSize(300, 300),
 	)
@@ -700,7 +841,7 @@ func Test_EntryDeleteAuthor(t *testing.T) {
 	keyPress(tm, "enter")
 
 	fm := tm.FinalModel(t)
-	m, ok := fm.(model)
+	m, ok := fm.(Model)
 	if !ok {
 		t.Errorf("Expected model, got %T", fm)
 	}
@@ -722,7 +863,7 @@ func Test_GroupSelection(t *testing.T) {
 	setup()
 	defer teardown()
 
-	m := listModel()
+	m := listModel(local_scope)
 	tm := teatest.NewTestModel(
 		t, m, teatest.WithInitialTermSize(300, 300),
 	)
@@ -733,7 +874,7 @@ func Test_GroupSelection(t *testing.T) {
 	keyPress(tm, "enter")
 
 	fm := tm.FinalModel(t)
-	_, ok := fm.(model)
+	_, ok := fm.(Model)
 	if !ok {
 		t.Errorf("Expected model, got %T", fm)
 	}
@@ -759,7 +900,7 @@ func Test_pagination(t *testing.T) {
 		}
 	}
 
-	m := listModel()
+	m := listModel(local_scope)
 
 	tm := teatest.NewTestModel(
 		t, m, teatest.WithInitialTermSize(25, 25),
@@ -769,7 +910,7 @@ func Test_pagination(t *testing.T) {
 	tm.Quit()
 
 	fm := tm.FinalModel(t)
-	m, ok := fm.(model)
+	m, ok := fm.(Model)
 	if !ok {
 		t.Errorf("Expected model, got %T", fm)
 	}

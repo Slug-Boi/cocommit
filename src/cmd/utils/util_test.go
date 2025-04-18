@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"os/exec"
 
 	"github.com/Slug-Boi/cocommit/src/cmd/utils"
 )
@@ -557,7 +558,7 @@ func Test_GitWrapper(t *testing.T) {
 	utils.Define_users("author_file_test")
 
 	// create a temporary file to test git wrapper
-	tmpFile, err := os.CreateTemp("", "test_git_wrapper")
+	tmpFile, err := os.Create("test_git_wrapper")
 	if err != nil {
 		t.Fatalf("Failed to create temporary file: %v", err)
 	}
@@ -580,6 +581,12 @@ func Test_GitWrapper(t *testing.T) {
 	// Test GitWrapper with --dry-run flag
 	authors := []string{"te"}
 	message := "Test commit message for GitWrapper"
+
+	cmd := exec.Command("git", "add", tmpFile.Name())
+	err = cmd.Run()
+	if err != nil {
+		t.Fatalf("Failed to run git add command: %v", err)
+	}
 
 	commit := utils.Commit(message, authors)
 	flags := []string{"-a","--dry-run"}

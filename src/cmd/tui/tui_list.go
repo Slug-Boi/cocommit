@@ -27,6 +27,9 @@ var (
 	paginationStyle        = list.DefaultStyles().PaginationStyle.PaddingLeft(4)
 	ActivePaginationDot    = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "170", Dark: "170"})
 	helpStyle              = list.DefaultStyles().HelpStyle.PaddingLeft(4).PaddingBottom(1)
+	git_scope_style        = lipgloss.NewStyle().Foreground(lipgloss.Color("170")).Bold(true)
+	local_scope_style      = lipgloss.NewStyle().Foreground(lipgloss.Color("49")).Bold(true)
+	mixed_scope_style      = lipgloss.NewStyle().Foreground(lipgloss.Color("178")).Bold(true)
 )
 
 type item string
@@ -48,6 +51,7 @@ type listKeyMap struct {
 	deleteAuthor key.Binding
 	tempAdd      key.Binding
 	ghAdd        key.Binding
+	scope        key.Binding
 }
 
 func newListKeyMap() *listKeyMap {
@@ -83,6 +87,10 @@ func newListKeyMap() *listKeyMap {
 		ghAdd: key.NewBinding(
 			key.WithKeys("c"),
 			key.WithHelp("c", "Add GitHub author"),
+		),
+		scope: key.NewBinding(
+			key.WithKeys("S"),
+			key.WithHelp("S", "Change scope"),
 		),
 	}
 }
@@ -126,13 +134,21 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	fmt.Fprint(w, fn(str))
 }
 
-type model struct {
-	list     list.Model
-	keys     *listKeyMap
-	quitting bool
+const (
+	git_scope = iota
+	local_scope
+	mixed_scope
+)
+
+type Model struct {
+	list       list.Model
+	swap_lists [][]list.Item
+	keys       *listKeyMap
+	quitting   bool
+	scope      int
 }
 
-func (m model) Init() tea.Cmd {
+func (m Model) Init() tea.Cmd {
 	return nil
 }
 
@@ -153,11 +169,11 @@ func toggleNegation() {
 
 var deletion bool
 
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if sub_model != nil {
 		var cmd tea.Cmd
 		sub_model, cmd = sub_model.Update(msg)
-		if sub_model_mod, ok := sub_model.(model); ok {
+		if sub_model_mod, ok := sub_model.(Model); ok {
 			m.list = sub_model_mod.list
 			sub_model = nil
 			return m, nil
@@ -234,6 +250,35 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			b = true
 			return m, nil
+
+		case key.Matches(msg, m.keys.scope):
+			if m.scope == git_scope {
+				m.scope = local_scope
+				m.list.Title = title_text + local_scope_style.Render("Scope: LOCAL")
+				if len(m.swap_lists) < 2 {
+					m.swap_lists = append(m.swap_lists, generate_list(local_scope))
+				}
+				m.list.SetItems(m.swap_lists[1])
+				m.list.ResetFilter()
+				return m, nil
+			}
+			if m.scope == local_scope {
+				m.scope = mixed_scope
+				m.list.Title = title_text + mixed_scope_style.Render("Scope: MIXED")
+				if len(m.swap_lists) < 3 {
+					m.swap_lists = append(m.swap_lists, generate_list(mixed_scope))
+				}
+				m.list.SetItems(m.swap_lists[2])
+				m.list.ResetFilter()
+				return m, nil
+			}
+			if m.scope == mixed_scope {
+				m.scope = git_scope
+				m.list.Title = title_text + git_scope_style.Render("Scope: GIT")
+				m.list.SetItems(m.swap_lists[0])
+				m.list.ResetFilter()
+				return m, nil
+			}
 		}
 		// extra key options
 		switch keypress := msg.String(); keypress {
@@ -264,7 +309,58 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m model) View() string {
+func generate_list(scope int) []list.Item {
+	items := []list.Item{}
+	local_dupProtect := map[string]string{}
+
+	switch scope {
+	case git_scope:
+		for short, user := range utils.Git_Users {
+			// if items already contains the user, skip it
+			str_user := user.Username + " - " + user.Email
+			if _, ok := local_dupProtect[str_user]; ok {
+				continue
+			}
+			items = append(items, item(str_user))
+			local_dupProtect[str_user] = short
+		}
+	case local_scope:
+		for short, user := range utils.Users {
+			// if items already contains the user, skip it
+			str_user := user.Username + " - " + user.Email
+			if _, ok := dupProtect[str_user]; ok {
+				continue
+			}
+			items = append(items, item(str_user))
+			dupProtect[str_user] = short
+		}
+	case mixed_scope:
+		for short, user := range utils.Users {
+			// if items already contains the user, skip it
+			str_user := user.Username + " - " + user.Email
+			if _, ok := local_dupProtect[str_user]; ok {
+				continue
+			}
+			items = append(items, item(str_user))
+			local_dupProtect[str_user] = short
+		}
+		local_dupProtect = map[string]string{}
+		for short, user := range utils.Git_Users {
+			// if items already contains the user, skip it
+			str_user := user.Username + " - " + user.Email
+			if _, ok := local_dupProtect[str_user]; ok {
+				continue
+			}
+			items = append(items, item(str_user))
+			local_dupProtect[str_user] = short
+		}
+	}
+
+	return items
+
+}
+
+func (m Model) View() string {
 	if sub_model != nil {
 		return sub_model.View()
 	}
@@ -283,8 +379,9 @@ func (m model) View() string {
 	return sb.String()
 }
 
-func listModel() model {
-	items := []list.Item{}
+const title_text = "Select authors to add to commit \t|\t"
+
+func listModel(scope ...int) Model {
 
 	selected = map[string]item{}
 
@@ -293,15 +390,10 @@ func listModel() model {
 	listKeys := newListKeyMap()
 
 	// Add items to the list
-	for short, user := range utils.Users {
-		// if items already contains the user, skip it
-		str_user := user.Username + " - " + user.Email
-		if _, ok := dupProtect[str_user]; ok {
-			continue
-		}
-		items = append(items, item(str_user))
-		dupProtect[str_user] = short
+	if len(scope) == 0 {
+		scope = append(scope, git_scope)
 	}
+	items := generate_list(scope[0])
 
 	sort.Slice(items, func(i, j int) bool {
 		return items[i].(item) < items[j].(item)
@@ -310,7 +402,7 @@ func listModel() model {
 	const defaultWidth = 20
 
 	l := list.New(items, itemDelegate{}, defaultWidth, listHeight)
-	l.Title = "Select authors to add to commit"
+	l.Title = title_text + lipgloss.NewStyle().Foreground(lipgloss.Color("170")).Render("Scope: GIT")
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(true) // Enable filtering
 	l.Styles.Title = titleStyle
@@ -320,6 +412,7 @@ func listModel() model {
 		func() []key.Binding {
 			return []key.Binding{
 				listKeys.selectOne,
+				listKeys.scope,
 			}
 		}
 	l.AdditionalFullHelpKeys = // Add help keys (help menu)
@@ -334,7 +427,18 @@ func listModel() model {
 		}
 	l.Styles.HelpStyle = helpStyle
 
-	return model{list: l, keys: listKeys}
+	model := Model{list: l, swap_lists: [][]list.Item{items}, keys: listKeys, scope: git_scope}
+
+	//TODO: figure out async create
+	// IDEA DO IT WITH CHANNELS  
+	// go func(m *Model) {
+	// 	local_items := generate_list(local_scope)
+	// 	mixed_items := generate_list(mixed_scope)
+	// 	m.swap_lists = append(m.swap_lists, local_items)
+	// 	m.swap_lists = append(m.swap_lists, mixed_items)
+	// }(model)
+
+	return model
 }
 
 // TODO: pass list in as a param to allow for group selection using same template
@@ -363,7 +467,7 @@ func Entry() []string {
 		output = append(output, short)
 	}
 
-	if _, ok := f.(model); ok && len(output) > 0 {
+	if _, ok := f.(Model); ok && len(output) > 0 {
 		return output
 	}
 	return nil

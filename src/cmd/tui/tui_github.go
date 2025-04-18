@@ -12,30 +12,29 @@ import (
 
 // Styles
 var (
-	errorStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("9"))
-	toggleStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("99"))
+	errorStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("9"))
+	toggleStyle       = lipgloss.NewStyle().Foreground(lipgloss.Color("99"))
 	activeToggleStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
 )
 
 type GitHubUserModel struct {
-	inputs      []textinput.Model
-	focusIndex  int
-	submitted   bool
-	showError   bool
-	errorMsg    string
+	inputs       []textinput.Model
+	focusIndex   int
+	submitted    bool
+	showError    bool
+	errorMsg     string
 	tempAuthShow bool
-	tempAuth    bool
+	tempAuth     bool
 }
 
-func NewGitHubUserForm(old_m *model) GitHubUserModel {
+func NewGitHubUserForm(old_m *Model) GitHubUserModel {
 	parent_m = old_m
-	
+
 	m := GitHubUserModel{
 		inputs: make([]textinput.Model, 2),
 		tempAuthShow: func() bool {
 			return old_m != nil
 		}(),
-		
 	}
 
 	// GitHub Username (required)
@@ -70,7 +69,7 @@ func (m GitHubUserModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return nil, nil
 			}
 			return m, tea.Quit
-		case "ctrl+t":  // Toggle temp mode
+		case "ctrl+t": // Toggle temp mode
 			if m.tempAuthShow {
 				m.tempAuth = !m.tempAuth
 				return m, nil
@@ -91,22 +90,21 @@ func (m GitHubUserModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					user.Email = m.inputs[1].Value()
 				}
 				if m.tempAuth {
-					return createGHTempAuthorModel(parent_m,user), tea.ClearScreen
+					return createGHTempAuthorModel(parent_m, user), tea.ClearScreen
 				}
-				return createGHAuthorModel(parent_m,user), tea.ClearScreen
-				
+				return createGHAuthorModel(parent_m, user), tea.ClearScreen
+
 			} else if s == "enter" && m.focusIndex == len(m.inputs) && m.tempAuthShow {
 				//toggle temp mode
 				m.tempAuth = !m.tempAuth
 				return m, nil
 			}
 
-			
 			// Cycle through inputs
 			if s == "up" || s == "shift+tab" {
 				m.focusIndex--
-				} else {
-					m.focusIndex++
+			} else {
+				m.focusIndex++
 			}
 
 			inpNum := len(m.inputs)
@@ -178,14 +176,14 @@ func (m GitHubUserModel) View() string {
 		if m.tempAuth {
 			toggleText = "[X]"
 		}
-		
+
 		toggleBtn := fmt.Sprintf("[ TempAuthor ] %s ", toggleText)
-		
-		if m.focusIndex == len(m.inputs) {  // When toggle is focused
+
+		if m.focusIndex == len(m.inputs) { // When toggle is focused
 			b.WriteString("\n" + focusedStyle.Render(toggleBtn))
-			} else {
-				b.WriteString("\n" + blurredStyle.Render(toggleBtn))
-			}		
+		} else {
+			b.WriteString("\n" + blurredStyle.Render(toggleBtn))
+		}
 	}
 
 	// Submit button
