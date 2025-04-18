@@ -309,12 +309,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m Model) change_list_items() {
-
-	m.list.SetItems(m.list.Items())
-	m.list.ResetFilter()
-}
-
 func generate_list(scope int) []list.Item {
 	items := []list.Item{}
 	local_dupProtect := map[string]string{}
