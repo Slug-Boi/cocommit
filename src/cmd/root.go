@@ -138,6 +138,11 @@ func Execute() {
 	// check for update
 	check_update()
 
+	err := utils.FetchConfig()
+	if err != nil {
+		panic(fmt.Sprintf("Error fetching config: %v", err))
+	}
+
 	// author file check
 	author_file, err := utils.CheckAuthorFile(os.Stdin, os.Stdout)
 	if err != nil {

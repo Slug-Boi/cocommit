@@ -14,11 +14,7 @@ import (
 // An example of the author file can be found in the examples folder of the repo
 func Find_authorfile() string {
 	if os.Getenv("author_file") == "" {
-		dirs, err := os.UserConfigDir()
-		if err != nil {
-			panic(fmt.Sprintf("Error getting user config directory: %v", err))
-		}
-		return (dirs + "/cocommit/authors.json")
+		return ConfigVar.GetAuthorFile()
 	} else {
 		return os.Getenv("author_file")
 	}
