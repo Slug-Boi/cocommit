@@ -142,7 +142,7 @@ const (
 
 type Model struct {
 	list       list.Model
-	swap_lists [][]list.Item
+	swap_lists [3][]list.Item
 	keys       *listKeyMap
 	quitting   bool
 	scope      int
@@ -255,8 +255,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.scope == git_scope {
 				m.scope = local_scope
 				m.list.Title = title_text + local_scope_style.Render("Scope: LOCAL")
-				if len(m.swap_lists) < 2 {
-					m.swap_lists = append(m.swap_lists, generate_list(local_scope))
+				if len(m.swap_lists[1]) == 0 {
+					m.swap_lists[1] = generate_list(local_scope)
 				}
 				m.list.SetItems(m.swap_lists[1])
 				m.list.ResetFilter()
@@ -265,8 +265,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.scope == local_scope {
 				m.scope = mixed_scope
 				m.list.Title = title_text + mixed_scope_style.Render("Scope: MIXED")
-				if len(m.swap_lists) < 3 {
-					m.swap_lists = append(m.swap_lists, generate_list(mixed_scope))
+				if len(m.swap_lists[2]) == 0 {
+					m.swap_lists[2] = generate_list(mixed_scope)
 				}
 				m.list.SetItems(m.swap_lists[2])
 				m.list.ResetFilter()
@@ -275,6 +275,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.scope == mixed_scope {
 				m.scope = git_scope
 				m.list.Title = title_text + git_scope_style.Render("Scope: GIT")
+				if len(m.swap_lists[0]) == 0 {
+					m.swap_lists[0] = generate_list(git_scope)
+				}
 				m.list.SetItems(m.swap_lists[0])
 				m.list.ResetFilter()
 				return m, nil
@@ -360,6 +363,19 @@ func generate_list(scope int) []list.Item {
 
 }
 
+func ConvertStringScopeToIOTA(scope string) int {
+	switch scope {
+	case "git":
+		return git_scope
+	case "local":
+		return local_scope
+	case "mixed":
+		return mixed_scope
+	default:
+		return -1
+	}
+}
+
 func (m Model) View() string {
 	if sub_model != nil {
 		return sub_model.View()
@@ -391,6 +407,7 @@ func listModel(scope ...int) Model {
 
 	// Add items to the list
 	if len(scope) == 0 {
+		git_scope := ConvertStringScopeToIOTA(utils.ConfigVar.Settings.StartingScope)
 		scope = append(scope, git_scope)
 	}
 	items := generate_list(scope[0])
@@ -402,7 +419,16 @@ func listModel(scope ...int) Model {
 	const defaultWidth = 20
 
 	l := list.New(items, itemDelegate{}, defaultWidth, listHeight)
-	l.Title = title_text + lipgloss.NewStyle().Foreground(lipgloss.Color("170")).Render("Scope: GIT")
+
+
+	switch scope[0] {
+		case git_scope:
+			l.Title = title_text + git_scope_style.Render("Scope: GIT")
+		case local_scope:
+			l.Title = title_text + local_scope_style.Render("Scope: LOCAL")
+		case mixed_scope:
+			l.Title = title_text + mixed_scope_style.Render("Scope: MIXED")
+	}
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(true) // Enable filtering
 	l.Styles.Title = titleStyle
@@ -427,7 +453,9 @@ func listModel(scope ...int) Model {
 		}
 	l.Styles.HelpStyle = helpStyle
 
-	model := Model{list: l, swap_lists: [][]list.Item{items}, keys: listKeys, scope: git_scope}
+	swapLists := [3][]list.Item{}
+	swapLists[scope[0]] = items
+	model := Model{list: l, swap_lists: swapLists, keys: listKeys, scope: scope[0]}
 
 	//TODO: figure out async create
 	// IDEA DO IT WITH CHANNELS  
