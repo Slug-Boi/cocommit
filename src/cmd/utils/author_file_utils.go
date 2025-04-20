@@ -14,7 +14,12 @@ import (
 // An example of the author file can be found in the examples folder of the repo
 func Find_authorfile() string {
 	if os.Getenv("author_file") == "" {
-		return ConfigVar.GetAuthorFile()
+		if ConfigVar == nil {
+			cfg, _ := LoadConfig()
+			cfg.SetGlobalConfig()
+		}
+		
+		return ConfigVar.Settings.AuthorFile
 	} else {
 		return os.Getenv("author_file")
 	}
