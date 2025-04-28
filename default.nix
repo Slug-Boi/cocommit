@@ -14,6 +14,7 @@ buildGoModule rec {
   vendorHash = null;
 
   buildPhase = ''
+    go mod vendor
     make build-nix
   '';
   
