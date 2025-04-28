@@ -31,30 +31,30 @@ func Commit(message string, authors []string) string {
 		return sb.String()
 	}
 
-// Loop that adds users
-for _, committer := range authors {
-	if _, ok := Users[committer]; ok {
-		sb_author(committer, &sb)
-	} else if match := reg.MatchString(committer); match {
-		str := strings.Split(committer, ":")
+	// Loop that adds users
+	for _, committer := range authors {
+		if _, ok := Users[committer]; ok {
+			sb_author(committer, &sb)
+		} else if match := reg.MatchString(committer); match {
+			str := strings.Split(committer, ":")
 
-		sb.WriteString("\nCo-authored-by: ")
-		sb.WriteString(str[0])
-		sb.WriteString(" <")
-		sb.WriteString(str[1])
-		sb.WriteRune('>')
+			sb.WriteString("\nCo-authored-by: ")
+			sb.WriteString(str[0])
+			sb.WriteString(" <")
+			sb.WriteString(str[1])
+			sb.WriteRune('>')
 
-	} else if committer[0] == '^' { // Negations
-		excludeMode = append(excludeMode, Users[committer[1:]].Username)
-	} else {
-		println(committer, " was unknown. User either not defined or name typed wrong")
+		} else if committer[0] == '^' { // Negations
+			excludeMode = append(excludeMode, Users[committer[1:]].Username)
+		} else {
+			println(committer, " was unknown. User either not defined or name typed wrong")
+		}
 	}
-}
 
-// Add excluded users after processing all authors
-if len(excludeMode) > 0 {
-	add_x_users(excludeMode, &sb)
-}
+	// Add excluded users after processing all authors
+	if len(excludeMode) > 0 {
+		add_x_users(excludeMode, &sb)
+	}
 	return sb.String()
 }
 
@@ -127,4 +127,44 @@ func group_selection(group []User, excludeMode []string) []string {
 	}
 
 	return excludeMode
+}
+
+func GitCommitAppender(authors string, hash string, flags []string) error {
+	// Get old commit message
+	var cmd *exec.Cmd
+
+	// git log --format=%B -n1
+	if hash == "" {
+		cmd = exec.Command("git", "log", "--format=%B", "-n1")
+	} else {
+		cmd = exec.Command("git", "log", "--format=%B", "-n1", hash)
+	}
+
+	out, err := cmd.Output()
+	if err != nil {
+		return fmt.Errorf("error: %s", err)
+	}
+
+	// Convert the output to a string
+	old_commit := string(out)
+
+	// commit shell command
+	// specify git command1
+	input := []string{"commit"}
+	input = append(input, flags...)
+	input = append(input, "--amend", "-m", old_commit+"\n"+authors)
+	// append the message to the flags
+	// concat the git command and the flags + message
+	cmd = exec.Command("git", input...)
+
+	// https://stackoverflow.com/questions/18159704/how-to-debug-exit-status-1-error-when-running-exec-command-in-golang
+
+	cmd_output, err := cmd.CombinedOutput()
+
+	if err != nil {
+		return fmt.Errorf("error: %s : %s", err, string(cmd_output))
+	} else {
+		println(string(cmd_output))
+	}
+	return nil
 }
