@@ -1,8 +1,6 @@
-{lib, buildGoModule, fetchFromGitHub }:
+{ lib, buildGoModule, fetchFromGitHub }: 
 
 buildGoModule rec {
-
-
   pname = "cocommit";
   version = "1.3.0";
 
