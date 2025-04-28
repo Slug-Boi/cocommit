@@ -5,7 +5,6 @@
     prog_src = {
       flake = false;
       url = "github:Slug-Boi/cocommit";
-      rev = "v1.3.0";
     };
   };
   outputs = { self, nixpkgs, flake-utils, ... }@inputs: let
