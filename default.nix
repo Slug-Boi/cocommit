@@ -11,18 +11,17 @@ buildGoModule rec {
     sha256 = "sha256-mSu9IW14y4vgvV3/N4EG9oMvB5eTfcneF03kMmHMXIU=";
   };
 
-  vendorHash = null;
+  vendorHash = "sha256-GcRGae42KiqMhxc2Q7Ct+uJ4Wg2odUEwWyXffamOjWY=";
 
   buildPhase = ''
-    go mod vendor
-    make build-nix
+    make build
   '';
   
   doCheck = false;
 
   installPhase = ''
     mkdir -p $out/bin
-    cp "src_code/go_src/${pname}" "$out/bin/${pname}"
+    cp "src/${pname}" "$out/bin/${pname}"
     chmod +x $out/bin/${pname}
   '';
 
