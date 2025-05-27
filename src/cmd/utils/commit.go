@@ -129,9 +129,11 @@ func group_selection(group []User, excludeMode []string) []string {
 	return excludeMode
 }
 
-func GitCommitAppender(authors string, hash string, flags []string) error {
+func GitCommitAppender(authors string, hash string, flags []string, t,p bool) error {
 	// Get old commit message
 	var cmd *exec.Cmd
+
+	//TODO: Make the hash ammend work with rebase but its more complicated than orignally thought. 
 
 	// git log --format=%B -n1
 	if hash == "" {
@@ -152,7 +154,15 @@ func GitCommitAppender(authors string, hash string, flags []string) error {
 	// specify git command1
 	input := []string{"commit"}
 	input = append(input, flags...)
+	old_commit = strings.TrimSpace(old_commit)
 	input = append(input, "--amend", "-m", old_commit+"\n"+authors)
+
+	if p {
+		println(old_commit + "\n" + authors)
+		if t {
+			return nil
+		}
+	}
 	// append the message to the flags
 	// concat the git command and the flags + message
 	cmd = exec.Command("git", input...)
