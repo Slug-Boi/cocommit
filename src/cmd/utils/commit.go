@@ -129,7 +129,7 @@ func group_selection(group []User, excludeMode []string) []string {
 	return excludeMode
 }
 
-func GitCommitAppender(authors string, hash string, flags []string, t,p bool) error {
+func GitCommitAppender(authors string, hash string, flags []string, t,p bool) (error, string) {
 	// Get old commit message
 	var cmd *exec.Cmd
 
@@ -144,7 +144,7 @@ func GitCommitAppender(authors string, hash string, flags []string, t,p bool) er
 
 	out, err := cmd.Output()
 	if err != nil {
-		return fmt.Errorf("error: %s", err)
+		return fmt.Errorf("error: %s", err), ""
 	}
 
 	// Convert the output to a string
@@ -160,7 +160,7 @@ func GitCommitAppender(authors string, hash string, flags []string, t,p bool) er
 	if p {
 		println(old_commit + "\n" + authors)
 		if t {
-			return nil
+			return nil, old_commit + "\n" + authors
 		}
 	}
 	// append the message to the flags
@@ -172,9 +172,9 @@ func GitCommitAppender(authors string, hash string, flags []string, t,p bool) er
 	cmd_output, err := cmd.CombinedOutput()
 
 	if err != nil {
-		return fmt.Errorf("error: %s : %s", err, string(cmd_output))
+		return fmt.Errorf("error: %s : %s", err, string(cmd_output)), ""
 	} else {
 		println(string(cmd_output))
 	}
-	return nil
+	return nil, old_commit + "\n" + authors
 }
