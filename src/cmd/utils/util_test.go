@@ -689,6 +689,8 @@ func Test_CommitAppender(t *testing.T) {
 		t.Errorf("CommitAppender() = %v;\nwant:\n%v", appendedMessage, expectedMessage)
 	}
 
+	message = ""
+	
 }
 
 // Commit tests END
