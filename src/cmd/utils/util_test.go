@@ -611,6 +611,86 @@ func Test_GitPush(t *testing.T) {
 	}
 }
 
+func Test_CommitAppender(t *testing.T) {
+	setup()
+	defer teardown()
+	utils.Define_users("author_file_test")
+
+	// Test CommitAppender with a single author
+	authors := []string{"te"}
+	cmd := exec.Command("git", "log", "--format=%B", "-n1")
+	out, err := cmd.Output()
+	if err != nil {
+		t.Fatalf("Failed to get git log: %v", err)
+	}
+
+	message := strings.TrimSpace(string(out))
+
+	commit := utils.Commit("", authors)
+	err, appendedMessage := utils.GitCommitAppender(commit, "", nil, true, true)
+	if err != nil {
+		t.Errorf("GitCommitAppender() returned error: %v", err)
+	}
+
+	expectedMessage := message+"\n\n\nCo-authored-by: TestUser <test@test.test>"
+	if appendedMessage != expectedMessage {
+		t.Errorf("CommitAppender() = %v;\nwant:\n%v", appendedMessage, expectedMessage)
+	}
+
+	// check inverted commit 
+	authors = []string{"^te"}
+	commit = utils.Commit("", authors)
+	err, appendedMessage = utils.GitCommitAppender(commit, "", nil, true, true)
+	if err != nil {
+		t.Errorf("GitCommitAppender() returned error: %v", err)
+	}
+	expectedMessage = message+"\n\n\nCo-authored-by: UserName2 <testing@user.io>"
+
+	if appendedMessage != expectedMessage {
+		t.Errorf("CommitAppender() = %v;\nwant:\n%v", appendedMessage, expectedMessage)
+	}
+
+	// Test CommitAppender with multiple authors
+	authors = []string{"te", "testtest"}
+	commit = utils.Commit("", authors)
+	err, appendedMessage = utils.GitCommitAppender(commit, "", nil, true, true)
+	if err != nil {
+		t.Errorf("GitCommitAppender() returned error: %v", err)
+	}
+	expectedMessage = message+"\n\n\nCo-authored-by: TestUser <test@test.test>\nCo-authored-by: UserName2 <testing@user.io>"
+
+	if appendedMessage != expectedMessage {
+		t.Errorf("CommitAppender() = %v;\nwant:\n%v", appendedMessage, expectedMessage)
+	}
+	// Test CommitAppender with all authors
+	authors = []string{"all"}
+	commit = utils.Commit("", authors)
+	err, appendedMessage = utils.GitCommitAppender(commit, "", nil, true, true)
+	if err != nil {
+		t.Errorf("GitCommitAppender() returned error: %v", err)
+	}
+	expectedMessage = message+"\n\n\nCo-authored-by: TestUser <test@test.test>\nCo-authored-by: UserName2 <testing@user.io>"
+	expectedMessage2 := message+"\n\n\nCo-authored-by: UserName2 <testing@user.io>\nCo-authored-by: TestUser <test@test.test>"
+
+	if appendedMessage != expectedMessage && appendedMessage != expectedMessage2 {
+		t.Errorf("CommitAppender() = %v;\nwant:\n%v", appendedMessage, expectedMessage)
+	}
+
+	// Test CommitAppender with group authors
+	authors = []string{"gr1"}
+	commit = utils.Commit("", authors)
+	err, appendedMessage = utils.GitCommitAppender(commit, "", nil, true, true)
+	if err != nil {
+		t.Errorf("GitCommitAppender() returned error: %v", err)
+	}
+	expectedMessage = message+"\n\n\nCo-authored-by: UserName2 <testing@user.io>"
+
+	if appendedMessage != expectedMessage {
+		t.Errorf("CommitAppender() = %v;\nwant:\n%v", appendedMessage, expectedMessage)
+	}
+
+}
+
 // Commit tests END
 
 // Github tests BEGIN
