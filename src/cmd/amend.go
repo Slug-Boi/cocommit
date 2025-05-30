@@ -56,7 +56,7 @@ var amendCmd = &cobra.Command{
 			git_flags_split = strings.Split(git_flags, " ")
 		}
 
-		err := utils.GitCommitAppender(authors, hash, git_flags_split, tflag, pflag)
+		err, _ := utils.GitCommitAppender(authors, hash, git_flags_split, tflag, pflag)
 		if err != nil {
 			println("Error amending commit:", err.Error())
 			os.Exit(1)
