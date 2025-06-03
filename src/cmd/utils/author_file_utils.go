@@ -13,12 +13,45 @@ import (
 // that contains the names and emails of the users that are allowed to commit
 // An example of the author file can be found in the examples folder of the repo
 func Find_authorfile() string {
+	var file string
+
 	if os.Getenv("author_file") == "" {
-		dirs, err := os.UserConfigDir()
-		if err != nil {
-			panic(fmt.Sprintf("Error getting user config directory: %v", err))
+		if ConfigVar == nil {
+			cfg, _ := LoadConfig()
+			if cfg == nil {
+				// mimic the default config structure
+				cfg = &Config{
+					Settings: struct {
+						AuthorFile    string `mapstructure:"author_file"`
+						StartingScope string `mapstructure:"starting_scope"`
+						Editor        string `mapstructure:"editor"`
+					}{
+						AuthorFile:    "",
+						StartingScope: "git",
+						Editor:        "built-in",
+					},
+				}
+				cfg.SetGlobalConfig()
+			}
 		}
-		return (dirs + "/cocommit/authors.json")
+
+		if ConfigVar.Settings.AuthorFile != "" {
+			file = ConfigVar.Settings.AuthorFile
+		} else if os.Getenv("author_file") != "" {
+			file = os.Getenv("author_file")
+		} else {
+			userconf, err :=os.UserConfigDir()
+			if err != nil {
+				panic(fmt.Sprintf("Error getting user config dir: %v", err))
+			}
+			
+			if _, err := os.Stat(userconf+"/cocommit/authors.json"); os.IsNotExist(err) {
+				panic(fmt.Sprintf("No author file set, please set the author_file environment variable or create a config file using the command: cocommit config -c"))
+			} else {
+				file = userconf + "/cocommit/authors.json"
+			}
+		} 
+		return file
 	} else {
 		return os.Getenv("author_file")
 	}

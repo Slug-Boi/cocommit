@@ -38,10 +38,27 @@ const author_data = `
     }
 }`
 
+
+const config_data = `[settings]
+author_file = "author_file_test"
+starting_scope = "git"
+editor = "built-in"
+`
+
 var envVar = os.Getenv("author_file")
 
 func setup() {
+	os.Setenv("author_file", "")
+
 	// setup test data
+	err := os.WriteFile("config.toml", []byte(config_data), 0644)
+	if err != nil {
+		panic(err)
+	}
+
+	os.Setenv("COCOMMIT_CONFIG", "config.toml")
+	
+
 	os.WriteFile("author_file_test", []byte(author_data), 0644)
 	os.Setenv("author_file", "author_file_test")
 }
@@ -50,6 +67,7 @@ func teardown() {
 	// remove test data
 	os.Remove("author_file_test")
 	os.Setenv("author_file", envVar)
+	os.Remove("config.toml")
 }
 
 // Author tests BEGIN
@@ -124,6 +142,8 @@ func Test_CreateAuthor(t *testing.T) {
 }
 
 func Test_FindAuthorFilePanic(t *testing.T) {
+	setup()
+	defer teardown()
 	// Save original environment variables
 	originalAuthorFile := os.Getenv("author_file")
 	originalHome := os.Getenv("HOME")
@@ -153,16 +173,21 @@ func Test_FindAuthorFileEnv(t *testing.T) {
 	// Test Find_authorfile with env var
 	setup()
 	defer teardown()
+
+	originalAuthorFile := os.Getenv("author_file")
+
+	defer func() {
+		os.Setenv("author_file", originalAuthorFile)
+
+		if r := recover(); r == nil {
+			t.Errorf("Find_authorfile() did not panic")
+		}
+	}()
+
+	// Set an invalid environment variable to trigger panic
 	os.Setenv("author_file", "")
-	authorfile := utils.Find_authorfile()
-	configdir, err := os.UserConfigDir()
-	if err != nil {
-		t.Fatalf("Failed to get user config directory: %v", err)
-	}
-	if authorfile != configdir+"/cocommit/authors.json" {
-		t.Errorf("Find_authorfile() = %v; want %v", authorfile, configdir+"/cocommit/authors.json")
-	}
-	
+
+	utils.Find_authorfile()
 }
 
 func Test_CreateAuthorPanicOnFileError(t *testing.T) {

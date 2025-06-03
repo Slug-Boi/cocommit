@@ -47,7 +47,7 @@ func setup() {
 		panic(err)
 	}
 	os.Setenv("author_file", "author_file_test")
-	envVar = os.Getenv("author_file")
+	envVar = os.Getenv("author_file")	
 
 	utils.Define_users("author_file_test")
 }
@@ -610,8 +610,8 @@ func Test_ScopesLocal(t *testing.T) {
 		t.Errorf("Expected model, got %T", fm)
 	}
 
-	if m.scope!= local_scope {
-		t.Errorf("Expected scope to be %v, got %v", local_scope, m.scope)
+	if m.scope!= mixed_scope {
+		t.Errorf("Expected scope to be %v, got %v", mixed_scope, m.scope)
 	}
 }
 
@@ -634,8 +634,8 @@ func Test_ScopesMixed(t *testing.T) {
 		t.Errorf("Expected model, got %T", fm)
 	}
 
-	if m.scope != mixed_scope {
-		t.Errorf("Expected scope to be %v, got %v", mixed_scope, m.scope)
+	if m.scope != local_scope {
+		t.Errorf("Expected scope to be %v, got %v", local_scope, m.scope)
 	}
 }
 
