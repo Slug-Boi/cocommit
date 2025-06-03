@@ -18,7 +18,9 @@ func Find_authorfile() string {
 			cfg, _ := LoadConfig()
 			cfg.SetGlobalConfig()
 		}
-		
+		if ConfigVar.Settings.AuthorFile == "" {
+			panic("No author file found, please set the author_file in the config file or set the environment variable 'author_file'")
+		}
 		return ConfigVar.Settings.AuthorFile
 	} else {
 		return os.Getenv("author_file")
