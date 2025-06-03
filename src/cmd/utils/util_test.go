@@ -174,11 +174,9 @@ func Test_FindAuthorFileEnv(t *testing.T) {
 	setup()
 	defer teardown()
 
-	// Save original environment variable
 	originalAuthorFile := os.Getenv("author_file")
 
 	defer func() {
-		// Reset environment variable
 		os.Setenv("author_file", originalAuthorFile)
 
 		if r := recover(); r == nil {
