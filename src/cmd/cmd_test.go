@@ -34,11 +34,25 @@ const author_data = `
     }
 }`
 
+const config_data = `[settings]
+author_file = "author_file_test"
+starting_scope = "git"
+editor = "built-in"
+`
+
 var envVar = utils.Find_authorfile()
 
 func setup() {
+	// setup config file
+	err := os.WriteFile("config.toml", []byte(config_data), 0644)
+	if err != nil {
+		panic(err)
+	}
+	os.Setenv("COCOMMIT_CONFIG", "config.toml")
+	utils.Find_authorfile()
+
 	// setup test data
-	err := os.WriteFile("author_file_test", []byte(author_data), 0644)
+	err = os.WriteFile("author_file_test", []byte(author_data), 0644)
 	if err != nil {
 		panic(err)
 	}
@@ -50,6 +64,7 @@ func teardown() {
 	// remove test data
 	os.Remove("author_file_test")
 	os.Setenv("author_file", envVar)
+	os.Remove("config.toml")
 }
 
 // Skip cobra cmd tests on CI causes problems apparenly idk why
