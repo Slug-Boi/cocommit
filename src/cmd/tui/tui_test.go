@@ -48,21 +48,23 @@ var envVar string
 var configVar string
 
 func setup() {
-	// setup test data
-	err := os.WriteFile("author_file_test", []byte(author_data), 0644)
-	if err != nil {
-		panic(err)
-	}
-	os.Setenv("author_file", "author_file_test")
-	envVar = os.Getenv("author_file")
-
-	err = os.WriteFile("test_config.toml", []byte(config_data), 0644)
+	err := os.WriteFile("test_config.toml", []byte(config_data), 0644)
 	if err != nil {
 		panic(err)
 	}
 
 	os.Setenv("COCOMMIT_CONFIG", "test_config.toml")
 	configVar = os.Getenv("COCOMMIT_CONFIG")
+	utils.Find_authorfile()
+
+
+	// setup test data
+	err = os.WriteFile("author_file_test", []byte(author_data), 0644)
+	if err != nil {
+		panic(err)
+	}
+	os.Setenv("author_file", "author_file_test")
+	envVar = os.Getenv("author_file")	
 
 	utils.Define_users("author_file_test")
 }
