@@ -15,6 +15,7 @@ var ConfigVar *Config
 var (
 	defaultConfigLocations = []string{
 		"",
+		os.Getenv("COCOMMIT_CONFIG"),
 		os.Getenv("HOME") + "/.config/cocommit",
 		os.Getenv("HOME") + "/cocommit",
 		"/etc/cocommit",
@@ -40,6 +41,8 @@ func init() {
 }
 
 func LoadConfig() (*Config, error) {
+	// TODO: create if and give param as default config location
+
 	v := viper.New()
 	v.SetConfigName(configName)
 	v.SetConfigType(configType)
