@@ -38,7 +38,14 @@ const author_data = `
     }
 }`
 
+const config_data = `[settings]
+author_file = "author_file_test"
+starting_scope = "git"
+editor = "built-in"
+`
+
 var envVar string
+var configVar string
 
 func setup() {
 	// setup test data
@@ -49,6 +56,14 @@ func setup() {
 	os.Setenv("author_file", "author_file_test")
 	envVar = os.Getenv("author_file")
 
+	err = os.WriteFile("test_config.toml", []byte(config_data), 0644)
+	if err != nil {
+		panic(err)
+	}
+
+	os.Setenv("COCOMMIT_CONFIG", "test_config.toml")
+	configVar = os.Getenv("COCOMMIT_CONFIG")
+
 	utils.Define_users("author_file_test")
 }
 
@@ -56,6 +71,7 @@ func teardown() {
 	// remove test data
 	os.Remove("author_file_test")
 	os.Setenv("author_file", envVar)
+	os.Remove("test_config.toml")
 }
 
 func keyPress(tm *teatest.TestModel, key string) {
@@ -610,8 +626,8 @@ func Test_ScopesLocal(t *testing.T) {
 		t.Errorf("Expected model, got %T", fm)
 	}
 
-	if m.scope!= local_scope {
-		t.Errorf("Expected scope to be %v, got %v", local_scope, m.scope)
+	if m.scope!= mixed_scope {
+		t.Errorf("Expected scope to be %v, got %v", mixed_scope, m.scope)
 	}
 }
 
@@ -634,8 +650,8 @@ func Test_ScopesMixed(t *testing.T) {
 		t.Errorf("Expected model, got %T", fm)
 	}
 
-	if m.scope != mixed_scope {
-		t.Errorf("Expected scope to be %v, got %v", mixed_scope, m.scope)
+	if m.scope != local_scope {
+		t.Errorf("Expected scope to be %v, got %v", local_scope, m.scope)
 	}
 }
 
