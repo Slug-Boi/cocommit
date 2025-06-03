@@ -488,6 +488,13 @@ func Entry() []string {
 	}
 	for i := range selected {
 		short := dupProtect[i]
+		if short == "" {
+			split := strings.Split(i, " - ")
+			name := split[0]
+			email := split[1]
+			utils.TempAddUser(name, email)
+			short = name
+		}
 		if negation {
 			short = "^" + short
 		}

@@ -1,8 +1,6 @@
-{lib, buildGoModule, fetchFromGitHub }:
+{ lib, buildGoModule, fetchFromGitHub }: 
 
 buildGoModule rec {
-
-
   pname = "cocommit";
   version = "1.3.0";
 
@@ -10,20 +8,20 @@ buildGoModule rec {
     owner = "Slug-Boi";
     repo = pname;
     rev = "v${version}";
-    sha256 = "sha256-oraadDCyek8qnXFZPj2yitXL3KPK+uW1/VZphrEa/MU=";
+    sha256 = "sha256-mSu9IW14y4vgvV3/N4EG9oMvB5eTfcneF03kMmHMXIU=";
   };
 
-  vendorHash = null;
+  vendorHash = "sha256-GcRGae42KiqMhxc2Q7Ct+uJ4Wg2odUEwWyXffamOjWY=";
 
   buildPhase = ''
-    make build-nix
+    make build
   '';
   
   doCheck = false;
 
   installPhase = ''
     mkdir -p $out/bin
-    cp "src_code/go_src/${pname}" "$out/bin/${pname}"
+    cp "src/${pname}" "$out/bin/${pname}"
     chmod +x $out/bin/${pname}
   '';
 
