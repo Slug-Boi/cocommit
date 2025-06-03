@@ -173,14 +173,10 @@ func Test_FindAuthorFileEnv(t *testing.T) {
 	// Test Find_authorfile with env var
 	setup()
 	defer teardown()
-	os.Setenv("author_file", "")
+	os.Setenv("author_file", "author_file_test")
 	authorfile := utils.Find_authorfile()
-	configdir, err := os.UserConfigDir()
-	if err != nil {
-		t.Fatalf("Failed to get user config directory: %v", err)
-	}
-	if authorfile != configdir+"/cocommit/authors.json" {
-		t.Errorf("Find_authorfile() = %v; want %v", authorfile, configdir+"/cocommit/authors.json")
+	if authorfile != "author_file_test" {
+		t.Errorf("Find_authorfile() = %v; want %v", authorfile, "author_file_test")
 	}
 	
 }
