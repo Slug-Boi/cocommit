@@ -173,16 +173,23 @@ func Test_FindAuthorFileEnv(t *testing.T) {
 	// Test Find_authorfile with env var
 	setup()
 	defer teardown()
+
+	// Save original environment variable
+	originalAuthorFile := os.Getenv("author_file")
+
+	defer func() {
+		// Reset environment variable
+		os.Setenv("author_file", originalAuthorFile)
+
+		if r := recover(); r == nil {
+			t.Errorf("Find_authorfile() did not panic")
+		}
+	}()
+
+	// Set an invalid environment variable to trigger panic
 	os.Setenv("author_file", "")
-	authorfile := utils.Find_authorfile()
-	configdir, err := os.UserConfigDir()
-	if err != nil {
-		t.Fatalf("Failed to get user config directory: %v", err)
-	}
-	if authorfile != configdir+"/cocommit/authors.json" {
-		t.Errorf("Find_authorfile() = %v; want %v", authorfile, configdir+"/cocommit/authors.json")
-	}
-	
+
+	utils.Find_authorfile()
 }
 
 func Test_CreateAuthorPanicOnFileError(t *testing.T) {
