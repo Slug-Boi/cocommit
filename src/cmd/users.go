@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var authorfile = utils.Find_authorfile()
+var authorfile string
 
 // usersCmd represents the users command
 func UsersCmd() *cobra.Command {
@@ -21,6 +21,9 @@ func UsersCmd() *cobra.Command {
 		Short: "Displays all users from the author file located at:\n" + authorfile,
 		Long:  `Displays all users from the author file located at:` + "\n" + authorfile,
 		Run: func(cmd *cobra.Command, args []string) {
+			if authorfile == "" {
+				authorfile = utils.Find_authorfile()
+			}
 			if update {
 				update_msg()
 			}

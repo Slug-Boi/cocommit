@@ -6,8 +6,6 @@ import (
 	"os"
 	"strings"
 	"testing"
-
-	"github.com/Slug-Boi/cocommit/src/cmd/utils"
 )
 
 const author_data = `
@@ -34,7 +32,7 @@ const author_data = `
     }
 }`
 
-var envVar = utils.Find_authorfile()
+var envVar string
 
 func setup() {
 	// setup test data
