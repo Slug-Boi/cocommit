@@ -62,12 +62,15 @@ func LoadConfig() (*Config, error) {
 	// Try to read config
 	if err := v.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			if err := handleMissingConfig(v); err != nil {
-				return nil, err
-			}
-		} else {
-			return nil, fmt.Errorf("config error: %w", err)
+			return nil, nil
 		}
+		// if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+		// 	if err := handleMissingConfig(v); err != nil {
+		// 		return nil, err
+		// 	}
+		// } else {
+		// 	return nil, fmt.Errorf("config error: %w", err)
+		// }
 	}
 
 	var cfg Config

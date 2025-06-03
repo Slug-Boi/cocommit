@@ -48,15 +48,17 @@ editor = "built-in"
 var envVar = os.Getenv("author_file")
 
 func setup() {
+	os.Setenv("author_file", "")
+
 	// setup test data
-	err := os.WriteFile("test_config.toml", []byte(config_data), 0644)
+	err := os.WriteFile("config.toml", []byte(config_data), 0644)
 	if err != nil {
 		panic(err)
 	}
 
-	os.Setenv("COCOMMIT_CONFIG", "test_config.toml")
+	os.Setenv("COCOMMIT_CONFIG", "config.toml")
 	
-	utils.Find_authorfile()
+
 	os.WriteFile("author_file_test", []byte(author_data), 0644)
 	os.Setenv("author_file", "author_file_test")
 }
@@ -65,7 +67,7 @@ func teardown() {
 	// remove test data
 	os.Remove("author_file_test")
 	os.Setenv("author_file", envVar)
-	os.Remove("test_config.toml")
+	os.Remove("config.toml")
 }
 
 // Author tests BEGIN
@@ -140,16 +142,16 @@ func Test_CreateAuthor(t *testing.T) {
 }
 
 func Test_FindAuthorFilePanic(t *testing.T) {
+	setup()
+	defer teardown()
 	// Save original environment variables
 	originalAuthorFile := os.Getenv("author_file")
 	originalHome := os.Getenv("HOME")
 	orignalXDG := os.Getenv("XDG_CONFIG_HOME")
-	originalAuthorFile_Config := utils.ConfigVar.Settings.AuthorFile
 
 	// Test Find_authorfile panic
 	defer func() {
 		// Reset environment variables
-		utils.ConfigVar.Settings.AuthorFile = originalAuthorFile_Config
 		os.Setenv("author_file", originalAuthorFile)
 		os.Setenv("HOME", originalHome)
 		os.Setenv("XDG_CONFIG_HOME", orignalXDG)
@@ -161,7 +163,6 @@ func Test_FindAuthorFilePanic(t *testing.T) {
 
 	// Set environment variables to empty strings
 	// to trigger the panic
-	utils.ConfigVar.Settings.AuthorFile = ""
 	os.Setenv("author_file", "")
 	os.Setenv("HOME", "")
 	os.Setenv("XDG_CONFIG_HOME", "")

@@ -38,28 +38,11 @@ const author_data = `
     }
 }`
 
-const config_data = `[settings]
-author_file = "author_file_test"
-starting_scope = "git"
-editor = "built-in"
-`
-
 var envVar string
-var configVar string
 
 func setup() {
-	err := os.WriteFile("test_config.toml", []byte(config_data), 0644)
-	if err != nil {
-		panic(err)
-	}
-
-	os.Setenv("COCOMMIT_CONFIG", "test_config.toml")
-	configVar = os.Getenv("COCOMMIT_CONFIG")
-	utils.Find_authorfile()
-
-
 	// setup test data
-	err = os.WriteFile("author_file_test", []byte(author_data), 0644)
+	err := os.WriteFile("author_file_test", []byte(author_data), 0644)
 	if err != nil {
 		panic(err)
 	}
@@ -73,7 +56,6 @@ func teardown() {
 	// remove test data
 	os.Remove("author_file_test")
 	os.Setenv("author_file", envVar)
-	os.Remove("test_config.toml")
 }
 
 func keyPress(tm *teatest.TestModel, key string) {
