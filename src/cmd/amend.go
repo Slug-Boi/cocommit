@@ -24,7 +24,7 @@ var amendCmd = &cobra.Command{
 		pflag, _ := cmd.Flags().GetBool("print-output")
 		tflag, _ := cmd.Flags().GetBool("test_print")
 		git_flags, _ := cmd.Flags().GetString("git-flags")
-		edit, _ := cmd.Flags().GetBool("edit")
+		no_edit, _ := cmd.Flags().GetBool("no-edit")
 		hash, _ := cmd.Flags().GetString("hash")
 
 		
@@ -32,10 +32,6 @@ var amendCmd = &cobra.Command{
 			println("Hash based commit amendment is not yet implemented please use rebase option manually in git and then use this command to add co-authors.")
 			hash = ""
 			return
-		}
-		
-		if edit {
-			
 		}
 
 		var authors string
@@ -56,7 +52,7 @@ var amendCmd = &cobra.Command{
 			git_flags_split = strings.Split(git_flags, " ")
 		}
 
-		err, _ := utils.GitCommitAppender(authors, hash, git_flags_split, tflag, pflag)
+		err, _ := utils.GitCommitAppender(authors, hash, git_flags_split, tflag, pflag, no_edit)
 		if err != nil {
 			println("Error amending commit:", err.Error())
 			os.Exit(1)
@@ -70,6 +66,6 @@ func init() {
 	amendCmd.Flags().StringP("git-flags", "g", "", "Git flags to add to the commit command")
 	amendCmd.Flags().BoolP("print-output", "p", false, "Print the commit message to stdout")
 	amendCmd.Flags().BoolP("test_print", "t", false, "Print the commit message to stdout without amending")
-	amendCmd.Flags().BoolP("edit", "e", false, "Edit the commit message in the editor")
+	amendCmd.Flags().BoolP("no-edit", "n", false, "Do not edit the commit message in the editor")
 	amendCmd.Flags().StringP("hash", "s", "", "Hash of the commit to amend")
 }
