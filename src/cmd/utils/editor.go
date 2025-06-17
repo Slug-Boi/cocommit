@@ -31,7 +31,7 @@ func HandleEditor() (string, error) {
 	return output, nil
 }
 
-func LaunchEditor(editor string, filepath string) (string, error) {
+func LaunchEditor(editor string, filepath string, ) (string, error) {
 	// Create a temp file or use an existing file
 	var tempFile *os.File
 	var err error
@@ -53,6 +53,7 @@ func LaunchEditor(editor string, filepath string) (string, error) {
 
 	if filepath == "" {
 		tempFile, err = os.CreateTemp("", "cocommit_editor_*.txt")
+		defer os.Remove(tempFile.Name()) 
 	} else {
 		tempFile, err = os.OpenFile(filepath, os.O_RDWR, 0666)
 	}
@@ -81,9 +82,6 @@ func LaunchEditor(editor string, filepath string) (string, error) {
 	}
 
 	// Clean up the temp file
-	if err := os.Remove(tempFile.Name()); err != nil {
-		return "", fmt.Errorf("error removing temp file: %v", err)
-	}
 	if strings.HasSuffix(message, "\n") {
 		message = strings.TrimSuffix(message, "\n")
 	}
