@@ -166,6 +166,7 @@ func Test_FindAuthorFilePanic(t *testing.T) {
 	os.Setenv("author_file", "")
 	os.Setenv("HOME", "")
 	os.Setenv("XDG_CONFIG_HOME", "")
+	utils.ConfigVar.Settings.AuthorFile = ""
 	utils.Find_authorfile()
 }
 
@@ -178,14 +179,10 @@ func Test_FindAuthorFileEnv(t *testing.T) {
 
 	defer func() {
 		os.Setenv("author_file", originalAuthorFile)
-
-		if r := recover(); r == nil {
-			t.Errorf("Find_authorfile() did not panic")
-		}
 	}()
 
-	// Set an invalid environment variable to trigger panic
-	os.Setenv("author_file", "")
+	os.Setenv("author_file", "author_file_test")
+	utils.ConfigVar.Settings.AuthorFile = ""
 
 	utils.Find_authorfile()
 }
@@ -652,7 +649,7 @@ func Test_CommitAppender(t *testing.T) {
 	message := strings.TrimSpace(string(out))
 
 	commit := utils.Commit("", authors)
-	err, appendedMessage := utils.GitCommitAppender(commit, "", nil, true, true)
+	err, appendedMessage := utils.GitCommitAppender(commit, "", nil, true, true, true)
 	if err != nil {
 		t.Errorf("GitCommitAppender() returned error: %v", err)
 	}
@@ -665,7 +662,7 @@ func Test_CommitAppender(t *testing.T) {
 	// check inverted commit 
 	authors = []string{"^te"}
 	commit = utils.Commit("", authors)
-	err, appendedMessage = utils.GitCommitAppender(commit, "", nil, true, true)
+	err, appendedMessage = utils.GitCommitAppender(commit, "", nil, true, true, true)
 	if err != nil {
 		t.Errorf("GitCommitAppender() returned error: %v", err)
 	}
@@ -678,7 +675,7 @@ func Test_CommitAppender(t *testing.T) {
 	// Test CommitAppender with multiple authors
 	authors = []string{"te", "testtest"}
 	commit = utils.Commit("", authors)
-	err, appendedMessage = utils.GitCommitAppender(commit, "", nil, true, true)
+	err, appendedMessage = utils.GitCommitAppender(commit, "", nil, true, true, true)
 	if err != nil {
 		t.Errorf("GitCommitAppender() returned error: %v", err)
 	}
@@ -690,7 +687,7 @@ func Test_CommitAppender(t *testing.T) {
 	// Test CommitAppender with all authors
 	authors = []string{"all"}
 	commit = utils.Commit("", authors)
-	err, appendedMessage = utils.GitCommitAppender(commit, "", nil, true, true)
+	err, appendedMessage = utils.GitCommitAppender(commit, "", nil, true, true, true)
 	if err != nil {
 		t.Errorf("GitCommitAppender() returned error: %v", err)
 	}
@@ -704,7 +701,7 @@ func Test_CommitAppender(t *testing.T) {
 	// Test CommitAppender with group authors
 	authors = []string{"gr1"}
 	commit = utils.Commit("", authors)
-	err, appendedMessage = utils.GitCommitAppender(commit, "", nil, true, true)
+	err, appendedMessage = utils.GitCommitAppender(commit, "", nil, true, true, true)
 	if err != nil {
 		t.Errorf("GitCommitAppender() returned error: %v", err)
 	}
