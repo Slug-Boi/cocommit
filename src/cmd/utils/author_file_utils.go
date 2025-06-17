@@ -36,14 +36,11 @@ func Find_authorfile() string {
 	if os.Getenv("author_file") == "" {
 		if ConfigVar.Settings.AuthorFile != "" {
 			file = ConfigVar.Settings.AuthorFile
-		} else if os.Getenv("author_file") != "" {
-			file = os.Getenv("author_file")
 		} else {
 			userconf, err :=os.UserConfigDir()
 			if err != nil {
 				panic(fmt.Sprintf("Error getting user config dir: %v", err))
-			}
-			
+			}		
 			if _, err := os.Stat(userconf+"/cocommit/authors.json"); os.IsNotExist(err) {
 				panic(fmt.Sprintf("No author file set, please set the author_file environment variable or create a config file using the command: cocommit config -c"))
 			} else {
