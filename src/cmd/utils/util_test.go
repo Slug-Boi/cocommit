@@ -7,11 +7,12 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"os/exec"
 	"strings"
 	"testing"
-	"os/exec"
 
 	"github.com/Slug-Boi/cocommit/src/cmd/utils"
+	"github.com/spf13/viper"
 )
 
 const author_data = `
@@ -839,6 +840,61 @@ func Test_FetchGHProfileHTTP(t *testing.T) {
 	}
 }
 
-
-
 // Github tests END
+
+func Test_Save(t *testing.T) {
+	setup()
+	defer teardown()
+
+	filename := "test_save_config.toml"
+
+	initial_config_data := `[settings]
+author_file = "test_authors.json"
+starting_scope = "git"
+editor = "built-in"`
+
+	os.Create(filename)
+	defer os.Remove(filename)
+    // Write some test data to the file
+	os.WriteFile(filename, []byte(initial_config_data), 0644)
+
+	override_cfg := &utils.Config{
+	Settings: struct {
+		AuthorFile    string `mapstructure:"author_file"`
+		StartingScope string `mapstructure:"starting_scope"`
+		Editor       string `mapstructure:"editor"`
+	}{
+		AuthorFile:    "test_authors.json",
+		StartingScope: "git",
+		Editor:       "built-in",
+	}}
+
+
+
+	// Set viper config file to be cfg
+	viper.SetConfigFile(filename)
+	// Set the config type to toml
+	viper.SetConfigType("toml")
+
+
+	// Change some values in the config
+	override_cfg.Settings.AuthorFile = "test"
+	override_cfg.Settings.StartingScope = "not_git"
+	override_cfg.Settings.Editor = "test_editor"
+
+	// Save the config
+	err := override_cfg.Save()
+	if err != nil {
+		t.Errorf("Save() returned error: %v", err)
+	}
+
+	// Check if file exists and contains expected content
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		t.Errorf("Save() did not create file: %v", data)
+	}
+	if string(initial_config_data) == string(data) {
+		t.Errorf("Save() did not write expected content:\nNew:\n%s\n\nOld:\n%s", string(data), string(initial_config_data))
+	}
+}
+
