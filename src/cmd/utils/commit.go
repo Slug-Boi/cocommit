@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"regexp"
 	"slices"
@@ -129,7 +130,7 @@ func group_selection(group []User, excludeMode []string) []string {
 	return excludeMode
 }
 
-func GitCommitAppender(authors string, hash string, flags []string, t,p bool) (error, string) {
+func GitCommitAppender(authors string, hash string, flags []string, t,p,n bool) (error, string) {
 	// Get old commit message
 	var cmd *exec.Cmd
 
@@ -153,9 +154,36 @@ func GitCommitAppender(authors string, hash string, flags []string, t,p bool) (e
 	// commit shell command
 	// specify git command1
 	input := []string{"commit"}
+
+	// Edit the old message
 	input = append(input, flags...)
 	old_commit = strings.TrimSpace(old_commit)
-	input = append(input, "--amend", "-m", old_commit+"\n"+authors)
+
+	// Edit old commit message
+	var edited_commit string
+	if !n {
+		// Create tempfile for the commit message
+		file, err := os.CreateTemp("", "cocommit_editor_*.txt")
+		if err != nil {
+			return fmt.Errorf("Could not create tempfile: %s", err.Error()), ""
+		}
+		defer os.Remove(file.Name()) 
+
+		// Write the old commit message to the file
+		_, err = file.WriteString(old_commit + "\n" + authors)
+		if err != nil {
+			return fmt.Errorf("Could not write to tempfile: %s", err.Error()), ""
+		}
+		file.Close()
+		edited_commit, err = LaunchEditor(ConfigVar.Settings.Editor, file.Name())
+		if err != nil {
+			return fmt.Errorf("Could not launch editor: %s", err.Error()), ""
+		}
+	} else {
+		edited_commit = old_commit + "\n" + authors
+	}
+	
+	input = append(input, "--amend", "-m", edited_commit)
 
 	if p {
 		println(old_commit + "\n" + authors)

@@ -33,6 +33,13 @@ type Config struct {
 	} `mapstructure:"settings"`
 }
 
+func (c *Config) String() string {
+	return fmt.Sprintf("Author File: %s\nStarting Scope: %s\nEditor: %s",
+		c.Settings.AuthorFile, 
+		c.Settings.StartingScope, 
+		c.Settings.Editor)
+}
+
 func init() {
 	configDir, err := os.UserConfigDir()
 	if err == nil {
@@ -40,10 +47,11 @@ func init() {
 	}
 }
 
+var v *viper.Viper
+
 func LoadConfig() (*Config, error) {
 	// TODO: create if and give param as default config location
-
-	v := viper.New()
+	v = viper.New()
 	v.SetConfigName(configName)
 	v.SetConfigType(configType)
 
@@ -89,10 +97,10 @@ func (c *Config) SetGlobalConfig() {
 		ConfigVar = c
 		// This doesnt really do much right now but might be useful later
 		viper.WatchConfig()
-	} 
+	}
 }
 
-func handleMissingConfig(v *viper.Viper) error {
+func HandleMissingConfig() error {
 	fmt.Println("Config file not found. Would you like to create one? (y/n)")
 	var response string
 	if _, err := fmt.Scanln(&response); err != nil {
@@ -104,10 +112,48 @@ func handleMissingConfig(v *viper.Viper) error {
 		return fmt.Errorf("config file not found")
 	}
 
-	return createConfig(v)
+	if v == nil {
+		v = viper.New()
+
+		v.SetConfigName(configName)
+		v.SetConfigType(configType)
+	}
+
+	return CreateConfig()
 }
 
-func createConfig(v *viper.Viper) error {
+func CheckConfig() bool {
+	if v == nil {
+		return false
+	} else if v.ConfigFileUsed() == "" {
+		return false
+	} else {
+		return true
+	}
+}
+
+func GetConfigFilePath() string {
+	if v == nil || v.ConfigFileUsed() == "" {
+		return ""
+	}
+	return v.ConfigFileUsed()
+}
+
+func RemoveConfig() error {
+	if v == nil || v.ConfigFileUsed() == "" {
+		return fmt.Errorf("no config file to remove")
+	}
+
+	configPath := v.ConfigFileUsed()
+	if err := os.Remove(configPath); err != nil {
+		return fmt.Errorf("failed to remove config file: %w", err)
+	}
+
+	fmt.Printf("Config file removed: %s\n", configPath)
+	return nil
+}
+
+func CreateConfig() error {
 	fmt.Println("Where would you like to create the config file?")
 	for i, path := range defaultConfigLocations {
 		fmt.Printf("%d. %s\n", i, path)
@@ -145,38 +191,38 @@ func createConfig(v *viper.Viper) error {
 }
 
 func (c *Config) Save() error {
-    v := viper.New()
-    
-    // Set all configuration values from the struct
-    v.Set("settings.author_file", c.Settings.AuthorFile)
-    v.Set("settings.starting_scope", c.Settings.StartingScope)
-    v.Set("settings.editor", c.Settings.Editor)
-    
-    v.SetConfigName(configName)
-    v.SetConfigType(configType)
-    
-    // Try to determine the original config file location
-    if viper.ConfigFileUsed() != "" {
-        v.SetConfigFile(viper.ConfigFileUsed())
-    } else {
-        // Fall back to first default location if no existing config
-        if len(defaultConfigLocations) > 0 && defaultConfigLocations[0] != "" {
-            v.SetConfigFile(filepath.Join(defaultConfigLocations[0], fmt.Sprintf("%s.%s", configName, configType)))
-        } else {
-            return fmt.Errorf("no config file location available")
-        }
-    }
-    
-    // Ensure the directory exists
-    configDir := filepath.Dir(v.ConfigFileUsed())
-    if err := os.MkdirAll(configDir, 0755); err != nil {
-        return fmt.Errorf("failed to create config directory: %w", err)
-    }
-    
-    // Write the config file
-    if err := v.WriteConfig(); err != nil {
-        return fmt.Errorf("failed to save config: %w", err)
-    }
-    
-    return nil
+	v := viper.New()
+
+	// Set all configuration values from the struct
+	v.Set("settings.author_file", c.Settings.AuthorFile)
+	v.Set("settings.starting_scope", c.Settings.StartingScope)
+	v.Set("settings.editor", c.Settings.Editor)
+
+	v.SetConfigName(configName)
+	v.SetConfigType(configType)
+
+	// Try to determine the original config file location
+	if viper.ConfigFileUsed() != "" {
+		v.SetConfigFile(viper.ConfigFileUsed())
+	} else {
+		// Fall back to first default location if no existing config
+		if len(defaultConfigLocations) > 0 && defaultConfigLocations[0] != "" {
+			v.SetConfigFile(filepath.Join(defaultConfigLocations[0], fmt.Sprintf("%s.%s", configName, configType)))
+		} else {
+			return fmt.Errorf("no config file location available")
+		}
+	}
+
+	// Ensure the directory exists
+	configDir := filepath.Dir(v.ConfigFileUsed())
+	if err := os.MkdirAll(configDir, 0755); err != nil {
+		return fmt.Errorf("failed to create config directory: %w", err)
+	}
+
+	// Write the config file
+	if err := v.WriteConfig(); err != nil {
+		return fmt.Errorf("failed to save config: %w", err)
+	}
+
+	return nil
 }

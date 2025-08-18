@@ -9,8 +9,8 @@ import (
 
 	"github.com/Slug-Boi/cocommit/src/cmd/tui"
 	"github.com/Slug-Boi/cocommit/src/cmd/utils"
-	"github.com/inancgumus/screen"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/inancgumus/screen"
 
 	"github.com/spf13/cobra"
 )
@@ -155,7 +155,16 @@ func Execute() {
 
 func call_tui(args []string) []string {
 	// append commit message to args
-	args = append(args, tui.Entry_CM())
+	//args = append(args, tui.Entry_CM())
+	message, err := utils.LaunchEditor(utils.ConfigVar.Settings.Editor,"")
+	if err != nil {
+		panic(fmt.Sprintf("Error launching editor: %v", err))
+	}
+	if message == "" {
+		message = tui.Entry_CM()
+	}
+
+	args = append(args, message)
 
 	// clear the screen
 	screen.Clear()

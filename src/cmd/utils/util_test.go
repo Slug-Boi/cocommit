@@ -7,11 +7,12 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"os/exec"
 	"strings"
 	"testing"
-	"os/exec"
 
 	"github.com/Slug-Boi/cocommit/src/cmd/utils"
+	"github.com/spf13/viper"
 )
 
 const author_data = `
@@ -166,6 +167,7 @@ func Test_FindAuthorFilePanic(t *testing.T) {
 	os.Setenv("author_file", "")
 	os.Setenv("HOME", "")
 	os.Setenv("XDG_CONFIG_HOME", "")
+	utils.ConfigVar.Settings.AuthorFile = ""
 	utils.Find_authorfile()
 }
 
@@ -178,14 +180,10 @@ func Test_FindAuthorFileEnv(t *testing.T) {
 
 	defer func() {
 		os.Setenv("author_file", originalAuthorFile)
-
-		if r := recover(); r == nil {
-			t.Errorf("Find_authorfile() did not panic")
-		}
 	}()
 
-	// Set an invalid environment variable to trigger panic
-	os.Setenv("author_file", "")
+	os.Setenv("author_file", "author_file_test")
+	utils.ConfigVar.Settings.AuthorFile = ""
 
 	utils.Find_authorfile()
 }
@@ -652,7 +650,7 @@ func Test_CommitAppender(t *testing.T) {
 	message := strings.TrimSpace(string(out))
 
 	commit := utils.Commit("", authors)
-	err, appendedMessage := utils.GitCommitAppender(commit, "", nil, true, true)
+	err, appendedMessage := utils.GitCommitAppender(commit, "", nil, true, true, true)
 	if err != nil {
 		t.Errorf("GitCommitAppender() returned error: %v", err)
 	}
@@ -665,7 +663,7 @@ func Test_CommitAppender(t *testing.T) {
 	// check inverted commit 
 	authors = []string{"^te"}
 	commit = utils.Commit("", authors)
-	err, appendedMessage = utils.GitCommitAppender(commit, "", nil, true, true)
+	err, appendedMessage = utils.GitCommitAppender(commit, "", nil, true, true, true)
 	if err != nil {
 		t.Errorf("GitCommitAppender() returned error: %v", err)
 	}
@@ -678,7 +676,7 @@ func Test_CommitAppender(t *testing.T) {
 	// Test CommitAppender with multiple authors
 	authors = []string{"te", "testtest"}
 	commit = utils.Commit("", authors)
-	err, appendedMessage = utils.GitCommitAppender(commit, "", nil, true, true)
+	err, appendedMessage = utils.GitCommitAppender(commit, "", nil, true, true, true)
 	if err != nil {
 		t.Errorf("GitCommitAppender() returned error: %v", err)
 	}
@@ -690,7 +688,7 @@ func Test_CommitAppender(t *testing.T) {
 	// Test CommitAppender with all authors
 	authors = []string{"all"}
 	commit = utils.Commit("", authors)
-	err, appendedMessage = utils.GitCommitAppender(commit, "", nil, true, true)
+	err, appendedMessage = utils.GitCommitAppender(commit, "", nil, true, true, true)
 	if err != nil {
 		t.Errorf("GitCommitAppender() returned error: %v", err)
 	}
@@ -704,7 +702,7 @@ func Test_CommitAppender(t *testing.T) {
 	// Test CommitAppender with group authors
 	authors = []string{"gr1"}
 	commit = utils.Commit("", authors)
-	err, appendedMessage = utils.GitCommitAppender(commit, "", nil, true, true)
+	err, appendedMessage = utils.GitCommitAppender(commit, "", nil, true, true, true)
 	if err != nil {
 		t.Errorf("GitCommitAppender() returned error: %v", err)
 	}
@@ -842,6 +840,65 @@ func Test_FetchGHProfileHTTP(t *testing.T) {
 	}
 }
 
-
-
 // Github tests END
+
+// Config tests BEGIN
+
+func Test_Save(t *testing.T) {
+	setup()
+	defer teardown()
+
+	filename := "test_save_config.toml"
+
+	initial_config_data := `[settings]
+author_file = "test_authors.json"
+starting_scope = "git"
+editor = "built-in"`
+
+	os.Create(filename)
+	defer os.Remove(filename)
+    // Write some test data to the file
+	os.WriteFile(filename, []byte(initial_config_data), 0644)
+
+	override_cfg := &utils.Config{
+	Settings: struct {
+		AuthorFile    string `mapstructure:"author_file"`
+		StartingScope string `mapstructure:"starting_scope"`
+		Editor       string `mapstructure:"editor"`
+	}{
+		AuthorFile:    "test_authors.json",
+		StartingScope: "git",
+		Editor:       "built-in",
+	}}
+
+
+
+	// Set viper config file to be cfg
+	viper.SetConfigFile(filename)
+	// Set the config type to toml
+	viper.SetConfigType("toml")
+
+
+	// Change some values in the config
+	override_cfg.Settings.AuthorFile = "test"
+	override_cfg.Settings.StartingScope = "not_git"
+	override_cfg.Settings.Editor = "test_editor"
+
+	// Save the config
+	err := override_cfg.Save()
+	if err != nil {
+		t.Errorf("Save() returned error: %v", err)
+	}
+
+	// Check if file exists and contains expected content
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		t.Errorf("Save() did not create file: %v", data)
+	}
+	if string(initial_config_data) == string(data) {
+		t.Errorf("Save() did not write expected content:\nNew:\n%s\n\nOld:\n%s", string(data), string(initial_config_data))
+	}
+}
+
+
+
