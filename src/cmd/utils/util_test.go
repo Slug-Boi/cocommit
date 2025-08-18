@@ -842,6 +842,8 @@ func Test_FetchGHProfileHTTP(t *testing.T) {
 
 // Github tests END
 
+// Config tests BEGIN
+
 func Test_Save(t *testing.T) {
 	setup()
 	defer teardown()
@@ -897,4 +899,6 @@ editor = "built-in"`
 		t.Errorf("Save() did not write expected content:\nNew:\n%s\n\nOld:\n%s", string(data), string(initial_config_data))
 	}
 }
+
+
 
