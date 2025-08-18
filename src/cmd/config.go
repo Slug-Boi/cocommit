@@ -30,9 +30,7 @@ COMING SOON`,
 			} else {
 				fmt.Println("Current configuration:")
 			}
-			fmt.Println("Author File:", utils.ConfigVar.Settings.AuthorFile)
-			fmt.Println("Starting Scope:", utils.ConfigVar.Settings.StartingScope)
-			fmt.Println("Editor:", utils.ConfigVar.Settings.Editor)
+			fmt.Println(utils.ConfigVar.String())
 		} 
 		
 		// Check if the config file exists

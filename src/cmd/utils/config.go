@@ -33,6 +33,13 @@ type Config struct {
 	} `mapstructure:"settings"`
 }
 
+func (c *Config) String() string {
+	return fmt.Sprintf("Author File: %s\nStarting Scope: %s\nEditor: %s",
+		c.Settings.AuthorFile, 
+		c.Settings.StartingScope, 
+		c.Settings.Editor)
+}
+
 func init() {
 	configDir, err := os.UserConfigDir()
 	if err == nil {
