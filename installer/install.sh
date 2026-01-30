@@ -41,7 +41,7 @@ fi
 
 curl -L -o cocommit.tar.gz $URL && \
 tar -xvzf cocommit.tar.gz && \
-rm cocommit.tar.gz && rm author.txt && \
+rm cocommit.tar.gz && \
 chmod +x $file && ./$file -v
 if [ $? -ne 0 ]; then
     echo "Failed to extract the binary"
