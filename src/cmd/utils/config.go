@@ -35,8 +35,8 @@ type Config struct {
 
 func (c *Config) String() string {
 	return fmt.Sprintf("Author File: %s\nStarting Scope: %s\nEditor: %s",
-		c.Settings.AuthorFile, 
-		c.Settings.StartingScope, 
+		c.Settings.AuthorFile,
+		c.Settings.StartingScope,
 		c.Settings.Editor)
 }
 
@@ -57,7 +57,7 @@ func LoadConfig() (*Config, error) {
 
 	// Set default values
 	v.SetDefault("settings.author_file", defaultConfigLocations[0]+"/authors.json")
-	v.SetDefault("settings.starting_scope", "git")
+	v.SetDefault("settings.starting_scope", "local")
 	v.SetDefault("settings.editor", "built-in")
 
 	// Add search paths
