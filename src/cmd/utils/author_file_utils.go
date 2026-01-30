@@ -42,7 +42,7 @@ func Find_authorfile() string {
 				panic(fmt.Sprintf("Error getting user config dir: %v", err))
 			}		
 			if _, err := os.Stat(userconf+"/cocommit/authors.json"); os.IsNotExist(err) {
-				panic(fmt.Sprintf("No author file set, please set the author_file environment variable or create a config file using the command: cocommit config -c"))
+				return userconf + "/cocommit/authors.json"
 			} else {
 				file = userconf + "/cocommit/authors.json"
 			}
