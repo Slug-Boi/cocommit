@@ -449,6 +449,7 @@ func listModel(scope ...int) Model {
 				listKeys.groupSelect,
 				listKeys.createAuthor,
 				listKeys.tempAdd,
+				listKeys.ghAdd,
 			}
 		}
 	l.Styles.HelpStyle = helpStyle
