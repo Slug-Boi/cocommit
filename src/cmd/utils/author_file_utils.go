@@ -136,12 +136,13 @@ func CreateAuthor(user User) {
 		Define_users(Find_authorfile())
 }
 
-func CreateMultipleAuthors(users []User) []string {
+func CreateMultipleAuthors(users []User) ([]string,[]string) {
 	if len(users) == 0 {
-		return []string{}
+		return []string{}, []string{}
 	}
 
 	var added_users []string
+	var not_added []string
 
 	for _, usr := range users {
 		if _, ok := Users[usr.Shortname]; !ok {
@@ -162,6 +163,8 @@ func CreateMultipleAuthors(users []User) []string {
 					}
 				}
 			}
+		} else {
+			not_added = append(not_added, (usr.Username + " - " + usr.Email + "\n"))
 		}
 	}
 
@@ -185,7 +188,7 @@ func CreateMultipleAuthors(users []User) []string {
 
 	Define_users(Find_authorfile())
 
-	return added_users
+	return added_users, not_added
 }
 
 func DeleteOneAuthor(author string) {

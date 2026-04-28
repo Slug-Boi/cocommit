@@ -136,7 +136,12 @@ func TempAddUser(username, email string) {
 	Users[username] = usr
 }
 
-func SerealizeUsers(users []User) string {
+func SerealizeUsers(authors []string) string {
+	var users []User
+	for _, name := range authors {
+		users = append(users, Users[name])
+	}
+
 	bytes, err := json.Marshal(users)
 	if err != nil {
 		panic(err)
@@ -147,13 +152,59 @@ func SerealizeUsers(users []User) string {
 	return encoded
 }
 
-func UnserealizeUsers(encoded string) []string {
+func UnserealizeUsers(encoded string) ([]string, []string) {
 	users := []User{}
 
 	raw, _ := base64.StdEncoding.DecodeString(encoded)
 	json.Unmarshal(raw, &users)
 
-	added_users := CreateMultipleAuthors(users)
+	added_users, not_added := CreateMultipleAuthors(users)
 
-	return added_users
+	return added_users, not_added
+}
+
+func CLIAuthorInput(authors []string) []string {
+	var selected []string
+	excludeMode := []string{}
+
+	// write the commit message to the string builder
+	fst := authors[0]
+
+	if fst == "all" || fst == "All" {
+		selected = add_x_users_string_slice(excludeMode, selected)
+		return selected
+	} else if Groups[fst] != nil {
+		excludeMode = group_selection(Groups[fst], excludeMode)
+		selected = add_x_users_string_slice(excludeMode, selected)
+		return selected
+	}
+
+	for _, committer := range authors {
+		if _, ok := Users[committer]; ok {
+			selected = append(selected, committer)
+		} else if committer[0] == '^' { // Negations
+			excludeMode = append(excludeMode, Users[committer[1:]].Username)
+		} else {
+			println(committer, "was unknown. User either not defined or name typed wrong")
+		}
+	}
+
+	if len(excludeMode) > 0 {
+		selected = add_x_users_string_slice(excludeMode, selected)
+	}
+
+	return selected
+}
+
+func add_x_users_string_slice(excludeMode, selected []string) []string {
+	if len(DefExclude) > 0 {
+		excludeMode = append(excludeMode, DefExclude...)
+	}
+	for key, user := range Users {
+		if !slices.Contains(excludeMode, user.Username) {
+			selected = append(selected, key)
+			excludeMode = append(excludeMode, user.Username)
+		}
+	}
+	return selected 
 }

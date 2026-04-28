@@ -2,10 +2,8 @@ package cmd
 
 import (
 	"fmt"
-	"maps"
 	"os"
 	"os/exec"
-	"slices"
 	"sort"
 	"strings"
 
@@ -33,13 +31,19 @@ func UsersCmd() *cobra.Command {
 
 			s, _ := cmd.Flags().GetBool("share")
 			if s && len(args) == 0 {
-				encoded := utils.SerealizeUsers(slices.Collect(maps.Values(utils.Users)))
+				args = append(args, tui.Entry()...)
+				if len(args) == 0 {
+					fmt.Println("\033[31mNo authors selected exiting\033[31m")
+					os.Exit(0)
+				}
+				encoded := utils.SerealizeUsers(args)
 				fmt.Print(encoded)
 				os.Exit(0)
 			} else if s && len(args) >= 1 {
-				var users []utils.User
-				for _, name := range args {
-					users = append(users, utils.Users[name])
+				users := utils.CLIAuthorInput(args)
+				if len(users) == 0 {
+					fmt.Println("\033[31mNo authors selected exiting\033[31m")
+					os.Exit(0)
 				}
 				encoded := utils.SerealizeUsers(users)
 				fmt.Print(encoded)
@@ -48,16 +52,25 @@ func UsersCmd() *cobra.Command {
 
 			i, _ := cmd.Flags().GetBool("import")
 			if i && len(args) == 1 {
-				added_users := utils.UnserealizeUsers(args[0])
+				added_users, not_added := utils.UnserealizeUsers(args[0])
 				if len(added_users) == 0 {
 					fmt.Println("\033[33mNo authors added (authors probably already existed or corrupted \"share code\")\033[0m")
-					os.Exit(0)
 				}
 
-				fmt.Println("\033[32mAuthors added:\033[0m")
+				if len(added_users) != 0 {
+					fmt.Println("\033[32mAuthors added:\033[0m")
+				}
 				for _, usr := range added_users {
 					fmt.Println("\033[32m+\033[0m ", usr)
 				}
+				
+				if len(not_added) != 0 {
+					fmt.Println("\033[33mAlready existing authors (not added):\033[0m")
+				}
+				for _, usr := range not_added {
+					fmt.Println("\033[33m~\033[0m ", usr)
+				}
+
 				os.Exit(0)
 			} else {
 				fmt.Println("\033[33mNo \"share code\", please run the flag with a valid \"share code\"\033[0m")
