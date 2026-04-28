@@ -463,7 +463,7 @@ func (m *model_ca) AddAuthor() bool {
 		if parent_m != nil {
 			item_str := utils.Users[author].Username + " - " + utils.Users[author].Email
 			dupProtect[item_str] = author
-			parent_m.list.InsertItem(len(parent_m.list.Items())+1, item(item_str))
+			parent_m.list.InsertItem(len(parent_m.list.Items())+1, item{item_str, local_scope})
 		}
 		return false
 	}
@@ -474,8 +474,8 @@ func (m *model_ca) TempAddAuthor() bool {
 	if len(m.inputs) > 1 && m.inputs[0].Value() != "" && m.inputs[1].Value() != "" {
 		item_str := m.inputs[0].Value() + " - " + m.inputs[1].Value()
 		dupProtect[item_str] = m.inputs[0].Value() + ":" + m.inputs[1].Value()
-		i := item(item_str)
-		parent_m.list.InsertItem(len(parent_m.list.Items())+1, item(item_str))
+		i := item{item_str, local_scope}
+		parent_m.list.InsertItem(len(parent_m.list.Items())+1, item{item_str, local_scope})
 		selectToggle(i)
 
 		return false

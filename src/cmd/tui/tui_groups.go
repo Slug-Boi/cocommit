@@ -118,7 +118,7 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			if group != "" {
 				for _, sel := range selected {
-					delete(selected, string(sel))
+					delete(selected, string(sel.display))
 				}
 				users := utils.Groups[group]
 				//TODO: this may be able to be done in a more efficient way currently this would scale poorly
@@ -126,7 +126,7 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					if _, ok := selected[k]; !ok {
 						for _, user := range users {
 							if user.Shortname == v || user.Longname == v {
-								selectToggle(item(k))
+								selectToggle(item{k,local_scope})
 							}
 						}
 					}

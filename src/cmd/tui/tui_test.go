@@ -157,7 +157,7 @@ func TestEntryTA(t *testing.T) {
 		t.Errorf("Expected 3 inputs, got %d", len(m.list.Items()))
 	}
 
-	item := string(m.list.Items()[len(m.list.Items())-1].(item))
+	item := string(m.list.Items()[len(m.list.Items())-1].(item).display)
 	split := strings.Split(item, " - ")
 
 	if split[0] != "test" {

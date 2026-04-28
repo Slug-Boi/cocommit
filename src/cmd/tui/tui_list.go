@@ -27,12 +27,16 @@ var (
 	paginationStyle        = list.DefaultStyles().PaginationStyle.PaddingLeft(4)
 	ActivePaginationDot    = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "170", Dark: "170"})
 	helpStyle              = list.DefaultStyles().HelpStyle.PaddingLeft(4).PaddingBottom(1)
-	git_scope_style        = lipgloss.NewStyle().Foreground(lipgloss.Color("170")).Bold(true)
-	local_scope_style      = lipgloss.NewStyle().Foreground(lipgloss.Color("49")).Bold(true)
+	git_scope_style        = lipgloss.NewStyle().Foreground(lipgloss.Color("49")).Bold(true)
+	git_scope_author_style = lipgloss.NewStyle().PaddingLeft(4).Foreground(lipgloss.Color("49"))
+	local_scope_style      = lipgloss.NewStyle().Foreground(lipgloss.Color("170")).Bold(true)
 	mixed_scope_style      = lipgloss.NewStyle().Foreground(lipgloss.Color("178")).Bold(true)
 )
 
-type item string
+type item struct {
+	display string
+	source 	int
+}
 
 var selected = map[string]item{}
 
@@ -95,7 +99,7 @@ func newListKeyMap() *listKeyMap {
 	}
 }
 
-func (i item) FilterValue() string { return string(i) }
+func (i item) FilterValue() string { return string(i.display) }
 
 type itemDelegate struct{}
 
@@ -103,35 +107,71 @@ func (d itemDelegate) Height() int                             { return 1 }
 func (d itemDelegate) Spacing() int                            { return 0 }
 func (d itemDelegate) Update(_ tea.Msg, _ *list.Model) tea.Cmd { return nil }
 func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
-	i, ok := listItem.(item)
-	if !ok {
-		return
-	}
+    i, ok := listItem.(item)
+    if !ok {
+        return
+    }
 
-	str := fmt.Sprintf("%d. %s", index+1, i)
+    // Choose base style according to source
+    var baseStyle lipgloss.Style
+    switch i.source {
+    case git_scope:
+        baseStyle = git_scope_author_style
+    case local_scope:
+        baseStyle =  itemStyle
+    case mixed_scope:
+        baseStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("178"))
+    default:
+        baseStyle = itemStyle
+    }
 
-	fn := itemStyle.Render
-	if _, ok := selected[string(i)]; ok {
-		fn = func(s ...string) string {
-			base := strings.Join(s, " ")
-			if negation {
-				base = base + " ^"
-			}
-			if index == m.Index() {
-				return selectedHighlightStyle.Render("> " + base + " [X]")
-			} else {
-				return highlightStyle.Render(base + " [X]")
-			}
-		}
-	} else {
-		if index == m.Index() {
-			fn = func(s ...string) string {
-				return selectedItemStyle.Render("> " + strings.Join(s, " "))
-			}
-		}
-	}
+    str := fmt.Sprintf("%d. %s", index+1, i.display)
 
-	fmt.Fprint(w, fn(str))
+    // Helper to render with the base style (applied to the string)
+    fn := func(s string) string {
+        return baseStyle.Render(s)
+    }
+
+    // Selection and cursor highlights (override background/padding)
+    if _, ok := selected[i.display]; ok {
+        fn = func(s string) string {
+            var style lipgloss.Style
+            if index == m.Index() {
+                style = lipgloss.NewStyle().
+                    PaddingLeft(2).
+                    Background(lipgloss.Color("206")).
+                    Foreground(lipgloss.Color("90"))
+            } else {
+                style = lipgloss.NewStyle().
+                    PaddingLeft(4).
+                    Background(lipgloss.Color("236")).
+                    Inherit(baseStyle) // keeps the foreground from baseStyle
+            }
+            result := style.Render(s + " [X]")
+            if negation {
+                result += " ^"
+            }
+            if index == m.Index() {
+                result = "> " + result
+            }
+            return result
+        }
+    } else {
+        if index == m.Index() {
+            fn = func(s string) string {
+                style := lipgloss.NewStyle().
+                    PaddingLeft(2).
+                    Inherit(baseStyle)
+                return style.Render("> " + s)
+            }
+        } else {
+            fn = func(s string) string {
+                return baseStyle.PaddingLeft(4).Render(s)
+            }
+        }
+    }
+
+    fmt.Fprint(w, fn(str))
 }
 
 const (
@@ -153,11 +193,11 @@ func (m Model) Init() tea.Cmd {
 }
 
 func selectToggle(i item) {
-	if _, ok := selected[string(i)]; ok {
-		delete(selected, string(i))
+	if _, ok := selected[string(i.display)]; ok {
+		delete(selected, string(i.display))
 		toggleNegation()
 	} else {
-		selected[string(i)] = i
+		selected[string(i.display)] = i
 	}
 }
 
@@ -241,7 +281,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.ClearScreen
 		case key.Matches(msg, m.keys.deleteAuthor):
 			if deletion {
-				author_str := string(m.list.SelectedItem().(item))
+				author_str := string(m.list.SelectedItem().(item).display)
 				author := dupProtect[author_str]
 				utils.DeleteOneAuthor(author)
 				delete(dupProtect, author_str)
@@ -324,7 +364,7 @@ func generate_list(scope int) []list.Item {
 			if _, ok := local_dupProtect[str_user]; ok {
 				continue
 			}
-			items = append(items, item(str_user))
+			items = append(items, item{str_user, git_scope})
 			local_dupProtect[str_user] = short
 		}
 	case local_scope:
@@ -334,7 +374,7 @@ func generate_list(scope int) []list.Item {
 			if _, ok := dupProtect[str_user]; ok {
 				continue
 			}
-			items = append(items, item(str_user))
+			items = append(items, item{str_user, local_scope})
 			dupProtect[str_user] = short
 		}
 	case mixed_scope:
@@ -344,17 +384,28 @@ func generate_list(scope int) []list.Item {
 			if _, ok := local_dupProtect[str_user]; ok {
 				continue
 			}
-			items = append(items, item(str_user))
+			if user.From_git {
+				items = append(items, item{str_user, git_scope})
+			} else {
+				items = append(items, item{str_user, local_scope})
+			}
 			local_dupProtect[str_user] = short
 		}
-		local_dupProtect = map[string]string{}
+		//TODO: Why was this here?????
+		// local_dupProtect = map[string]string{}
 		for short, user := range utils.Git_Users {
 			// if items already contains the user, skip it
 			str_user := user.Username + " - " + user.Email
+			
 			if _, ok := local_dupProtect[str_user]; ok {
 				continue
+			} 
+
+			if user.From_git {
+				items = append(items, item{str_user, git_scope})
+			} else {
+				items = append(items, item{str_user, local_scope})
 			}
-			items = append(items, item(str_user))
 			local_dupProtect[str_user] = short
 		}
 	}
@@ -413,7 +464,7 @@ func listModel(scope ...int) Model {
 	items := generate_list(scope[0])
 
 	sort.Slice(items, func(i, j int) bool {
-		return items[i].(item) < items[j].(item)
+		return items[i].(item).display < items[j].(item).display
 	})
 
 	const defaultWidth = 20

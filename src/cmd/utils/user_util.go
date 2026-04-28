@@ -12,11 +12,12 @@ import (
 
 type User struct {
 	Shortname string   `json:"shortname"`
-	Longname string   `json:"longname"`
+	Longname  string   `json:"longname"`
 	Username  string   `json:"username"`
 	Email     string   `json:"email"`
 	Ex        bool     `json:"ex"`
 	Groups    []string `json:"groups"`
+	From_git  bool
 }
 
 type Author struct {
@@ -34,14 +35,14 @@ var Git_Users = map[string]User{}
 var Git_Groups = map[string][]User{}
 
 func ContainsUser(users []User, user User) bool {
-    return slices.ContainsFunc(users, func(u User) bool {
-        return u.Shortname == user.Shortname && 
-               u.Longname == user.Longname && 
-               u.Username == user.Username && 
-               u.Email == user.Email && 
-               u.Ex == user.Ex &&
-               slices.Equal(u.Groups, user.Groups)
-    })
+	return slices.ContainsFunc(users, func(u User) bool {
+		return u.Shortname == user.Shortname &&
+			u.Longname == user.Longname &&
+			u.Username == user.Username &&
+			u.Email == user.Email &&
+			u.Ex == user.Ex &&
+			slices.Equal(u.Groups, user.Groups)
+	})
 }
 
 func CheckUserFields(user User) bool {
@@ -58,7 +59,7 @@ func Define_users(author_file string) {
 	Groups = map[string][]User{}
 
 	var auth Author
-	
+
 	data, err := os.ReadFile(author_file)
 	if err != nil {
 		panic(fmt.Sprintf("Error reading author file: %v", err))
@@ -67,16 +68,16 @@ func Define_users(author_file string) {
 	if err != nil {
 		panic(fmt.Sprintf("Error unmarshalling json: %v", err))
 	}
-	
+
 	Authors = auth
-	
+
 	for _, usr := range auth.Authors {
 		Users[usr.Shortname] = usr
 		Users[usr.Longname] = usr
 		if usr.Ex {
 			DefExclude = append(DefExclude, usr.Shortname)
 		}
-		
+
 		group_info := usr.Groups
 		if len(group_info) > 0 {
 			for _, group := range group_info {
@@ -99,12 +100,13 @@ func Define_git_users() {
 
 	// get all authors from git
 	git_authors := GitCheckAuthors()
-	
+
 	for _, usr := range git_authors {
 		if _, ok := Users[usr.Shortname]; !ok {
+			usr.From_git = true
 			Git_Users[usr.Shortname] = usr
 			Git_Users[usr.Longname] = usr
-			
+
 			group_info := usr.Groups
 			if len(group_info) > 0 {
 				for _, group := range group_info {
