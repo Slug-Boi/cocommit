@@ -13,7 +13,7 @@ jobs:
       runs-on: ubuntu-latest
       steps:
         - name: Setup Go
-          uses: actions/setup-go@v3
+          uses: actions/setup-go@v6
         - uses: actions/checkout@v3
         - name: Setup Go Workfile
           run: go work init ./ci ./
@@ -26,5 +26,5 @@ jobs:
         - name: Upload coverage reports to Codecov
           uses: codecov/codecov-action@v6
           with:
-            token: ${{ secrets.CODECOV_TOKEN }}  
+            token: ${{ secrets.CODECOV_TOKEN }}
           continue-on-error: true
