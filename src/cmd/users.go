@@ -1,8 +1,11 @@
 package cmd
 
 import (
+	"fmt"
+	"maps"
 	"os"
 	"os/exec"
+	"slices"
 	"sort"
 	"strings"
 
@@ -28,6 +31,39 @@ func UsersCmd() *cobra.Command {
 				update_msg()
 			}
 
+			s, _ := cmd.Flags().GetBool("share")
+			if s && len(args) == 0 {
+				encoded := utils.SerealizeUsers(slices.Collect(maps.Values(utils.Users)))
+				fmt.Print(encoded)
+				os.Exit(0)
+			} else if s && len(args) >= 1 {
+				var users []utils.User
+				for _, name := range args {
+					users = append(users, utils.Users[name])
+				}
+				encoded := utils.SerealizeUsers(users)
+				fmt.Print(encoded)
+				os.Exit(0)
+			}
+
+			i, _ := cmd.Flags().GetBool("import")
+			if i && len(args) == 1 {
+				added_users := utils.UnserealizeUsers(args[0])
+				if len(added_users) == 0 {
+					fmt.Println("\033[33mNo authors added (authors probably already existed or corrupted \"share code\")\033[0m")
+					os.Exit(0)
+				}
+
+				fmt.Println("\033[32mAuthors added:\033[0m")
+				for _, usr := range added_users {
+					fmt.Println("\033[32m+\033[0m ", usr)
+				}
+				os.Exit(0)
+			} else {
+				fmt.Println("\033[33mNo \"share code\", please run the flag with a valid \"share code\"\033[0m")
+				os.Exit(0)
+			}
+
 			//TODO: make this print a bit prettier (sort it and maybe use a table)
 			// check if the no pretty print flag is set
 			np, _ := cmd.Flags().GetBool("np")
@@ -45,7 +81,7 @@ func UsersCmd() *cobra.Command {
 				println(strings.Join(user_sb, ""))
 				os.Exit(0)
 			}
-			bat_check := exec.Command("bat","--version")
+			bat_check := exec.Command("bat", "--version")
 			out, _ := bat_check.CombinedOutput()
 			if string(out) == "" {
 				tui.Entry_US(authorfile)
@@ -63,4 +99,6 @@ func init() {
 	usersCmd := UsersCmd()
 	rootCmd.AddCommand(usersCmd)
 	usersCmd.Flags().BoolP("np", "n", false, "No pretty print of the users")
+	usersCmd.Flags().BoolP("share", "s", false, "Shares one or more users as a \"share code\" (encoded json)")
+	usersCmd.Flags().BoolP("import", "i", false, "Imports users from \"share code\" (encoded json)")
 }

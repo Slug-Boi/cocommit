@@ -5,6 +5,7 @@ import (
 	"os"
 	"slices"
 
+	"encoding/base64"
 	"encoding/json"
 )
 
@@ -17,7 +18,7 @@ type User struct {
 	Email     string   `json:"email"`
 	Ex        bool     `json:"ex"`
 	Groups    []string `json:"groups"`
-	From_git  bool
+	From_git  bool     `json:"from_git,omitempty"`
 }
 
 type Author struct {
@@ -133,4 +134,26 @@ func TempAddUser(username, email string) {
 	usr := User{Username: username, Email: email}
 
 	Users[username] = usr
+}
+
+func SerealizeUsers(users []User) string {
+	bytes, err := json.Marshal(users)
+	if err != nil {
+		panic(err)
+	}
+
+	encoded := base64.StdEncoding.EncodeToString(bytes)
+
+	return encoded
+}
+
+func UnserealizeUsers(encoded string) []string {
+	users := []User{}
+
+	raw, _ := base64.StdEncoding.DecodeString(encoded)
+	json.Unmarshal(raw, &users)
+
+	added_users := CreateMultipleAuthors(users)
+
+	return added_users
 }
