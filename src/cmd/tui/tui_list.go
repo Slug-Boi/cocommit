@@ -24,6 +24,7 @@ var (
 	highlightStyle         = lipgloss.NewStyle().PaddingLeft(4).Background(lipgloss.Color("236")).Foreground(lipgloss.Color("170"))
 	selectedHighlightStyle = lipgloss.NewStyle().PaddingLeft(2).Background(lipgloss.Color("206")).Foreground(lipgloss.Color("90"))
 	deletionStyle          = lipgloss.NewStyle().MarginLeft(2).Foreground(lipgloss.Color("9"))
+	sharingStyle 		   = lipgloss.NewStyle().MarginLeft(2).Foreground(lipgloss.Color("49"))
 	paginationStyle        = list.DefaultStyles().PaginationStyle.PaddingLeft(4)
 	ActivePaginationDot    = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "170", Dark: "170"})
 	helpStyle              = list.DefaultStyles().HelpStyle.PaddingLeft(4).PaddingBottom(1)
@@ -56,6 +57,7 @@ type listKeyMap struct {
 	tempAdd      key.Binding
 	ghAdd        key.Binding
 	scope        key.Binding
+	share		 key.Binding
 }
 
 func newListKeyMap() *listKeyMap {
@@ -95,6 +97,10 @@ func newListKeyMap() *listKeyMap {
 		scope: key.NewBinding(
 			key.WithKeys("S"),
 			key.WithHelp("S", "Change scope"),
+		),
+		share: key.NewBinding(
+			key.WithKeys("y"),
+			key.WithHelp("y", "Create author sharecode"),
 		),
 	}
 }
@@ -186,6 +192,7 @@ type Model struct {
 	keys       *listKeyMap
 	quitting   bool
 	scope      int
+	share	   bool
 }
 
 func (m Model) Init() tea.Cmd {
@@ -207,7 +214,7 @@ func toggleNegation() {
 	}
 }
 
-var deletion bool
+var deletion, sharing bool
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if sub_model != nil {
@@ -231,6 +238,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// deletion toggle with confirmation required
 		b := false
 		defer func(b *bool) { deletion = *b }(&b)
+		// share toggle with confirmation
+		s := false
+		defer func(s *bool) { sharing = *s }(&s)
+
 		if m.list.FilterState() == list.Filtering {
 			switch msg.String() {
 			case "ctrl+c":
@@ -290,6 +301,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			b = true
 			return m, nil
+		case key.Matches(msg, m.keys.share):
+			if sharing {
+				m.share = true
+				m.quitting = true
+				return m, tea.Quit
+			}
+			if len(selected) != 0{
+				s = true
+			}
+			return m, nil
+
 
 		case key.Matches(msg, m.keys.scope):
 			if m.scope == git_scope {
@@ -443,6 +465,10 @@ func (m Model) View() string {
 		sb.WriteString(deletionStyle.Render("\n  D: Confirm delete author"))
 	}
 
+	if sharing {
+		sb.WriteString(sharingStyle.Render("\n  " + m.keys.share.Keys()[0] + ": Confirm creation of share code"))
+	}
+
 	return sb.String()
 }
 
@@ -501,6 +527,7 @@ func listModel(scope ...int) Model {
 				listKeys.createAuthor,
 				listKeys.tempAdd,
 				listKeys.ghAdd,
+				listKeys.share,
 			}
 		}
 	l.Styles.HelpStyle = helpStyle
@@ -538,6 +565,7 @@ func Entry() []string {
 	if len(selected) == 0 {
 		os.Exit(0)
 	}
+
 	for i := range selected {
 		short := dupProtect[i]
 		if short == "" {
@@ -553,8 +581,13 @@ func Entry() []string {
 
 		output = append(output, short)
 	}
-
+	
 	if _, ok := f.(Model); ok && len(output) > 0 {
+		if f.(Model).share {
+			sharecode := utils.SerealizeUsers(output)
+			fmt.Println(sharecode)
+			os.Exit(0)
+		}
 		return output
 	}
 	return nil
