@@ -51,29 +51,9 @@ func UsersCmd() *cobra.Command {
 			}
 
 			i, _ := cmd.Flags().GetBool("import")
-			if i && len(args) == 1 {
-				added_users, not_added := utils.UnserealizeUsers(args[0])
-				if len(added_users) == 0 {
-					fmt.Println("\033[33mNo authors added (authors probably already existed or corrupted \"share code\")\033[0m")
-				}
-
-				if len(added_users) != 0 {
-					fmt.Println("\033[32mAuthors added:\033[0m")
-				}
-				for _, usr := range added_users {
-					fmt.Println("\033[32m+\033[0m ", usr)
-				}
+			if i {
+				utils.ImportUsersFromShareCode(args)	
 				
-				if len(not_added) != 0 {
-					fmt.Println("\033[33mAlready existing authors (not added):\033[0m")
-				}
-				for _, usr := range not_added {
-					fmt.Println("\033[33m~\033[0m ", usr)
-				}
-
-				os.Exit(0)
-			} else if i && len(args) == 0 {
-				fmt.Println("\033[33mNo \"share code\", please run the flag with a valid \"share code\"\033[0m")
 				os.Exit(0)
 			}
 

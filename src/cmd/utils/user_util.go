@@ -163,6 +163,33 @@ func UnserealizeUsers(encoded string) ([]string, []string) {
 	return added_users, not_added
 }
 
+func ImportUsersFromShareCode(args []string) {
+	if len(args) > 0 {
+		added_users, not_added := UnserealizeUsers(args[0])
+
+		if len(added_users) == 0 {
+			fmt.Println("\033[33mNo authors added (authors probably already existed or corrupted \"share code\")\033[0m")
+		}
+
+		if len(added_users) != 0 {
+			fmt.Println("\033[32mAuthors added:\033[0m")
+		}
+		for _, usr := range added_users {
+			fmt.Println("\033[32m+\033[0m ", usr)
+		}
+
+		if len(not_added) != 0 {
+			fmt.Println("\033[33mAlready existing authors (not added):\033[0m")
+		}
+		for _, usr := range not_added {
+			fmt.Println("\033[33m~\033[0m ", usr)
+		}
+	} else if len(args) == 0 {
+		fmt.Println("\033[33mNo \"share code\", please run the flag with a valid \"share code\"\033[0m")
+		os.Exit(0)
+	}
+}
+
 func CLIAuthorInput(authors []string) []string {
 	var selected []string
 	excludeMode := []string{}
@@ -206,5 +233,5 @@ func add_x_users_string_slice(excludeMode, selected []string) []string {
 			excludeMode = append(excludeMode, user.Username)
 		}
 	}
-	return selected 
+	return selected
 }
