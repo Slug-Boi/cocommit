@@ -13,6 +13,7 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"golang.design/x/clipboard"
 )
 
 const listHeight = 14
@@ -24,7 +25,8 @@ var (
 	highlightStyle         = lipgloss.NewStyle().PaddingLeft(4).Background(lipgloss.Color("236")).Foreground(lipgloss.Color("170"))
 	selectedHighlightStyle = lipgloss.NewStyle().PaddingLeft(2).Background(lipgloss.Color("206")).Foreground(lipgloss.Color("90"))
 	deletionStyle          = lipgloss.NewStyle().MarginLeft(2).Foreground(lipgloss.Color("9"))
-	sharingStyle 		   = lipgloss.NewStyle().MarginLeft(2).Foreground(lipgloss.Color("49"))
+	sharingStyle           = lipgloss.NewStyle().MarginLeft(2).Foreground(lipgloss.Color("49"))
+	pastingStyle		   = lipgloss.NewStyle().MarginLeft(2).Foreground(lipgloss.Color("86"))
 	paginationStyle        = list.DefaultStyles().PaginationStyle.PaddingLeft(4)
 	ActivePaginationDot    = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "170", Dark: "170"})
 	helpStyle              = list.DefaultStyles().HelpStyle.PaddingLeft(4).PaddingBottom(1)
@@ -36,7 +38,7 @@ var (
 
 type item struct {
 	display string
-	source 	int
+	source  int
 }
 
 var selected = map[string]item{}
@@ -48,16 +50,18 @@ var dupProtect = map[string]string{}
 var sub_model tea.Model
 
 type listKeyMap struct {
-	selectAll    key.Binding
-	negation     key.Binding
-	groupSelect  key.Binding
-	selectOne    key.Binding
-	createAuthor key.Binding
-	deleteAuthor key.Binding
-	tempAdd      key.Binding
-	ghAdd        key.Binding
-	scope        key.Binding
-	share		 key.Binding
+	selectAll           key.Binding
+	negation            key.Binding
+	groupSelect         key.Binding
+	selectOne           key.Binding
+	createAuthor        key.Binding
+	deleteAuthor        key.Binding
+	tempAdd             key.Binding
+	ghAdd               key.Binding
+	scope               key.Binding
+	yank_selected_share key.Binding
+	yank_all_share      key.Binding
+	paste_share         key.Binding
 }
 
 func newListKeyMap() *listKeyMap {
@@ -98,9 +102,17 @@ func newListKeyMap() *listKeyMap {
 			key.WithKeys("S"),
 			key.WithHelp("S", "Change scope"),
 		),
-		share: key.NewBinding(
+		yank_selected_share: key.NewBinding(
 			key.WithKeys("y"),
 			key.WithHelp("y", "Create author sharecode"),
+		),
+		yank_all_share: key.NewBinding(
+			key.WithKeys("Y"),
+			key.WithHelp("Y", "Create author sharecode"),
+		),
+		paste_share: key.NewBinding(
+			key.WithKeys("p"),
+			key.WithHelp("p", "Create author sharecode"),
 		),
 	}
 }
@@ -113,71 +125,71 @@ func (d itemDelegate) Height() int                             { return 1 }
 func (d itemDelegate) Spacing() int                            { return 0 }
 func (d itemDelegate) Update(_ tea.Msg, _ *list.Model) tea.Cmd { return nil }
 func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
-    i, ok := listItem.(item)
-    if !ok {
-        return
-    }
+	i, ok := listItem.(item)
+	if !ok {
+		return
+	}
 
-    // Choose base style according to source
-    var baseStyle lipgloss.Style
-    switch i.source {
-    case git_scope:
-        baseStyle = git_scope_author_style
-    case local_scope:
-        baseStyle =  itemStyle
-    case mixed_scope:
-        baseStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("178"))
-    default:
-        baseStyle = itemStyle
-    }
+	// Choose base style according to source
+	var baseStyle lipgloss.Style
+	switch i.source {
+	case git_scope:
+		baseStyle = git_scope_author_style
+	case local_scope:
+		baseStyle = itemStyle
+	case mixed_scope:
+		baseStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("178"))
+	default:
+		baseStyle = itemStyle
+	}
 
-    str := fmt.Sprintf("%d. %s", index+1, i.display)
+	str := fmt.Sprintf("%d. %s", index+1, i.display)
 
-    // Helper to render with the base style (applied to the string)
-    fn := func(s string) string {
-        return baseStyle.Render(s)
-    }
+	// Helper to render with the base style (applied to the string)
+	fn := func(s string) string {
+		return baseStyle.Render(s)
+	}
 
-    // Selection and cursor highlights (override background/padding)
-    if _, ok := selected[i.display]; ok {
-        fn = func(s string) string {
-            var style lipgloss.Style
-            if index == m.Index() {
-                style = lipgloss.NewStyle().
-                    PaddingLeft(2).
-                    Background(lipgloss.Color("206")).
-                    Foreground(lipgloss.Color("90"))
-            } else {
-                style = lipgloss.NewStyle().
-                    PaddingLeft(4).
-                    Background(lipgloss.Color("236")).
-                    Inherit(baseStyle) // keeps the foreground from baseStyle
-            }
-            result := style.Render(s + " [X]")
-            if negation {
-                result += " ^"
-            }
-            if index == m.Index() {
-                result = "> " + result
-            }
-            return result
-        }
-    } else {
-        if index == m.Index() {
-            fn = func(s string) string {
-                style := lipgloss.NewStyle().
-                    PaddingLeft(2).
-                    Inherit(baseStyle)
-                return style.Render("> " + s)
-            }
-        } else {
-            fn = func(s string) string {
-                return baseStyle.PaddingLeft(4).Render(s)
-            }
-        }
-    }
+	// Selection and cursor highlights (override background/padding)
+	if _, ok := selected[i.display]; ok {
+		fn = func(s string) string {
+			var style lipgloss.Style
+			if index == m.Index() {
+				style = lipgloss.NewStyle().
+					PaddingLeft(2).
+					Background(lipgloss.Color("206")).
+					Foreground(lipgloss.Color("90"))
+			} else {
+				style = lipgloss.NewStyle().
+					PaddingLeft(4).
+					Background(lipgloss.Color("236")).
+					Inherit(baseStyle) // keeps the foreground from baseStyle
+			}
+			result := style.Render(s + " [X]")
+			if negation {
+				result += " ^"
+			}
+			if index == m.Index() {
+				result = "> " + result
+			}
+			return result
+		}
+	} else {
+		if index == m.Index() {
+			fn = func(s string) string {
+				style := lipgloss.NewStyle().
+					PaddingLeft(2).
+					Inherit(baseStyle)
+				return style.Render("> " + s)
+			}
+		} else {
+			fn = func(s string) string {
+				return baseStyle.PaddingLeft(4).Render(s)
+			}
+		}
+	}
 
-    fmt.Fprint(w, fn(str))
+	fmt.Fprint(w, fn(str))
 }
 
 const (
@@ -192,7 +204,8 @@ type Model struct {
 	keys       *listKeyMap
 	quitting   bool
 	scope      int
-	share	   bool
+	share      bool
+	paste 	   bool
 }
 
 func (m Model) Init() tea.Cmd {
@@ -214,7 +227,7 @@ func toggleNegation() {
 	}
 }
 
-var deletion, sharing bool
+var deletion, sharing, pasting bool
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if sub_model != nil {
@@ -241,6 +254,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// share toggle with confirmation
 		s := false
 		defer func(s *bool) { sharing = *s }(&s)
+		p := false
+		defer func(p *bool) { pasting = *p }(&p)
 
 		if m.list.FilterState() == list.Filtering {
 			switch msg.String() {
@@ -301,16 +316,49 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			b = true
 			return m, nil
-		case key.Matches(msg, m.keys.share):
+		case key.Matches(msg, m.keys.yank_selected_share):
 			if sharing {
 				m.share = true
 				m.quitting = true
 				return m, tea.Quit
 			}
-			if len(selected) != 0{
+			if len(selected) != 0 {
 				s = true
 			}
 			return m, nil
+		case key.Matches(msg, m.keys.yank_all_share):
+			if sharing {
+				m.share = true
+				m.quitting = true
+				return m, tea.Quit
+			}
+			negation = false
+			if len(selected) != len(m.list.Items()) {
+				negation = false
+				for _, i := range m.list.Items() {
+					selectToggle(i.(item))
+				}
+			}
+			if len(selected) != 0 {
+				s = true
+			}
+			return m, nil
+		case key.Matches(msg, m.keys.paste_share):
+			if pasting {
+				pasting = false
+
+				return m, nil
+			}
+			if !p {
+				p = true
+			}
+			err := clipboard.Init()
+			if err != nil {
+				//TODO: Figure out fallback
+			}
+    		text := string(clipboard.Read(clipboard.FmtText))
+			utils.UnserealizeUsers(text)
+			
 
 
 		case key.Matches(msg, m.keys.scope):
@@ -418,10 +466,10 @@ func generate_list(scope int) []list.Item {
 		for short, user := range utils.Git_Users {
 			// if items already contains the user, skip it
 			str_user := user.Username + " - " + user.Email
-			
+
 			if _, ok := local_dupProtect[str_user]; ok {
 				continue
-			} 
+			}
 
 			if user.From_git {
 				items = append(items, item{str_user, git_scope})
@@ -466,7 +514,11 @@ func (m Model) View() string {
 	}
 
 	if sharing {
-		sb.WriteString(sharingStyle.Render("\n  " + m.keys.share.Keys()[0] + ": Confirm creation of share code"))
+		sb.WriteString(sharingStyle.Render("\n  " + m.keys.yank_selected_share.Keys()[0] + ": Confirm creation of share code"))
+	}
+
+	if pasting {
+		sb.WriteString(pastingStyle.Render("\n  " + m.keys.paste_share.Keys()[0] + ": Confirm pasting/importing of share code"))
 	}
 
 	return sb.String()
@@ -497,14 +549,13 @@ func listModel(scope ...int) Model {
 
 	l := list.New(items, itemDelegate{}, defaultWidth, listHeight)
 
-
 	switch scope[0] {
-		case git_scope:
-			l.Title = title_text + git_scope_style.Render("Scope: GIT")
-		case local_scope:
-			l.Title = title_text + local_scope_style.Render("Scope: LOCAL")
-		case mixed_scope:
-			l.Title = title_text + mixed_scope_style.Render("Scope: MIXED")
+	case git_scope:
+		l.Title = title_text + git_scope_style.Render("Scope: GIT")
+	case local_scope:
+		l.Title = title_text + local_scope_style.Render("Scope: LOCAL")
+	case mixed_scope:
+		l.Title = title_text + mixed_scope_style.Render("Scope: MIXED")
 	}
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(true) // Enable filtering
@@ -527,7 +578,9 @@ func listModel(scope ...int) Model {
 				listKeys.createAuthor,
 				listKeys.tempAdd,
 				listKeys.ghAdd,
-				listKeys.share,
+				listKeys.yank_selected_share,
+				listKeys.yank_all_share,
+				listKeys.paste_share,
 			}
 		}
 	l.Styles.HelpStyle = helpStyle
@@ -537,7 +590,7 @@ func listModel(scope ...int) Model {
 	model := Model{list: l, swap_lists: swapLists, keys: listKeys, scope: scope[0]}
 
 	//TODO: figure out async create
-	// IDEA DO IT WITH CHANNELS  
+	// IDEA DO IT WITH CHANNELS
 	// go func(m *Model) {
 	// 	local_items := generate_list(local_scope)
 	// 	mixed_items := generate_list(mixed_scope)
@@ -581,7 +634,7 @@ func Entry() []string {
 
 		output = append(output, short)
 	}
-	
+
 	if _, ok := f.(Model); ok && len(output) > 0 {
 		if f.(Model).share {
 			sharecode := utils.SerealizeUsers(output)
