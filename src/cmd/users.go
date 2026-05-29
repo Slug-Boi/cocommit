@@ -72,7 +72,7 @@ func UsersCmd() *cobra.Command {
 				}
 
 				os.Exit(0)
-			} else {
+			} else if i && len(args) == 0 {
 				fmt.Println("\033[33mNo \"share code\", please run the flag with a valid \"share code\"\033[0m")
 				os.Exit(0)
 			}
