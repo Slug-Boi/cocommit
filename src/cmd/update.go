@@ -21,6 +21,7 @@ import (
 
 type github_release struct {
 	TagName string `json:"tag_name"`
+	Body    string `json:"body"`
 }
 
 // updateCmd represents the update command
@@ -36,8 +37,12 @@ var updateCmd = &cobra.Command{
 			fmt.Println("Checking if Cocommit is up to date")
 			if update {
 				update_msg()
+				fmt.Print(update_style.Render("Current: " + Coco_Version + "\nNew: " + tag.TagName),"\n")
+				fmt.Print(changelog_style.Render("Changelog:\n" + tag.Body), "\n")
+				fmt.Print(update_style.Render("To update run the update command with no arguments"))
+
 			} else {
-				fmt.Println("Cocommit is up to date")
+				fmt.Println(up_to_date_style.Render("Cocommit is up to date"))
 			}
 			os.Exit(0)
 		}

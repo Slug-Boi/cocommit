@@ -21,6 +21,8 @@ var update bool
 
 // print styling for the output for the CLI
 var update_style = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#1aff00"))
+var changelog_style = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#ffdd00"))
+var up_to_date_style = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("86"))
 var msg_style = lipgloss.NewStyle().BorderStyle(lipgloss.RoundedBorder()).BorderForeground(lipgloss.Color("170"))
 
 // github_tag struct to hold the tag name from the github api response
@@ -180,8 +182,8 @@ func update_msg() {
 }
 
 // function to check for updates (check tag version from repo with the current version)
+var tag github_release
 func check_update() {
-	var tag github_release
 	tags, err :=  http.Get("https://api.github.com/repos/Slug-Boi/cocommit/releases/latest")
 	if err != nil {
 		fmt.Println("Could not fetch tags from github API")
