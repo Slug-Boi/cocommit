@@ -206,6 +206,8 @@ type Model struct {
 	scope      int
 	share      bool
 	paste 	   bool
+	popUp 	   bool
+	popUpText  string
 }
 
 func (m Model) Init() tea.Cmd {
@@ -230,6 +232,16 @@ func toggleNegation() {
 var deletion, sharing, pasting bool
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	// If the popup is open, any key dismisses it
+	if m.popUp {
+			if _, ok := msg.(tea.KeyMsg); ok {
+				m.popUp = false
+				return m, nil
+			}
+			// Ignore other messages while popup is up (optional)
+			return m, nil
+		}
+
 	if sub_model != nil {
 		var cmd tea.Cmd
 		sub_model, cmd = sub_model.Update(msg)
@@ -347,7 +359,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if pasting {
 				pasting = false
 
-				return m, nil
+				text := string(clipboard.Read(clipboard.FmtText))
+				out := utils.ImportUsersFromShareCode([]string{text})
+
+				m.popUp = true
+				m.popUpText = out
+
+				return m, tea.ClearScreen
 			}
 			if !p {
 				p = true
@@ -356,9 +374,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if err != nil {
 				//TODO: Figure out fallback
 			}
-    		text := string(clipboard.Read(clipboard.FmtText))
-			utils.UnserealizeUsers(text)
-			
 
 
 		case key.Matches(msg, m.keys.scope):
@@ -519,6 +534,27 @@ func (m Model) View() string {
 
 	if pasting {
 		sb.WriteString(pastingStyle.Render("\n  " + m.keys.paste_share.Keys()[0] + ": Confirm pasting/importing of share code"))
+	}
+	if m.popUp {
+		sb.Reset()
+
+		sb.WriteString(m.popUpText)
+
+		buttonStyle := lipgloss.NewStyle().
+				Border(lipgloss.NormalBorder()).
+				Padding(0, 3).
+				Align(lipgloss.Center).
+				Bold(true)
+
+		okButton := buttonStyle.Render("OK")
+
+		// Combine popup text + button
+		popupContent := lipgloss.JoinVertical(
+			lipgloss.Center,
+			m.popUpText,
+			okButton,
+		)
+		return popupContent
 	}
 
 	return sb.String()
