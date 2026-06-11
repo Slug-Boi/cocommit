@@ -9,11 +9,11 @@ import (
 
 	"github.com/Slug-Boi/cocommit/src/cmd/utils"
 
+	"github.com/atotto/clipboard"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"golang.design/x/clipboard"
 )
 
 const listHeight = 14
@@ -26,7 +26,7 @@ var (
 	selectedHighlightStyle = lipgloss.NewStyle().PaddingLeft(2).Background(lipgloss.Color("206")).Foreground(lipgloss.Color("90"))
 	deletionStyle          = lipgloss.NewStyle().MarginLeft(2).Foreground(lipgloss.Color("9"))
 	sharingStyle           = lipgloss.NewStyle().MarginLeft(2).Foreground(lipgloss.Color("49"))
-	pastingStyle		   = lipgloss.NewStyle().MarginLeft(2).Foreground(lipgloss.Color("86"))
+	pastingStyle           = lipgloss.NewStyle().MarginLeft(2).Foreground(lipgloss.Color("86"))
 	paginationStyle        = list.DefaultStyles().PaginationStyle.PaddingLeft(4)
 	ActivePaginationDot    = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "170", Dark: "170"})
 	helpStyle              = list.DefaultStyles().HelpStyle.PaddingLeft(4).PaddingBottom(1)
@@ -205,8 +205,8 @@ type Model struct {
 	quitting   bool
 	scope      int
 	share      bool
-	paste 	   bool
-	popUp 	   bool
+	paste      bool
+	popUp      bool
 	popUpText  string
 }
 
@@ -234,13 +234,13 @@ var deletion, sharing, pasting bool
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// If the popup is open, any key dismisses it
 	if m.popUp {
-			if _, ok := msg.(tea.KeyMsg); ok {
-				m.popUp = false
-				return m, nil
-			}
-			// Ignore other messages while popup is up (optional)
+		if _, ok := msg.(tea.KeyMsg); ok {
+			m.popUp = false
 			return m, nil
 		}
+		// Ignore other messages while popup is up (optional)
+		return m, nil
+	}
 
 	if sub_model != nil {
 		var cmd tea.Cmd
@@ -359,7 +359,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if pasting {
 				pasting = false
 
-				text := string(clipboard.Read(clipboard.FmtText))
+				text, err := clipboard.ReadAll()
+				if err != nil {
+					panic("clipboard could not read: \n" + err.Error())
+				}
+
 				out := utils.ImportUsersFromShareCode([]string{text})
 
 				m.popUp = true
@@ -370,11 +374,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if !p {
 				p = true
 			}
-			err := clipboard.Init()
-			if err != nil {
-				//TODO: Figure out fallback
-			}
-
 
 		case key.Matches(msg, m.keys.scope):
 			if m.scope == git_scope {
@@ -541,10 +540,10 @@ func (m Model) View() string {
 		sb.WriteString(m.popUpText)
 
 		buttonStyle := lipgloss.NewStyle().
-				Border(lipgloss.NormalBorder()).
-				Padding(0, 3).
-				Align(lipgloss.Center).
-				Bold(true)
+			Border(lipgloss.NormalBorder()).
+			Padding(0, 3).
+			Align(lipgloss.Center).
+			Bold(true)
 
 		okButton := buttonStyle.Render("OK")
 
