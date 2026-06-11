@@ -2,12 +2,14 @@ package utils_test
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"os/exec"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -900,5 +902,292 @@ editor = "built-in"`
 	}
 }
 
+// Config tests END
 
+// Serialization tests BEGIN
+
+
+func Test_SerealizeUsers(t *testing.T) {
+	setup()
+	defer teardown()
+	utils.Define_users("author_file_test")
+
+	// Test with known authors
+	authors := []string{"te", "testtest"}
+	encoded := utils.SerealizeUsers(authors)
+
+	// Decode base64 then JSON to verify
+	raw, err := base64.StdEncoding.DecodeString(encoded)
+	if err != nil {
+		t.Fatalf("failed to decode base64: %v", err)
+	}
+	var decoded []utils.User
+	if err := json.Unmarshal(raw, &decoded); err != nil {
+		t.Fatalf("failed to unmarshal JSON: %v", err)
+	}
+	if len(decoded) != 2 {
+		t.Errorf("expected 2 users, got %d", len(decoded))
+	}
+	// Check that the users match the map values
+	for i, name := range authors {
+		expected := utils.Users[name]
+		if !reflect.DeepEqual(decoded[i], expected) {
+			t.Errorf("user[%d] = %+v, want %+v", i, decoded[i], expected)
+		}
+	}
+
+	// Empty input returns base64 of nil slice (JSON null)
+	encodedEmpty := utils.SerealizeUsers([]string{})
+	rawEmpty, _ := base64.StdEncoding.DecodeString(encodedEmpty)
+	if string(rawEmpty) != "null" {
+		t.Errorf("empty serialization should be 'null', got %s", rawEmpty)
+	}
+}
+
+func Test_UnserealizeUsers(t *testing.T) {
+	setup()
+	defer teardown()
+	utils.Define_users("author_file_test")
+
+	// Clear Users map to test addition of new users
+	utils.Users = make(map[string]utils.User)
+
+	newUser := utils.User{
+		Shortname: "new",
+		Longname:  "New User",
+		Username:  "newuser",
+		Email:     "new@test.io",
+		Ex:        false,
+		Groups:    []string{},
+	}
+	usersToAdd := []utils.User{newUser}
+	jsonBytes, _ := json.Marshal(usersToAdd)
+	encoded := base64.StdEncoding.EncodeToString(jsonBytes)
+
+	added, notAdded := utils.UnserealizeUsers(encoded)
+
+	// Trim any trailing whitespace (newlines/spaces) that CreateMultipleAuthors may add
+	expectedAddedStr := newUser.Username + " - " + newUser.Email
+	if len(added) != 1 {
+		t.Errorf("expected 1 added user, got %d", len(added))
+	} else if strings.TrimSpace(added[0]) != expectedAddedStr {
+		t.Errorf("expected added=['%s'], got ['%s']", expectedAddedStr, added[0])
+	}
+	if len(notAdded) != 0 {
+		t.Errorf("expected not_added empty, got %v", notAdded)
+	}
+	if _, ok := utils.Users["new"]; !ok {
+		t.Errorf("new user was not added to Users map")
+	}
+
+	// Test with a user that already exists
+	existingUser := utils.User{
+		Shortname: "new", // same shortname, will be a duplicate
+		Longname:  "Duplicate",
+		Username:  "dup",
+		Email:     "dup@test.io",
+		Ex:        false,
+		Groups:    []string{},
+	}
+	usersToAdd2 := []utils.User{existingUser}
+	jsonBytes2, _ := json.Marshal(usersToAdd2)
+	encoded2 := base64.StdEncoding.EncodeToString(jsonBytes2)
+
+	added2, notAdded2 := utils.UnserealizeUsers(encoded2)
+
+	if len(added2) != 0 {
+		t.Errorf("expected no new additions, got %v", added2)
+	}
+	expectedNotAddedStr := existingUser.Username + " - " + existingUser.Email
+	if len(notAdded2) != 1 {
+		t.Errorf("expected 1 not-added user, got %d", len(notAdded2))
+	} else if strings.TrimSpace(notAdded2[0]) != expectedNotAddedStr {
+		t.Errorf("expected not_added=['%s'], got ['%s']", expectedNotAddedStr, notAdded2[0])
+	}
+
+	// Invalid base64 should not panic
+	defer func() {
+		if r := recover(); r != nil {
+			t.Errorf("UnserealizeUsers panicked on invalid base64: %v", r)
+		}
+	}()
+	utils.UnserealizeUsers("invalid!!!")
+}
+
+// Serialization tests END
+
+// CLI author input tests BEGIN
+
+func Test_CLIAuthorInput_All(t *testing.T) {
+	setup()
+	defer teardown()
+	utils.Define_users("author_file_test")
+
+	selected := utils.CLIAuthorInput([]string{"all"})
+	// There are 2 distinct users, each with two keys (shortname, longname),
+	// but add_x_users_string_slice deduplicates by username → only one key per user.
+	if len(selected) != 2 {
+		t.Errorf("all: expected 2 unique users, got %d: %v", len(selected), selected)
+	}
+
+	// Verify both users are represented
+	foundTestUser, foundUserName2 := false, false
+	for _, key := range selected {
+		if u, ok := utils.Users[key]; ok {
+			switch u.Username {
+			case "TestUser":
+				foundTestUser = true
+			case "UserName2":
+				foundUserName2 = true
+			}
+		}
+	}
+	if !foundTestUser || !foundUserName2 {
+		t.Errorf("all: missing expected users, got keys: %v", selected)
+	}
+
+	// Case-insensitive "All"
+	selected2 := utils.CLIAuthorInput([]string{"All"})
+	if len(selected2) != 2 {
+		t.Errorf("All: expected 2 unique users, got %d: %v", len(selected2), selected2)
+	}
+}
+
+func Test_CLIAuthorInput_Group(t *testing.T) {
+	setup()
+	defer teardown()
+	utils.Define_users("author_file_test")
+
+	// "gr1" contains testtest (username "UserName2")
+	// The function should return only the group members, not others.
+	selected := utils.CLIAuthorInput([]string{"gr1"})
+	if len(selected) == 0 {
+		t.Fatal("no users returned for group")
+	}
+
+	// testtest (or its longname "ti") must be present
+	foundTesttest := false
+	for _, key := range selected {
+		if key == "testtest" || key == "ti" {
+			foundTesttest = true
+			break
+		}
+	}
+	if !foundTesttest {
+		t.Errorf("group member testtest (or ti) should be in selected, got %v", selected)
+	}
+
+	// "te" (shortname for TestUser) should NOT be present because it's not in the group
+	for _, key := range selected {
+		if key == "te" || key == "testing" {
+			t.Errorf("non-group member 'te'/'testing' should not be in selected, got %v", selected)
+		}
+	}
+}
+
+func Test_CLIAuthorInput_Direct(t *testing.T) {
+	setup()
+	defer teardown()
+	utils.Define_users("author_file_test")
+	selected := utils.CLIAuthorInput([]string{"te", "testtest"})
+	if len(selected) != 2 {
+		t.Errorf("expected 2 direct authors, got %d", len(selected))
+	}
+	if selected[0] != "te" || selected[1] != "testtest" {
+		t.Errorf("wrong authors returned: %v", selected)
+	}
+}
+
+func Test_CLIAuthorInput_Negation(t *testing.T) {
+	setup()
+	defer teardown()
+	utils.Define_users("author_file_test")
+	// Negate testtest -> exclude it, include all others
+	selected := utils.CLIAuthorInput([]string{"^testtest"})
+	// Should contain "te" but not "testtest"
+	hasTe := false
+	hasTT := false
+	for _, u := range selected {
+		if u == "te" {
+			hasTe = true
+		}
+		if u == "testtest" {
+			hasTT = true
+		}
+	}
+	if !hasTe {
+		t.Errorf("negation: expected 'te' to be present")
+	}
+	if hasTT {
+		t.Errorf("negation: 'testtest' should be excluded")
+	}
+}
+
+func Test_CLIAuthorInput_UnknownAuthor(t *testing.T) {
+	setup()
+	defer teardown()
+	utils.Define_users("author_file_test")
+
+	// Unknown author should result in no selected authors
+	selected := utils.CLIAuthorInput([]string{"nonexistent"})
+	if len(selected) != 0 {
+		t.Errorf("expected no authors selected for unknown input, got %v", selected)
+	}
+}
+
+func Test_CLIAuthorInput_WithDefExclude(t *testing.T) {
+	setup()
+	defer teardown()
+	utils.Define_users("author_file_test")
+
+	// Set a global default exclude list (username "TestUser" corresponds to shortname "te")
+	utils.DefExclude = []string{"TestUser"}
+	defer func() { utils.DefExclude = nil }() // clean up
+
+	selected := utils.CLIAuthorInput([]string{"all"})
+	// te should be excluded
+	for _, u := range selected {
+		if u == "te" {
+			t.Errorf("DefExclude should have removed 'te', got %v", selected)
+		}
+	}
+}
+
+// CLI author input tests END
+
+func Test_Define_git_users(t *testing.T) {
+	setup()
+	defer teardown()
+	utils.Define_users("author_file_test")
+
+	// Record initial Users map length to later test that existing authors are skipped
+	existingUsers := make(map[string]bool)
+	for k := range utils.Users {
+		existingUsers[k] = true
+	}
+
+	utils.Define_git_users()
+
+	// Git_Users and Git_Groups should be initialised maps, not nil
+	if utils.Git_Users == nil {
+		t.Error("Git_Users was not initialised")
+	}
+	if utils.Git_Groups == nil {
+		t.Error("Git_Groups was not initialised")
+	}
+
+	// Any git author with a shortname that already existed in Users should NOT appear in Git_Users
+	for shortname, gitUser := range utils.Git_Users {
+		if existingUsers[shortname] {
+			t.Errorf("existing user %s should not be in Git_Users", shortname)
+		} else {
+			// Git user must have From_git == true
+			if !gitUser.From_git {
+				t.Errorf("git user %s missing From_git flag", shortname)
+			}
+		}
+	}
+}
+
+// Git users definition test END
 

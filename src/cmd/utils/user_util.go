@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"os"
 	"slices"
+	"strings"
 
+	"encoding/base64"
 	"encoding/json"
 )
 
@@ -17,7 +19,7 @@ type User struct {
 	Email     string   `json:"email"`
 	Ex        bool     `json:"ex"`
 	Groups    []string `json:"groups"`
-	From_git  bool
+	From_git  bool     `json:"from_git,omitempty"`
 }
 
 type Author struct {
@@ -133,4 +135,124 @@ func TempAddUser(username, email string) {
 	usr := User{Username: username, Email: email}
 
 	Users[username] = usr
+}
+
+func SerealizeUsers(authors []string) string {
+	var users []User
+	for _, name := range authors {
+		users = append(users, Users[name])
+	}
+
+	bytes, err := json.Marshal(users)
+	if err != nil {
+		panic(err)
+	}
+
+	encoded := base64.StdEncoding.EncodeToString(bytes)
+
+	return encoded
+}
+
+func UnserealizeUsers(encoded string) ([]string, []string) {
+	users := []User{}
+
+	raw, _ := base64.StdEncoding.DecodeString(encoded)
+	json.Unmarshal(raw, &users)
+
+	added_users, not_added := CreateMultipleAuthors(users)
+
+	return added_users, not_added
+}
+
+func ImportUsersFromShareCode(args []string) string {
+	var sb strings.Builder
+
+	if len(args) > 0 {
+		added_users, not_added := UnserealizeUsers(args[0])
+
+		if len(added_users) == 0 {
+			fmt.Println("\033[33mNo authors added (authors probably already existed or corrupted \"share code\")\033[0m")
+			sb.WriteString("\033[33mNo authors added (authors probably already existed or corrupted \"share code\")\033[0m\n")
+		}
+
+		if len(added_users) != 0 {
+			fmt.Println("\033[32mAuthors added:\033[0m")
+			sb.WriteString("\033[32mAuthors added:\033[0m\n")
+
+			for _, usr := range added_users {
+				fmt.Println("\033[32m+\033[0m ", usr)
+				sb.WriteString("\033[32m+\033[0m ")
+				sb.WriteString(usr)
+			}
+
+			sb.WriteString("\n")
+		}
+		
+
+		if len(not_added) != 0 {
+			fmt.Println("\033[33mAlready existing authors (not added):\033[0m")
+			sb.WriteString("\033[33mAlready existing authors (not added):\033[0m\n")
+
+			for _, usr := range not_added {
+				fmt.Println("\033[33m~\033[0m ", usr)
+				sb.WriteString("\033[33m~\033[0m ")
+				sb.WriteString(usr)
+			}
+
+			sb.WriteString("\n")
+		}
+		
+	} else if len(args) == 0 {
+		fmt.Println("\033[33mNo \"share code\", please run the flag with a valid \"share code\"\033[0m")
+		sb.WriteString("\033[33mNo \"share code\", please run the flag with a valid \"share code\"\033[0m")
+		os.Exit(0)
+	}
+	
+	return sb.String()
+}
+
+func CLIAuthorInput(authors []string) []string {
+	var selected []string
+	excludeMode := []string{}
+
+	// write the commit message to the string builder
+	fst := authors[0]
+
+	if fst == "all" || fst == "All" {
+		selected = add_x_users_string_slice(excludeMode, selected)
+		return selected
+	} else if Groups[fst] != nil {
+		excludeMode = group_selection(Groups[fst], excludeMode)
+		selected = add_x_users_string_slice(excludeMode, selected)
+		return selected
+	}
+
+	for _, committer := range authors {
+		if _, ok := Users[committer]; ok {
+			selected = append(selected, committer)
+		} else if committer[0] == '^' { // Negations
+			excludeMode = append(excludeMode, Users[committer[1:]].Username)
+		} else {
+			println(committer, "was unknown. User either not defined or name typed wrong")
+		}
+	}
+
+	if len(excludeMode) > 0 {
+		selected = add_x_users_string_slice(excludeMode, selected)
+	}
+
+	return selected
+}
+
+func add_x_users_string_slice(excludeMode, selected []string) []string {
+	if len(DefExclude) > 0 {
+		excludeMode = append(excludeMode, DefExclude...)
+	}
+	for key, user := range Users {
+		if !slices.Contains(excludeMode, user.Username) {
+			selected = append(selected, key)
+			excludeMode = append(excludeMode, user.Username)
+		}
+	}
+	return selected
 }

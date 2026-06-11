@@ -1,0 +1,9 @@
+ignore:
+  - src/amend.go
+  - src/config.go
+  - src/cz.go
+  - src/gh.go
+  - src/root.go
+  - src/update.go
+  - src/users.go
+  

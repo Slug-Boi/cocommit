@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"sort"
@@ -28,6 +29,34 @@ func UsersCmd() *cobra.Command {
 				update_msg()
 			}
 
+			s, _ := cmd.Flags().GetBool("share")
+			if s && len(args) == 0 {
+				args = append(args, tui.Entry()...)
+				if len(args) == 0 {
+					fmt.Println("\033[31mNo authors selected exiting\033[31m")
+					os.Exit(0)
+				}
+				encoded := utils.SerealizeUsers(args)
+				fmt.Print(encoded)
+				os.Exit(0)
+			} else if s && len(args) >= 1 {
+				users := utils.CLIAuthorInput(args)
+				if len(users) == 0 {
+					fmt.Println("\033[31mNo authors selected exiting\033[31m")
+					os.Exit(0)
+				}
+				encoded := utils.SerealizeUsers(users)
+				fmt.Print(encoded)
+				os.Exit(0)
+			}
+
+			i, _ := cmd.Flags().GetBool("import")
+			if i {
+				utils.ImportUsersFromShareCode(args)	
+				
+				os.Exit(0)
+			}
+
 			//TODO: make this print a bit prettier (sort it and maybe use a table)
 			// check if the no pretty print flag is set
 			np, _ := cmd.Flags().GetBool("np")
@@ -45,7 +74,7 @@ func UsersCmd() *cobra.Command {
 				println(strings.Join(user_sb, ""))
 				os.Exit(0)
 			}
-			bat_check := exec.Command("bat","--version")
+			bat_check := exec.Command("bat", "--version")
 			out, _ := bat_check.CombinedOutput()
 			if string(out) == "" {
 				tui.Entry_US(authorfile)
@@ -63,4 +92,6 @@ func init() {
 	usersCmd := UsersCmd()
 	rootCmd.AddCommand(usersCmd)
 	usersCmd.Flags().BoolP("np", "n", false, "No pretty print of the users")
+	usersCmd.Flags().BoolP("share", "s", false, "Shares one or more users as a \"share code\" (encoded json)")
+	usersCmd.Flags().BoolP("import", "i", false, "Imports users from \"share code\" (encoded json)")
 }

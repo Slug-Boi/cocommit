@@ -48,7 +48,7 @@ func Commit(message string, authors []string) string {
 		} else if committer[0] == '^' { // Negations
 			excludeMode = append(excludeMode, Users[committer[1:]].Username)
 		} else {
-			println(committer, " was unknown. User either not defined or name typed wrong")
+			println(committer, "was unknown. User either not defined or name typed wrong")
 		}
 	}
 
@@ -130,11 +130,11 @@ func group_selection(group []User, excludeMode []string) []string {
 	return excludeMode
 }
 
-func GitCommitAppender(authors string, hash string, flags []string, t,p,n bool) (error, string) {
+func GitCommitAppender(authors string, hash string, flags []string, t, p, n bool) (error, string) {
 	// Get old commit message
 	var cmd *exec.Cmd
 
-	//TODO: Make the hash ammend work with rebase but its more complicated than orignally thought. 
+	//TODO: Make the hash ammend work with rebase but its more complicated than orignally thought.
 
 	// git log --format=%B -n1
 	if hash == "" {
@@ -167,7 +167,7 @@ func GitCommitAppender(authors string, hash string, flags []string, t,p,n bool) 
 		if err != nil {
 			return fmt.Errorf("Could not create tempfile: %s", err.Error()), ""
 		}
-		defer os.Remove(file.Name()) 
+		defer os.Remove(file.Name())
 
 		// Write the old commit message to the file
 		_, err = file.WriteString(old_commit + "\n" + authors)
@@ -182,7 +182,7 @@ func GitCommitAppender(authors string, hash string, flags []string, t,p,n bool) 
 	} else {
 		edited_commit = old_commit + "\n" + authors
 	}
-	
+
 	input = append(input, "--amend", "-m", edited_commit)
 
 	if p {

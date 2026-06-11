@@ -136,6 +136,61 @@ func CreateAuthor(user User) {
 		Define_users(Find_authorfile())
 }
 
+func CreateMultipleAuthors(users []User) ([]string,[]string) {
+	if len(users) == 0 {
+		return []string{}, []string{}
+	}
+
+	var added_users []string
+	var not_added []string
+
+	for _, usr := range users {
+		if _, ok := Users[usr.Shortname]; !ok {
+			added_users = append(added_users, (usr.Username + " - " + usr.Email + "\n"))
+			Users[usr.Shortname] = usr
+			Users[usr.Longname] = usr
+			Authors.Authors[usr.Longname] = usr
+
+			group_info := usr.Groups
+			if len(group_info) > 0 {
+				for _, group := range group_info {
+					if Groups[group] == nil {
+						Groups[group] = []User{usr}
+					} else {
+						usr_lst := Groups[group]
+						usr_lst = append(usr_lst, usr)
+						Groups[group] = usr_lst
+					}
+				}
+			}
+		} else {
+			not_added = append(not_added, (usr.Username + " - " + usr.Email + "\n"))
+		}
+	}
+
+	data, err := json.MarshalIndent(Authors, "", "    ")
+	if err != nil {
+		panic(fmt.Sprintf("Error marshalling json: %v", err))
+	}
+
+	author_file := Find_authorfile()
+	f, err := os.OpenFile(author_file, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	// write the data to the file
+	f.Truncate(0)
+	f.Seek(0, 0)
+	f.Write(data)
+	f.Close()
+
+	Define_users(Find_authorfile())
+
+	return added_users, not_added
+}
+
 func DeleteOneAuthor(author string) {
 	// check that users aren't empty
 	if len(Users) < 1 {
