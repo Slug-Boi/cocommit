@@ -41,7 +41,6 @@ const author_data = `
     }
 }`
 
-
 const config_data = `[settings]
 author_file = "author_file_test"
 starting_scope = "git"
@@ -60,7 +59,6 @@ func setup() {
 	}
 
 	os.Setenv("COCOMMIT_CONFIG", "config.toml")
-	
 
 	os.WriteFile("author_file_test", []byte(author_data), 0644)
 	os.Setenv("author_file", "author_file_test")
@@ -118,12 +116,16 @@ func Test_CreateAuthor(t *testing.T) {
 		Email:     "bestemailever@github.io",
 		Ex:        false,
 		Groups:    []string{"test"},
+		Platform:  "github",
 	}
 	utils.CreateAuthor(author)
 	// Check if author was added
 	_, ok := utils.Users["epic"]
 	if !ok {
 		t.Errorf("CreateAuthor() did not add author")
+	}
+	if key, ok := utils.LookupAuthorID(author); !ok || key == "" {
+		t.Errorf("CreateAuthor() did not add author with a UUID key")
 	}
 
 	// Check if author was added to the file
@@ -139,7 +141,14 @@ func Test_CreateAuthor(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error unmarshalling file: %v", err)
 	}
-	if authors.Authors["Test"].Shortname != "epic" {
+	found := false
+	for _, usr := range authors.Authors {
+		if usr.Shortname == "epic" && usr.Platform == "github" {
+			found = true
+			break
+		}
+	}
+	if !found {
 		t.Errorf("CreateAuthor() did not add author to file: %v", authors.Authors)
 	}
 }
@@ -236,7 +245,7 @@ func Test_DeleteOneAuthorPrints(t *testing.T) {
 	}
 
 	// Test case: Error opening file
-	
+
 	// Test case: No users to remove
 	setup()
 	defer teardown()
@@ -267,7 +276,7 @@ func Test_CheckAuthorFile_FileExists(t *testing.T) {
 
 	// Mock user input to simulate "y" response
 	input := strings.NewReader("y\n")
-    output := new(bytes.Buffer) // capture output
+	output := new(bytes.Buffer) // capture output
 
 	// Test CheckAuthorFile when the file exists
 	result, err := utils.CheckAuthorFile(input, output)
@@ -295,8 +304,6 @@ func Test_CheckAuthorFile_FileNotExists_CreateFile(t *testing.T) {
 	input := strings.NewReader("y\n")
 	output := new(bytes.Buffer) // capture output
 
-
-
 	// Test CheckAuthorFile when the file does not exist and user agrees to create it
 	result, err := utils.CheckAuthorFile(input, output)
 	if err != nil {
@@ -319,8 +326,6 @@ func Test_CheckAuthorFile_FileNotExists_DeclineCreate(t *testing.T) {
 	// Mock user input to simulate "n" response
 	input := strings.NewReader("n\n")
 	output := new(bytes.Buffer) // capture output
-
-
 
 	// Test CheckAuthorFile when the file does not exist and user declines to create it
 	defer func() {
@@ -457,6 +462,7 @@ func Test_CheckUserFields(t *testing.T) {
 	// Test CheckUserFields
 	utils.Define_users("author_file_test")
 	user := utils.Users["te"]
+	user.Platform = "github"
 	if !utils.CheckUserFields(user) {
 		t.Errorf("CheckUserFields() = %v; want true", false)
 	}
@@ -555,9 +561,9 @@ func Test_CommitWithInlineAdd(t *testing.T) {
 
 	// Verify that the commit message includes the inline addition
 	splitAuthors := strings.Split(authors[0], ":")
-	
+
 	if !strings.Contains(commit, fmt.Sprintf("Co-authored-by: %s <%s>", splitAuthors[0], splitAuthors[1])) {
-		t.Errorf("Commit() missing co-author line for inline addition: %v:%v\n%s", splitAuthors[0],splitAuthors[1] ,commit)
+		t.Errorf("Commit() missing co-author line for inline addition: %v:%v\n%s", splitAuthors[0], splitAuthors[1], commit)
 	}
 }
 
@@ -614,9 +620,9 @@ func Test_GitWrapper(t *testing.T) {
 	}
 
 	commit := utils.Commit(message, authors)
-	flags := []string{"-a","--dry-run"}
+	flags := []string{"-a", "--dry-run"}
 
-	err = utils.GitWrapper(commit, flags) 
+	err = utils.GitWrapper(commit, flags)
 	if err != nil {
 		t.Errorf("GitWrapper() returned error: %v", err)
 	}
@@ -628,7 +634,7 @@ func Test_GitPush(t *testing.T) {
 	utils.Define_users("author_file_test")
 
 	// Test GitPush with --dry-run flag
-	flags := []string{"--all","--dry-run"}
+	flags := []string{"--all", "--dry-run"}
 
 	err := utils.GitPush(flags)
 	if err != nil {
@@ -657,19 +663,19 @@ func Test_CommitAppender(t *testing.T) {
 		t.Errorf("GitCommitAppender() returned error: %v", err)
 	}
 
-	expectedMessage := message+"\n\n\nCo-authored-by: TestUser <test@test.test>"
+	expectedMessage := message + "\n\n\nCo-authored-by: TestUser <test@test.test>"
 	if appendedMessage != expectedMessage {
 		t.Errorf("CommitAppender() = %v;\nwant:\n%v", appendedMessage, expectedMessage)
 	}
 
-	// check inverted commit 
+	// check inverted commit
 	authors = []string{"^te"}
 	commit = utils.Commit("", authors)
 	err, appendedMessage = utils.GitCommitAppender(commit, "", nil, true, true, true)
 	if err != nil {
 		t.Errorf("GitCommitAppender() returned error: %v", err)
 	}
-	expectedMessage = message+"\n\n\nCo-authored-by: UserName2 <testing@user.io>"
+	expectedMessage = message + "\n\n\nCo-authored-by: UserName2 <testing@user.io>"
 
 	if appendedMessage != expectedMessage {
 		t.Errorf("CommitAppender() = %v;\nwant:\n%v", appendedMessage, expectedMessage)
@@ -682,7 +688,7 @@ func Test_CommitAppender(t *testing.T) {
 	if err != nil {
 		t.Errorf("GitCommitAppender() returned error: %v", err)
 	}
-	expectedMessage = message+"\n\n\nCo-authored-by: TestUser <test@test.test>\nCo-authored-by: UserName2 <testing@user.io>"
+	expectedMessage = message + "\n\n\nCo-authored-by: TestUser <test@test.test>\nCo-authored-by: UserName2 <testing@user.io>"
 
 	if appendedMessage != expectedMessage {
 		t.Errorf("CommitAppender() = %v;\nwant:\n%v", appendedMessage, expectedMessage)
@@ -694,8 +700,8 @@ func Test_CommitAppender(t *testing.T) {
 	if err != nil {
 		t.Errorf("GitCommitAppender() returned error: %v", err)
 	}
-	expectedMessage = message+"\n\n\nCo-authored-by: TestUser <test@test.test>\nCo-authored-by: UserName2 <testing@user.io>"
-	expectedMessage2 := message+"\n\n\nCo-authored-by: UserName2 <testing@user.io>\nCo-authored-by: TestUser <test@test.test>"
+	expectedMessage = message + "\n\n\nCo-authored-by: TestUser <test@test.test>\nCo-authored-by: UserName2 <testing@user.io>"
+	expectedMessage2 := message + "\n\n\nCo-authored-by: UserName2 <testing@user.io>\nCo-authored-by: TestUser <test@test.test>"
 
 	if appendedMessage != expectedMessage && appendedMessage != expectedMessage2 {
 		t.Errorf("CommitAppender() = %v;\nwant:\n%v", appendedMessage, expectedMessage)
@@ -708,14 +714,14 @@ func Test_CommitAppender(t *testing.T) {
 	if err != nil {
 		t.Errorf("GitCommitAppender() returned error: %v", err)
 	}
-	expectedMessage = message+"\n\n\nCo-authored-by: UserName2 <testing@user.io>"
+	expectedMessage = message + "\n\n\nCo-authored-by: UserName2 <testing@user.io>"
 
 	if appendedMessage != expectedMessage {
 		t.Errorf("CommitAppender() = %v;\nwant:\n%v", appendedMessage, expectedMessage)
 	}
 
 	message = ""
-	
+
 }
 
 // Commit tests END
@@ -859,27 +865,24 @@ editor = "built-in"`
 
 	os.Create(filename)
 	defer os.Remove(filename)
-    // Write some test data to the file
+	// Write some test data to the file
 	os.WriteFile(filename, []byte(initial_config_data), 0644)
 
 	override_cfg := &utils.Config{
-	Settings: struct {
-		AuthorFile    string `mapstructure:"author_file"`
-		StartingScope string `mapstructure:"starting_scope"`
-		Editor       string `mapstructure:"editor"`
-	}{
-		AuthorFile:    "test_authors.json",
-		StartingScope: "git",
-		Editor:       "built-in",
-	}}
-
-
+		Settings: struct {
+			AuthorFile    string `mapstructure:"author_file"`
+			StartingScope string `mapstructure:"starting_scope"`
+			Editor        string `mapstructure:"editor"`
+		}{
+			AuthorFile:    "test_authors.json",
+			StartingScope: "git",
+			Editor:        "built-in",
+		}}
 
 	// Set viper config file to be cfg
 	viper.SetConfigFile(filename)
 	// Set the config type to toml
 	viper.SetConfigType("toml")
-
 
 	// Change some values in the config
 	override_cfg.Settings.AuthorFile = "test"
@@ -906,7 +909,6 @@ editor = "built-in"`
 
 // Serialization tests BEGIN
 
-
 func Test_SerealizeUsers(t *testing.T) {
 	setup()
 	defer teardown()
@@ -928,10 +930,15 @@ func Test_SerealizeUsers(t *testing.T) {
 	if len(decoded) != 2 {
 		t.Errorf("expected 2 users, got %d", len(decoded))
 	}
-	// Check that the users match the map values
+	// Check that the users match the map values on exported fields only
 	for i, name := range authors {
 		expected := utils.Users[name]
-		if !reflect.DeepEqual(decoded[i], expected) {
+		if decoded[i].Shortname != expected.Shortname ||
+			decoded[i].Longname != expected.Longname ||
+			decoded[i].Username != expected.Username ||
+			decoded[i].Email != expected.Email ||
+			decoded[i].Ex != expected.Ex ||
+			!reflect.DeepEqual(decoded[i].Groups, expected.Groups) {
 			t.Errorf("user[%d] = %+v, want %+v", i, decoded[i], expected)
 		}
 	}
@@ -959,6 +966,7 @@ func Test_UnserealizeUsers(t *testing.T) {
 		Email:     "new@test.io",
 		Ex:        false,
 		Groups:    []string{},
+		Platform:  "github",
 	}
 	usersToAdd := []utils.User{newUser}
 	jsonBytes, _ := json.Marshal(usersToAdd)
@@ -982,12 +990,13 @@ func Test_UnserealizeUsers(t *testing.T) {
 
 	// Test with a user that already exists
 	existingUser := utils.User{
-		Shortname: "new", // same shortname, will be a duplicate
-		Longname:  "Duplicate",
-		Username:  "dup",
-		Email:     "dup@test.io",
+		Shortname: "new",
+		Longname:  "New User",
+		Username:  "newuser",
+		Email:     "new@test.io",
 		Ex:        false,
 		Groups:    []string{},
+		Platform:  "github",
 	}
 	usersToAdd2 := []utils.User{existingUser}
 	jsonBytes2, _ := json.Marshal(usersToAdd2)
@@ -1024,32 +1033,29 @@ func Test_CLIAuthorInput_All(t *testing.T) {
 	utils.Define_users("author_file_test")
 
 	selected := utils.CLIAuthorInput([]string{"all"})
-	// There are 2 distinct users, each with two keys (shortname, longname),
-	// but add_x_users_string_slice deduplicates by username → only one key per user.
-	if len(selected) != 2 {
-		t.Errorf("all: expected 2 unique users, got %d: %v", len(selected), selected)
+	// One author is excluded by default, so only the non-excluded author should remain.
+	if len(selected) != 1 {
+		t.Errorf("all: expected 1 non-excluded user, got %d: %v", len(selected), selected)
 	}
 
-	// Verify both users are represented
-	foundTestUser, foundUserName2 := false, false
+	// Verify the remaining user is represented by UUID.
+	foundUserName2 := false
 	for _, key := range selected {
-		if u, ok := utils.Users[key]; ok {
+		if u, ok := utils.LookupAuthor(key); ok {
 			switch u.Username {
-			case "TestUser":
-				foundTestUser = true
 			case "UserName2":
 				foundUserName2 = true
 			}
 		}
 	}
-	if !foundTestUser || !foundUserName2 {
+	if !foundUserName2 {
 		t.Errorf("all: missing expected users, got keys: %v", selected)
 	}
 
 	// Case-insensitive "All"
 	selected2 := utils.CLIAuthorInput([]string{"All"})
-	if len(selected2) != 2 {
-		t.Errorf("All: expected 2 unique users, got %d: %v", len(selected2), selected2)
+	if len(selected2) != 1 {
+		t.Errorf("All: expected 1 non-excluded user, got %d: %v", len(selected2), selected2)
 	}
 }
 
@@ -1065,10 +1071,10 @@ func Test_CLIAuthorInput_Group(t *testing.T) {
 		t.Fatal("no users returned for group")
 	}
 
-	// testtest (or its longname "ti") must be present
+	// testtest must be present by UUID-backed selection
 	foundTesttest := false
 	for _, key := range selected {
-		if key == "testtest" || key == "ti" {
+		if u, ok := utils.LookupAuthor(key); ok && u.Shortname == "ti" {
 			foundTesttest = true
 			break
 		}
@@ -1079,7 +1085,7 @@ func Test_CLIAuthorInput_Group(t *testing.T) {
 
 	// "te" (shortname for TestUser) should NOT be present because it's not in the group
 	for _, key := range selected {
-		if key == "te" || key == "testing" {
+		if u, ok := utils.LookupAuthor(key); ok && u.Shortname == "te" {
 			t.Errorf("non-group member 'te'/'testing' should not be in selected, got %v", selected)
 		}
 	}
@@ -1089,11 +1095,20 @@ func Test_CLIAuthorInput_Direct(t *testing.T) {
 	setup()
 	defer teardown()
 	utils.Define_users("author_file_test")
-	selected := utils.CLIAuthorInput([]string{"te", "testtest"})
+	selected := utils.CLIAuthorInput([]string{"te", "UserName2"})
 	if len(selected) != 2 {
 		t.Errorf("expected 2 direct authors, got %d", len(selected))
 	}
-	if selected[0] != "te" || selected[1] != "testtest" {
+	if selected[0] == selected[1] {
+		t.Errorf("expected unique UUIDs, got duplicate values: %v", selected)
+	}
+	if _, ok := utils.LookupAuthor(selected[0]); !ok {
+		t.Errorf("expected first author to resolve to a UUID-backed author, got %v", selected[0])
+	}
+	if _, ok := utils.LookupAuthor(selected[1]); !ok {
+		t.Errorf("expected second author to resolve to a UUID-backed author, got %v", selected[1])
+	}
+	if selected[0] == "te" || selected[1] == "UserName2" {
 		t.Errorf("wrong authors returned: %v", selected)
 	}
 }
@@ -1104,14 +1119,16 @@ func Test_CLIAuthorInput_Negation(t *testing.T) {
 	utils.Define_users("author_file_test")
 	// Negate testtest -> exclude it, include all others
 	selected := utils.CLIAuthorInput([]string{"^testtest"})
-	// Should contain "te" but not "testtest"
+	// Should contain TestUser's UUID but not testtest's UUID
+	teID, _ := utils.LookupAuthorID(utils.Users["te"])
+	ttID, _ := utils.LookupAuthorID(utils.Users["ti"])
 	hasTe := false
 	hasTT := false
 	for _, u := range selected {
-		if u == "te" {
+		if u == teID {
 			hasTe = true
 		}
-		if u == "testtest" {
+		if u == ttID {
 			hasTT = true
 		}
 	}
@@ -1145,11 +1162,56 @@ func Test_CLIAuthorInput_WithDefExclude(t *testing.T) {
 	defer func() { utils.DefExclude = nil }() // clean up
 
 	selected := utils.CLIAuthorInput([]string{"all"})
+	teID, _ := utils.LookupAuthorID(utils.Users["te"])
 	// te should be excluded
 	for _, u := range selected {
-		if u == "te" {
+		if u == teID {
 			t.Errorf("DefExclude should have removed 'te', got %v", selected)
 		}
+	}
+}
+
+func Test_ResolveAuthorToken_ByUsername(t *testing.T) {
+	setup()
+	defer teardown()
+	utils.Define_users("author_file_test")
+
+	usr, ok := utils.ResolveAuthorToken("TestUser")
+	if !ok {
+		t.Fatal("expected username lookup to succeed")
+	}
+	if usr.Shortname != "te" {
+		t.Errorf("expected TestUser to resolve to shortname te, got %+v", usr)
+	}
+}
+
+func Test_CommitWithDuplicatePlatformAuthorToken(t *testing.T) {
+	setup()
+	defer teardown()
+
+	utils.Authors.Authors = map[string]utils.User{
+		"uuid-a": {
+			Shortname: "dup",
+			Longname:  "Duplicate A",
+			Username:  "test",
+			Email:     "test-a@example.com",
+			Platform:  "github",
+		},
+		"uuid-b": {
+			Shortname: "dup",
+			Longname:  "Duplicate B",
+			Username:  "test",
+			Email:     "test-b@example.com",
+			Platform:  "gitlab",
+		},
+	}
+
+	commit := utils.Commit("My message", []string{"test"})
+	if !strings.Contains(commit, "Co-authored-by:") {
+		t.Fatalf("expected duplicate-platform author token to produce a co-author line, got: %s", commit)
+	}
+	if !strings.Contains(commit, "My message") {
+		t.Fatalf("expected commit message to be preserved, got: %s", commit)
 	}
 }
 
@@ -1190,4 +1252,3 @@ func Test_Define_git_users(t *testing.T) {
 }
 
 // Git users definition test END
-
