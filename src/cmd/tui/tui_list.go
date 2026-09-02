@@ -123,7 +123,7 @@ func (i item) FilterValue() string { return string(i.display) }
 func authorDisplay(user utils.User, includePlatform bool) string {
 	strUser := user.Username + " - " + user.Email
 	if includePlatform {
-		strUser += " - " + user.Platform
+		strUser += " (" + user.Platform + ")"
 	}
 	return strUser
 }
