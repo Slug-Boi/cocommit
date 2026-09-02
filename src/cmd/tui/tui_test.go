@@ -47,7 +47,7 @@ func setup() {
 		panic(err)
 	}
 	os.Setenv("author_file", "author_file_test")
-	envVar = os.Getenv("author_file")	
+	envVar = os.Getenv("author_file")
 
 	utils.Define_users("author_file_test")
 }
@@ -176,8 +176,8 @@ func TestErrorGetMissingFields(t *testing.T) {
 	// Test case 1: No inputs
 	m := createAuthorModel(nil)
 	errorGetMissingFields(m)
-	if len(m.errorModel.missing) != 4 {
-		t.Errorf("Expected 4 missing fields, got %d\n%v", len(m.errorModel.missing), m.errorModel.missing)
+	if len(m.errorModel.missing) != 5 {
+		t.Errorf("Expected 5 missing fields, got %d\n%v", len(m.errorModel.missing), m.errorModel.missing)
 	}
 
 	m = createAuthorModel(nil)
@@ -186,6 +186,9 @@ func TestErrorGetMissingFields(t *testing.T) {
 	m.inputs[1].SetValue("value")
 	m.inputs[2].SetValue("")
 	m.inputs[3].SetValue("value")
+	m.inputs[4].SetValue("value")
+	m.inputs[5].SetValue("value")
+
 
 	tempAuthorToggle = false
 	errorGetMissingFields(m)
@@ -206,6 +209,7 @@ func TestErrorGetMissingFields(t *testing.T) {
 	m.inputs[2].SetValue("value3")
 	m.inputs[3].SetValue("value4")
 	m.inputs[4].SetValue("value5")
+	m.inputs[5].SetValue("value")
 
 	tempAuthorToggle = true
 	errorGetMissingFields(m)
@@ -361,13 +365,17 @@ func TestCreateGHAuthorModel(t *testing.T) {
 		t.Errorf("Expected Username '%s', got '%s'", testUser.Username, m.inputs[2].Value())
 	}
 
-	if m.inputs[3].Value() != "" {
-		t.Errorf("Expected Email to be empty, got '%s'", m.inputs[3].Value())
+	if m.inputs[3].Value() != testUser.Email {
+		t.Errorf("Expected Email '%s', got '%s'", testUser.Email, m.inputs[3].Value())
+	}
+
+	if m.inputs[4].Value() != "" {
+		t.Errorf("Expected Platform to be empty, got '%s'", m.inputs[4].Value())
 	}
 
 	expectedGroups := strings.Join(testUser.Groups, "|")
-	if m.inputs[4].Value() != expectedGroups {
-		t.Errorf("Expected Groups '%s', got '%s'", expectedGroups, m.inputs[4].Value())
+	if m.inputs[5].Value() != expectedGroups {
+		t.Errorf("Expected Groups '%s', got '%s'", expectedGroups, m.inputs[5].Value())
 	}
 
 	// Verify the first input is focused
@@ -398,40 +406,30 @@ func TestSubmitWithRequiredField(t *testing.T) {
 	defer teardown()
 
 	m := NewGitHubUserForm(nil)
-	tm := teatest.NewTestModel(
-		t, m, teatest.WithInitialTermSize(300, 300),
-	)
+	updated, _ := m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("Slug-Boi")})
+	updated, _ = updated.(GitHubUserModel).Update(tea.KeyMsg{Type: tea.KeyTab})
+	updated, _ = updated.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("input@mail")})
+	updated, _ = updated.(GitHubUserModel).Update(tea.KeyMsg{Type: tea.KeyTab})
+	updated, _ = updated.(GitHubUserModel).Update(tea.KeyMsg{Type: tea.KeyEnter})
 
-	// Simulate filling in the required field
-	tm.Type("Slug-Boi")
-	tm.Send(tea.KeyMsg{Type: tea.KeyTab})   // Move to next field
-	tm.Send(tea.KeyMsg{Type: tea.KeyTab})   // Move to submit button
-	tm.Send(tea.KeyMsg{Type: tea.KeyEnter}) // Submit
-	tm.Send(tea.KeyMsg{Type: tea.KeyTab})
-	tm.Send(tea.KeyMsg{Type: tea.KeyTab})
-	tm.Send(tea.KeyMsg{Type: tea.KeyTab})
-	tm.Type("input@mail")
-	tm.Send(tea.KeyMsg{Type: tea.KeyTab})
-	tm.Send(tea.KeyMsg{Type: tea.KeyTab})
-	tm.Send(tea.KeyMsg{Type: tea.KeyTab})
-	tm.Send(tea.KeyMsg{Type: tea.KeyEnter}) // Submit
+	ca, ok := updated.(model_ca)
+	if !ok {
+		t.Fatalf("Expected model_ca after submit, got %T", updated)
+	}
 
-	tm.WaitFinished(t, teatest.WithFinalTimeout(time.Second*5))
-	// Check if the form was submitted
-	updated, _ := tm.FinalModel(t).(model_ca)
+	if ca.inputs[0].Value() != "th" {
+		t.Errorf("Expected shortname 'th', got '%s'", ca.inputs[0].Value())
+	}
+	if ca.inputs[1].Value() != "Theis" {
+		t.Errorf("Expected longname 'Theis', got '%s'", ca.inputs[1].Value())
+	}
+	if ca.inputs[2].Value() != "Slug-Boi" {
+		t.Errorf("Expected username 'Slug-Boi', got '%s'", ca.inputs[2].Value())
+	}
+	if ca.inputs[3].Value() != "input@mail" {
+		t.Errorf("Expected email 'input@mail', got '%s'", ca.inputs[3].Value())
+	}
 
-	if updated.inputs[0].Value() != "th" {
-		t.Errorf("Expected 'Slug-Boi', got '%s'", updated.inputs[0].Value())
-	}
-	if updated.inputs[1].Value() != "Theis" {
-		t.Errorf("Expected 'Slug-Boi', got '%s'", updated.inputs[1].Value())
-	}
-	if updated.inputs[2].Value() != "Slug-Boi" {
-		t.Errorf("Expected 'Slug-Boi', got '%s'", updated.inputs[2].Value())
-	}
-	if updated.inputs[3].Value() != "input@mail" {
-		t.Errorf("Expected 'input@mail', got '%s'", updated.inputs[3].Value())
-	}
 }
 
 // Test temp auth toggle visibility
@@ -610,7 +608,7 @@ func Test_ScopesLocal(t *testing.T) {
 		t.Errorf("Expected model, got %T", fm)
 	}
 
-	if m.scope!= mixed_scope {
+	if m.scope != mixed_scope {
 		t.Errorf("Expected scope to be %v, got %v", mixed_scope, m.scope)
 	}
 }
@@ -868,6 +866,7 @@ func Test_GroupSelection(t *testing.T) {
 		t, m, teatest.WithInitialTermSize(300, 300),
 	)
 	keyPress(tm, "f")
+	keyPress(tm, "right")
 
 	keyPress(tm, "enter")
 
@@ -878,9 +877,10 @@ func Test_GroupSelection(t *testing.T) {
 	if !ok {
 		t.Errorf("Expected model, got %T", fm)
 	}
+	
 
 	if len(selected) != 1 {
-		t.Errorf("Expected not 1 selected item, got %d", len(selected))
+		t.Errorf("Expected 1 selected item, got %d", len(selected))
 	}
 }
 
@@ -890,13 +890,14 @@ func Test_pagination(t *testing.T) {
 
 	// Add 20 authors to the test data
 	for i := 0; i < 20; i++ {
-		utils.Users[fmt.Sprintf("author%d", i)] = utils.User{
+		utils.Authors.Authors[fmt.Sprintf("author-%d", i)] = utils.User{
 			Shortname: fmt.Sprintf("a%d", i),
 			Longname:  fmt.Sprintf("Author %d", i),
 			Username:  fmt.Sprintf("AuthorUser%d", i),
 			Email:     fmt.Sprintf("author%d@test.com", i),
 			Ex:        false,
 			Groups:    []string{},
+			Platform:  "github",
 		}
 	}
 

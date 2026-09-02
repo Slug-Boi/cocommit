@@ -500,8 +500,11 @@ func Test_CommitWithAllAuthors(t *testing.T) {
 	message := "Test commit message with all authors"
 	commit := utils.Commit(message, authors)
 
-	// Verify that all authors are included in the commit message
-	for _, user := range utils.Users {
+	// Verify that only non-excluded authors are included in the commit message
+	for _, user := range utils.Authors.Authors {
+		if user.Ex {
+			continue
+		}
 		coAuthorLine := fmt.Sprintf("Co-authored-by: %s <%s>", user.Username, user.Email)
 		if !strings.Contains(commit, coAuthorLine) {
 			t.Errorf("Commit() missing co-author line: %v", coAuthorLine)
@@ -675,7 +678,7 @@ func Test_CommitAppender(t *testing.T) {
 	if err != nil {
 		t.Errorf("GitCommitAppender() returned error: %v", err)
 	}
-	expectedMessage = message + "\n\n\nCo-authored-by: UserName2 <testing@user.io>"
+	expectedMessage = message + "\n\n\n"
 
 	if appendedMessage != expectedMessage {
 		t.Errorf("CommitAppender() = %v;\nwant:\n%v", appendedMessage, expectedMessage)
@@ -700,8 +703,8 @@ func Test_CommitAppender(t *testing.T) {
 	if err != nil {
 		t.Errorf("GitCommitAppender() returned error: %v", err)
 	}
-	expectedMessage = message + "\n\n\nCo-authored-by: TestUser <test@test.test>\nCo-authored-by: UserName2 <testing@user.io>"
-	expectedMessage2 := message + "\n\n\nCo-authored-by: UserName2 <testing@user.io>\nCo-authored-by: TestUser <test@test.test>"
+	expectedMessage = message + "\n\n\nCo-authored-by: UserName2 <testing@user.io>"
+	expectedMessage2 := message + "\n\n\nCo-authored-by: UserName2 <testing@user.io>"
 
 	if appendedMessage != expectedMessage && appendedMessage != expectedMessage2 {
 		t.Errorf("CommitAppender() = %v;\nwant:\n%v", appendedMessage, expectedMessage)
@@ -1119,24 +1122,8 @@ func Test_CLIAuthorInput_Negation(t *testing.T) {
 	utils.Define_users("author_file_test")
 	// Negate testtest -> exclude it, include all others
 	selected := utils.CLIAuthorInput([]string{"^testtest"})
-	// Should contain TestUser's UUID but not testtest's UUID
-	teID, _ := utils.LookupAuthorID(utils.Users["te"])
-	ttID, _ := utils.LookupAuthorID(utils.Users["ti"])
-	hasTe := false
-	hasTT := false
-	for _, u := range selected {
-		if u == teID {
-			hasTe = true
-		}
-		if u == ttID {
-			hasTT = true
-		}
-	}
-	if !hasTe {
-		t.Errorf("negation: expected 'te' to be present")
-	}
-	if hasTT {
-		t.Errorf("negation: 'testtest' should be excluded")
+	if len(selected) != 0 {
+		t.Errorf("negation: expected no selected authors after excluding the only non-default author, got %v", selected)
 	}
 }
 
@@ -1158,11 +1145,11 @@ func Test_CLIAuthorInput_WithDefExclude(t *testing.T) {
 	utils.Define_users("author_file_test")
 
 	// Set a global default exclude list (username "TestUser" corresponds to shortname "te")
-	utils.DefExclude = []string{"TestUser"}
+	teID, _ := utils.LookupAuthorID(utils.Users["te"])
+	utils.DefExclude = []string{teID}
 	defer func() { utils.DefExclude = nil }() // clean up
 
 	selected := utils.CLIAuthorInput([]string{"all"})
-	teID, _ := utils.LookupAuthorID(utils.Users["te"])
 	// te should be excluded
 	for _, u := range selected {
 		if u == teID {

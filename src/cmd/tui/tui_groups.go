@@ -125,7 +125,7 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				for k, v := range dupProtect {
 					if _, ok := selected[v]; !ok {
 						for _, user := range users {
-							if user.Username+" - "+user.Email+" - "+user.Platform == k {
+							if user.Username+" - "+user.Email+" ("+user.Platform + ")" == k {
 								selectToggle(item{id: v, display: k, source: local_scope})
 							}
 						}
