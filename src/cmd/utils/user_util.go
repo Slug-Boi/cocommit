@@ -20,6 +20,8 @@ type User struct {
 	Ex        bool     `json:"ex"`
 	Groups    []string `json:"groups"`
 	From_git  bool     `json:"from_git,omitempty"`
+	Platform  string   `json:"platform,omitempty"`
+	uuid 	  string
 }
 
 type Author struct {
@@ -48,7 +50,7 @@ func ContainsUser(users []User, user User) bool {
 }
 
 func CheckUserFields(user User) bool {
-	if user.Shortname == "" || user.Longname == "" || user.Username == "" || user.Email == "" {
+	if user.Shortname == "" || user.Longname == "" || user.Username == "" || user.Email == "" || user.Platform == "" {
 		return false
 	}
 	return true
@@ -73,7 +75,8 @@ func Define_users(author_file string) {
 
 	Authors = auth
 
-	for _, usr := range auth.Authors {
+	for s, usr := range auth.Authors {
+		usr.uuid = s
 		Users[usr.Shortname] = usr
 		Users[usr.Longname] = usr
 		if usr.Ex {

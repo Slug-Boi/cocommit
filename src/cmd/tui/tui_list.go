@@ -452,9 +452,9 @@ func generate_list(scope int) []list.Item {
 			local_dupProtect[str_user] = short
 		}
 	case local_scope:
-		for short, user := range utils.Users {
+		for short, user := range utils.Authors.Authors {
 			// if items already contains the user, skip it
-			str_user := user.Username + " - " + user.Email
+			str_user := user.Username + " - " + user.Email + " - " + user.Platform
 			if _, ok := dupProtect[str_user]; ok {
 				continue
 			}
@@ -462,7 +462,7 @@ func generate_list(scope int) []list.Item {
 			dupProtect[str_user] = short
 		}
 	case mixed_scope:
-		for short, user := range utils.Users {
+		for short, user := range utils.Authors.Authors {
 			// if items already contains the user, skip it
 			str_user := user.Username + " - " + user.Email
 			if _, ok := local_dupProtect[str_user]; ok {

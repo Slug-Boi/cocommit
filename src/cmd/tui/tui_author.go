@@ -98,7 +98,7 @@ func createAuthorModel(old_m *Model) model_ca {
 	parent_m = old_m
 
 	m := model_ca{
-		inputs:     make([]textinput.Model, 5),
+		inputs:     make([]textinput.Model, 6),
 		errorModel: intitialErrorModel(),
 	}
 
@@ -119,7 +119,9 @@ func createAuthorModel(old_m *Model) model_ca {
 			t.Placeholder = "Username (e.g. JohnDoe-gh)"
 		case 3:
 			t.Placeholder = "Email (e.g. JohnDoe@domain.do"
-		case 4:
+		case 4: 
+			t.Placeholder = "Platform (e.g. Github)"
+		case 5:
 			t.Placeholder = "Group tags (e.g. gr1|gr2)"
 		}
 
@@ -167,7 +169,7 @@ func createGHAuthorModel(old_m *Model, user utils.User) model_ca {
 	parent_m = old_m
 
 	m := model_ca{
-		inputs:     make([]textinput.Model, 5),
+		inputs:     make([]textinput.Model, 6),
 		errorModel: intitialErrorModel(),
 	}
 
@@ -191,11 +193,15 @@ func createGHAuthorModel(old_m *Model, user utils.User) model_ca {
 			t.SetValue(user.Username)
 		case 3:
 			t.Placeholder = "Email (e.g. JohnDoe@domain.do"
-			t.SetValue("")
+			t.SetValue(user.Email)
 		case 4:
+			t.Placeholder = "Platform (e.g. github)"
+			t.SetValue(user.Platform)
+		case 5:
 			t.Placeholder = "Group tags (e.g. gr1|gr2)"
 			t.SetValue(strings.Join(user.Groups, "|"))
 		}
+
 
 		m.inputs[i] = t
 	}
@@ -437,13 +443,14 @@ func (m *model_ca) AddAuthor() bool {
 		m.inputs[0].Value() != "" &&
 		m.inputs[1].Value() != "" &&
 		m.inputs[2].Value() != "" &&
-		m.inputs[3].Value() != "" {
+		m.inputs[3].Value() != "" &&
+		m.inputs[4].Value() != "" {
 
 		var groups []string
 		if m.inputs[4].Value() == "" {
 			groups = []string{}
 		} else {
-			groups = strings.Split(m.inputs[4].Value(), "|")
+			groups = strings.Split(m.inputs[5].Value(), "|")
 		}
 
 		// create and add the user to the users map
@@ -454,9 +461,13 @@ func (m *model_ca) AddAuthor() bool {
 			Email:     m.inputs[3].Value(),
 			Ex:        m.exclude,
 			Groups:    groups,
+			Platform:  m.inputs[4].Value(),
 		}
 
-		utils.CreateAuthor(usr)
+		if !utils.CreateAuthor(usr) {
+			m.errorModel.missing = append(m.errorModel.missing, "Unique platform with duplicate user")
+			return true
+		}
 
 		author := m.inputs[0].Value()
 

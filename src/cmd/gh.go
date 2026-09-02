@@ -56,6 +56,8 @@ func GHCmd () *cobra.Command {
 			}
 			if len(groups) > 0 {
 				user.Groups = groups
+			} else {
+				user.Groups = []string{""}
 			}
 			if exclude {
 				user.Ex = true
@@ -63,8 +65,12 @@ func GHCmd () *cobra.Command {
 			
 			if email != "" {
 				user.Email = email
+				user.Platform = "github"
 				if utils.CheckUserFields(user) {
-					utils.CreateAuthor(user)
+					if !utils.CreateAuthor(user) {
+						fmt.Print("Duplicate author with same platform and name please try again")
+						return
+					}
 					// print sucess message
 					//fmt.Print(lipgloss.NewStyle().Foreground(lipgloss.Color("170")).Render("Author added successfully"))
 					fmt.Print("Author added successfully\n")

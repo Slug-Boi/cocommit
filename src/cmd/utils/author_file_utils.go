@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"github.com/google/uuid"
 )
 
 // Author file utils is a package that contains functions that are used to read
@@ -104,12 +105,18 @@ func CheckAuthorFile(input io.Reader, output io.Writer) (string,error) {
     return authorfile, nil
 }
 
-func CreateAuthor(user User) {
+func CreateAuthor(user User) bool {
+		if usr, ok := Users[user.Shortname]; ok && usr.Platform == user.Platform  {
+			return false
+		}
+
 		Users[user.Shortname] = user
 		Users[user.Longname] = user
 		
 		// Specifically for the json file
-		Authors.Authors[user.Longname] = user
+		uuid := uuid.New().String()
+		Authors.Authors[uuid] = user
+		// Authors.Authors[user.Longname] = user
 
 		data, err := json.MarshalIndent(Authors, "", "    ")
 		if err != nil {
@@ -134,6 +141,8 @@ func CreateAuthor(user User) {
 
 		// redefine the users map for the tui to use
 		Define_users(Find_authorfile())
+
+		return true
 }
 
 func CreateMultipleAuthors(users []User) ([]string,[]string) {
@@ -216,8 +225,8 @@ func DeleteOneAuthor(author string) {
 	usr := Users[author]
 
 	// Remove the user from the Author struct (try both short and long name)
-	delete(Authors.Authors, usr.Shortname)
-	delete(Authors.Authors, usr.Longname)
+	delete(Authors.Authors, usr.uuid)
+	// delete(Authors.Authors, usr.Longname)
 
 	// marshal the struct back to json
 	data, err  := json.MarshalIndent(Authors, "", "    ")
