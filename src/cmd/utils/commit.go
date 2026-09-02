@@ -20,7 +20,12 @@ func Commit(message string, authors []string) string {
 	excludeMode := []string{}
 
 	// write the commit message to the string builder
-	sb.WriteString(message + "\n")
+	sb.WriteString(message)
+	sb.WriteString("\n")
+	
+	if (len(authors) == 0 ) {
+		return sb.String()
+	}
 	fst := authors[0]
 
 	if fst == "all" || fst == "All" {
