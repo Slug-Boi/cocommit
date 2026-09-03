@@ -23,19 +23,21 @@ func Commit(message string, authors []string) string {
 	sb.WriteString(message + "\n")
 	fst := authors[0]
 
-	if fst == "all" || fst == "All" {
-		add_x_users(excludeMode, &sb)
-		return sb.String()
-	} else if Groups[fst] != nil {
-		excludeMode = group_selection(Groups[fst], excludeMode)
-		add_x_users(excludeMode, &sb)
-		return sb.String()
+	if _, ok := ResolveAuthorToken(fst); !ok {
+		if strings.EqualFold(fst, "all") {
+			add_x_users(excludeMode, &sb)
+			return sb.String()
+		} else if group, ok := ResolveGroupToken(fst); ok {
+			excludeMode = group_selection(group, excludeMode)
+			add_x_users(excludeMode, &sb)
+			return sb.String()
+		}
 	}
 
 	// Loop that adds users
 	for _, committer := range authors {
-		if _, ok := Users[committer]; ok {
-			sb_author(committer, &sb)
+		if usr, ok := ResolveAuthorToken(committer); ok {
+			sb_author_from_user(usr, &sb)
 		} else if match := reg.MatchString(committer); match {
 			str := strings.Split(committer, ":")
 
@@ -46,7 +48,11 @@ func Commit(message string, authors []string) string {
 			sb.WriteRune('>')
 
 		} else if committer[0] == '^' { // Negations
-			excludeMode = append(excludeMode, Users[committer[1:]].Username)
+			if usr, ok := ResolveAuthorToken(committer[1:]); ok {
+				if id, ok := LookupAuthorID(usr); ok {
+					excludeMode = append(excludeMode, id)
+				}
+			}
 		} else {
 			println(committer, "was unknown. User either not defined or name typed wrong")
 		}
@@ -106,24 +112,32 @@ func sb_author(committer string, sb *strings.Builder) {
 	sb.WriteRune('>')
 }
 
+func sb_author_from_user(user User, sb *strings.Builder) {
+	sb.WriteString("\nCo-authored-by: ")
+	sb.WriteString(user.Username)
+	sb.WriteString(" <")
+	sb.WriteString(user.Email)
+	sb.WriteRune('>')
+}
+
 // helper function to add x amount of users to the commit message
 func add_x_users(excludeMode []string, sb *strings.Builder) {
 	if len(DefExclude) > 0 {
 		excludeMode = append(excludeMode, DefExclude...)
 	}
-	for key, user := range Users {
-		if !slices.Contains(excludeMode, user.Username) {
-			sb_author(key, sb)
-			excludeMode = append(excludeMode, user.Username)
+	for id, user := range Authors.Authors {
+		if !slices.Contains(excludeMode, id) {
+			sb_author_from_user(user, sb)
+			excludeMode = append(excludeMode, id)
 		}
 	}
 }
 
 // helper function to select groups of users to exclude in the commit message
 func group_selection(group []User, excludeMode []string) []string {
-	for _, user := range Users {
+	for id, user := range Authors.Authors {
 		if !(ContainsUser(group, user)) {
-			excludeMode = append(excludeMode, user.Username)
+			excludeMode = append(excludeMode, id)
 		}
 	}
 

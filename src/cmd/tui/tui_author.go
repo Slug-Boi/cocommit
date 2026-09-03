@@ -98,7 +98,7 @@ func createAuthorModel(old_m *Model) model_ca {
 	parent_m = old_m
 
 	m := model_ca{
-		inputs:     make([]textinput.Model, 5),
+		inputs:     make([]textinput.Model, 6),
 		errorModel: intitialErrorModel(),
 	}
 
@@ -120,6 +120,8 @@ func createAuthorModel(old_m *Model) model_ca {
 		case 3:
 			t.Placeholder = "Email (e.g. JohnDoe@domain.do"
 		case 4:
+			t.Placeholder = "Platform (e.g. Github)"
+		case 5:
 			t.Placeholder = "Group tags (e.g. gr1|gr2)"
 		}
 
@@ -167,7 +169,7 @@ func createGHAuthorModel(old_m *Model, user utils.User) model_ca {
 	parent_m = old_m
 
 	m := model_ca{
-		inputs:     make([]textinput.Model, 5),
+		inputs:     make([]textinput.Model, 6),
 		errorModel: intitialErrorModel(),
 	}
 
@@ -191,8 +193,11 @@ func createGHAuthorModel(old_m *Model, user utils.User) model_ca {
 			t.SetValue(user.Username)
 		case 3:
 			t.Placeholder = "Email (e.g. JohnDoe@domain.do"
-			t.SetValue("")
+			t.SetValue(user.Email)
 		case 4:
+			t.Placeholder = "Platform (e.g. github)"
+			t.SetValue(user.Platform)
+		case 5:
 			t.Placeholder = "Group tags (e.g. gr1|gr2)"
 			t.SetValue(strings.Join(user.Groups, "|"))
 		}
@@ -437,13 +442,14 @@ func (m *model_ca) AddAuthor() bool {
 		m.inputs[0].Value() != "" &&
 		m.inputs[1].Value() != "" &&
 		m.inputs[2].Value() != "" &&
-		m.inputs[3].Value() != "" {
+		m.inputs[3].Value() != "" &&
+		m.inputs[4].Value() != "" {
 
 		var groups []string
 		if m.inputs[4].Value() == "" {
 			groups = []string{}
 		} else {
-			groups = strings.Split(m.inputs[4].Value(), "|")
+			groups = strings.Split(m.inputs[5].Value(), "|")
 		}
 
 		// create and add the user to the users map
@@ -454,16 +460,20 @@ func (m *model_ca) AddAuthor() bool {
 			Email:     m.inputs[3].Value(),
 			Ex:        m.exclude,
 			Groups:    groups,
+			Platform:  m.inputs[4].Value(),
 		}
 
-		utils.CreateAuthor(usr)
-
-		author := m.inputs[0].Value()
+		if !utils.CreateAuthor(usr) {
+			m.errorModel.missing = append(m.errorModel.missing, "Unique platform with duplicate user")
+			return true
+		}
 
 		if parent_m != nil {
-			item_str := utils.Users[author].Username + " - " + utils.Users[author].Email
-			dupProtect[item_str] = author
-			parent_m.list.InsertItem(len(parent_m.list.Items())+1, item{item_str, local_scope})
+			if authorID, ok := utils.LookupAuthorID(usr); ok {
+				item_str := usr.Username + " - " + usr.Email + " - " + usr.Platform
+				dupProtect[item_str] = authorID
+				parent_m.list.InsertItem(len(parent_m.list.Items())+1, item{id: authorID, display: item_str, source: local_scope})
+			}
 		}
 		return false
 	}
@@ -473,9 +483,10 @@ func (m *model_ca) AddAuthor() bool {
 func (m *model_ca) TempAddAuthor() bool {
 	if len(m.inputs) > 1 && m.inputs[0].Value() != "" && m.inputs[1].Value() != "" {
 		item_str := m.inputs[0].Value() + " - " + m.inputs[1].Value()
-		dupProtect[item_str] = m.inputs[0].Value() + ":" + m.inputs[1].Value()
-		i := item{item_str, local_scope}
-		parent_m.list.InsertItem(len(parent_m.list.Items())+1, item{item_str, local_scope})
+		itemID := m.inputs[0].Value() + ":" + m.inputs[1].Value()
+		dupProtect[item_str] = itemID
+		i := item{id: itemID, display: item_str, source: local_scope}
+		parent_m.list.InsertItem(len(parent_m.list.Items())+1, item{id: itemID, display: item_str, source: local_scope})
 		selectToggle(i)
 
 		return false

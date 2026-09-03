@@ -37,6 +37,7 @@ var (
 )
 
 type item struct {
+	id      string
 	display string
 	source  int
 }
@@ -119,6 +120,14 @@ func newListKeyMap() *listKeyMap {
 
 func (i item) FilterValue() string { return string(i.display) }
 
+func authorDisplay(user utils.User, includePlatform bool) string {
+	strUser := user.Username + " - " + user.Email
+	if includePlatform {
+		strUser += " (" + user.Platform + ")"
+	}
+	return strUser
+}
+
 type itemDelegate struct{}
 
 func (d itemDelegate) Height() int                             { return 1 }
@@ -151,7 +160,7 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	}
 
 	// Selection and cursor highlights (override background/padding)
-	if _, ok := selected[i.display]; ok {
+	if _, ok := selected[i.id]; ok {
 		fn = func(s string) string {
 			var style lipgloss.Style
 			if index == m.Index() {
@@ -215,11 +224,11 @@ func (m Model) Init() tea.Cmd {
 }
 
 func selectToggle(i item) {
-	if _, ok := selected[string(i.display)]; ok {
-		delete(selected, string(i.display))
+	if _, ok := selected[i.id]; ok {
+		delete(selected, i.id)
 		toggleNegation()
 	} else {
-		selected[string(i.display)] = i
+		selected[i.id] = i
 	}
 }
 
@@ -444,51 +453,51 @@ func generate_list(scope int) []list.Item {
 	case git_scope:
 		for short, user := range utils.Git_Users {
 			// if items already contains the user, skip it
-			str_user := user.Username + " - " + user.Email
+			str_user := authorDisplay(user, false)
 			if _, ok := local_dupProtect[str_user]; ok {
 				continue
 			}
-			items = append(items, item{str_user, git_scope})
+			items = append(items, item{id: short, display: str_user, source: git_scope})
 			local_dupProtect[str_user] = short
 		}
 	case local_scope:
-		for short, user := range utils.Users {
+		for uuid, user := range utils.Authors.Authors {
 			// if items already contains the user, skip it
-			str_user := user.Username + " - " + user.Email
+			str_user := authorDisplay(user, true)
 			if _, ok := dupProtect[str_user]; ok {
 				continue
 			}
-			items = append(items, item{str_user, local_scope})
-			dupProtect[str_user] = short
+			items = append(items, item{id: uuid, display: str_user, source: local_scope})
+			dupProtect[str_user] = uuid
 		}
 	case mixed_scope:
-		for short, user := range utils.Users {
+		for uuid, user := range utils.Authors.Authors {
 			// if items already contains the user, skip it
-			str_user := user.Username + " - " + user.Email
+			str_user := authorDisplay(user, true)
 			if _, ok := local_dupProtect[str_user]; ok {
 				continue
 			}
 			if user.From_git {
-				items = append(items, item{str_user, git_scope})
+				items = append(items, item{id: uuid, display: str_user, source: git_scope})
 			} else {
-				items = append(items, item{str_user, local_scope})
+				items = append(items, item{id: uuid, display: str_user, source: local_scope})
 			}
-			local_dupProtect[str_user] = short
+			local_dupProtect[str_user] = uuid
 		}
 		//TODO: Why was this here?????
 		// local_dupProtect = map[string]string{}
 		for short, user := range utils.Git_Users {
 			// if items already contains the user, skip it
-			str_user := user.Username + " - " + user.Email
+			str_user := authorDisplay(user, false)
 
 			if _, ok := local_dupProtect[str_user]; ok {
 				continue
 			}
 
 			if user.From_git {
-				items = append(items, item{str_user, git_scope})
+				items = append(items, item{id: short, display: str_user, source: git_scope})
 			} else {
-				items = append(items, item{str_user, local_scope})
+				items = append(items, item{id: short, display: str_user, source: local_scope})
 			}
 			local_dupProtect[str_user] = short
 		}
@@ -654,20 +663,25 @@ func Entry() []string {
 		os.Exit(0)
 	}
 
-	for i := range selected {
-		short := dupProtect[i]
-		if short == "" {
-			split := strings.Split(i, " - ")
-			name := split[0]
-			email := split[1]
-			utils.TempAddUser(name, email)
-			short = name
-		}
-		if negation {
-			short = "^" + short
+	for _, selectedItem := range selected {
+		if selectedItem.id != "" {
+			if negation {
+				output = append(output, "^"+selectedItem.id)
+			} else {
+				output = append(output, selectedItem.id)
+			}
+			continue
 		}
 
-		output = append(output, short)
+		split := strings.Split(selectedItem.display, " - ")
+		name := split[0]
+		email := split[1]
+		utils.TempAddUser(name, email)
+		if negation {
+			output = append(output, "^"+name)
+		} else {
+			output = append(output, name)
+		}
 	}
 
 	if _, ok := f.(Model); ok && len(output) > 0 {

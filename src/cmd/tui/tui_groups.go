@@ -118,15 +118,15 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			if group != "" {
 				for _, sel := range selected {
-					delete(selected, string(sel.display))
+					delete(selected, sel.id)
 				}
 				users := utils.Groups[group]
 				//TODO: this may be able to be done in a more efficient way currently this would scale poorly
 				for k, v := range dupProtect {
-					if _, ok := selected[k]; !ok {
+					if _, ok := selected[v]; !ok {
 						for _, user := range users {
-							if user.Shortname == v || user.Longname == v {
-								selectToggle(item{k,local_scope})
+							if user.Username+" - "+user.Email+" ("+user.Platform + ")" == k {
+								selectToggle(item{id: v, display: k, source: local_scope})
 							}
 						}
 					}

@@ -6,6 +6,8 @@ import (
 	"io"
 	"os"
 	"strings"
+
+	"github.com/google/uuid"
 )
 
 // Author file utils is a package that contains functions that are used to read
@@ -37,119 +39,133 @@ func Find_authorfile() string {
 		if ConfigVar.Settings.AuthorFile != "" {
 			file = ConfigVar.Settings.AuthorFile
 		} else {
-			userconf, err :=os.UserConfigDir()
+			userconf, err := os.UserConfigDir()
 			if err != nil {
 				panic(fmt.Sprintf("Error getting user config dir: %v", err))
-			}		
-			if _, err := os.Stat(userconf+"/cocommit/authors.json"); os.IsNotExist(err) {
+			}
+			if _, err := os.Stat(userconf + "/cocommit/authors.json"); os.IsNotExist(err) {
 				return userconf + "/cocommit/authors.json"
 			} else {
 				file = userconf + "/cocommit/authors.json"
 			}
-		} 
+		}
 		return file
 	} else {
 		return os.Getenv("author_file")
 	}
 }
 
-func CheckAuthorFile(input io.Reader, output io.Writer) (string,error) {
-    var cocommit_folder string
-    authorfile := Find_authorfile()
-    
-    if _, err := os.Stat(authorfile); os.IsNotExist(err) {
-        fmt.Fprintf(output, "Author file not found at: %s\n", authorfile)
-        fmt.Fprintf(output, "Would you like to create one? (y/n)\n")
-        
-        var response string
-        _, err := fmt.Fscanln(input, &response)
-        if err != nil {
-            fmt.Fprintln(output, "Error reading response")
-        }
-        
-        if response == "y" {
-            parts := strings.Split(authorfile, "/")
+func CheckAuthorFile(input io.Reader, output io.Writer) (string, error) {
+	var cocommit_folder string
+	authorfile := Find_authorfile()
+
+	if _, err := os.Stat(authorfile); os.IsNotExist(err) {
+		fmt.Fprintf(output, "Author file not found at: %s\n", authorfile)
+		fmt.Fprintf(output, "Would you like to create one? (y/n)\n")
+
+		var response string
+		_, err := fmt.Fscanln(input, &response)
+		if err != nil {
+			fmt.Fprintln(output, "Error reading response")
+		}
+
+		if response == "y" {
+			parts := strings.Split(authorfile, "/")
 			if len(parts) > 1 {
 				// remove the last part of the path
-         		cocommit_folder = strings.Join(parts[:len(parts)-1], "/")
+				cocommit_folder = strings.Join(parts[:len(parts)-1], "/")
 			} else {
 				cocommit_folder = "."
 			}
 
-            // create the author file
-            if _, dirErr := os.Stat(cocommit_folder); os.IsNotExist(dirErr) {
-                err := os.Mkdir(cocommit_folder, 0766)
-                if err != nil {
-					return "", fmt.Errorf("error creating directory: %v %s", err, cocommit_folder)   
-                }
-            }
-            
-            file, err := os.Create(authorfile)
-            if err != nil {
-				return "", fmt.Errorf("error creating file: %v", err)
-            }
-            defer file.Close()
+			// create the author file
+			if _, dirErr := os.Stat(cocommit_folder); os.IsNotExist(dirErr) {
+				err := os.Mkdir(cocommit_folder, 0766)
+				if err != nil {
+					return "", fmt.Errorf("error creating directory: %v %s", err, cocommit_folder)
+				}
+			}
 
-            // write the header to the file
-            json_string := `{
+			file, err := os.Create(authorfile)
+			if err != nil {
+				return "", fmt.Errorf("error creating file: %v", err)
+			}
+			defer file.Close()
+
+			// write the header to the file
+			json_string := `{
     "Authors": {
     }
 }`
-            file.Write([]byte(json_string))
-            fmt.Fprintln(output, "Author file created. To add authors please launch the TUI with -a and press 'C'")
-        } else {
-            os.Exit(0)
-        }
-    }
-    return authorfile, nil
+			file.Write([]byte(json_string))
+			fmt.Fprintln(output, "Author file created. To add authors please launch the TUI with -a and press 'C'")
+		} else {
+			os.Exit(0)
+		}
+	}
+	return authorfile, nil
 }
 
-func CreateAuthor(user User) {
-		Users[user.Shortname] = user
-		Users[user.Longname] = user
-		
-		// Specifically for the json file
-		Authors.Authors[user.Longname] = user
+func CreateAuthor(user User) bool {
+	if Authors.Authors == nil {
+		Authors.Authors = map[string]User{}
+	}
+	if _, ok := LookupAuthorID(user); ok {
+		return false
+	}
 
-		data, err := json.MarshalIndent(Authors, "", "    ")
-		if err != nil {
-			panic(fmt.Sprintf("Error marshalling json: %v", err))
-			
-		}
+	Users[user.Shortname] = user
+	Users[user.Longname] = user
 
-		// open author_file
-		author_file := Find_authorfile()
-		f, err := os.OpenFile(author_file, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
-		if err != nil {
-			panic(err)
-		}
+	// Specifically for the json file
+	uuid := uuid.New().String()
+	Authors.Authors[uuid] = user
+	// Authors.Authors[user.Longname] = user
 
-		defer f.Close()
+	data, err := json.MarshalIndent(Authors, "", "    ")
+	if err != nil {
+		panic(fmt.Sprintf("Error marshalling json: %v", err))
 
-		// write the data to the file
-		f.Truncate(0)
-		f.Seek(0, 0)
-		f.Write(data)
-		f.Close()
+	}
 
-		// redefine the users map for the tui to use
-		Define_users(Find_authorfile())
+	// open author_file
+	author_file := Find_authorfile()
+	f, err := os.OpenFile(author_file, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		panic(err)
+	}
+
+	defer f.Close()
+
+	// write the data to the file
+	f.Truncate(0)
+	f.Seek(0, 0)
+	f.Write(data)
+	f.Close()
+
+	// redefine the users map for the tui to use
+	Define_users(Find_authorfile())
+
+	return true
 }
 
-func CreateMultipleAuthors(users []User) ([]string,[]string) {
+func CreateMultipleAuthors(users []User) ([]string, []string) {
 	if len(users) == 0 {
 		return []string{}, []string{}
+	}
+	if Authors.Authors == nil {
+		Authors.Authors = map[string]User{}
 	}
 
 	var added_users []string
 	var not_added []string
 
 	for _, usr := range users {
-		if _, ok := Users[usr.Shortname]; !ok {
+		if _, ok := LookupAuthorID(usr); !ok {
 			added_users = append(added_users, (usr.Username + " - " + usr.Email + "\n"))
 			Users[usr.Shortname] = usr
 			Users[usr.Longname] = usr
-			Authors.Authors[usr.Longname] = usr
+			Authors.Authors[uuid.New().String()] = usr
 
 			group_info := usr.Groups
 			if len(group_info) > 0 {
@@ -200,7 +216,8 @@ func DeleteOneAuthor(author string) {
 
 	author_file := Find_authorfile()
 
-	if _, exists := Users[author]; !exists {
+	usr, ok := LookupAuthor(author)
+	if !ok {
 		fmt.Println("User not found")
 		return
 	}
@@ -213,19 +230,22 @@ func DeleteOneAuthor(author string) {
 	}
 	defer file.Close()
 
-	usr := Users[author]
+	key, ok := LookupAuthorID(usr)
+	if !ok {
+		fmt.Println("User not found")
+		return
+	}
 
 	// Remove the user from the Author struct (try both short and long name)
-	delete(Authors.Authors, usr.Shortname)
-	delete(Authors.Authors, usr.Longname)
+	delete(Authors.Authors, key)
+	// delete(Authors.Authors, usr.Longname)
 
 	// marshal the struct back to json
-	data, err  := json.MarshalIndent(Authors, "", "    ")
+	data, err := json.MarshalIndent(Authors, "", "    ")
 	if err != nil {
 		fmt.Println("Error marshalling json: ", err)
 		return
 	}
-
 
 	// write the data to the file
 	file.Truncate(0)
