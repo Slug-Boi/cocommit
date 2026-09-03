@@ -106,6 +106,44 @@ func CheckAuthorFile(input io.Reader, output io.Writer) (string, error) {
 	return authorfile, nil
 }
 
+func CreateProfile(user User) bool {
+	config_dir, _ := os.UserConfigDir()
+	profile_file := config_dir + "/cocommit/profile.json"
+
+	if _, err := os.Stat(profile_file); !os.IsNotExist(err) {
+		return false
+	}
+
+	// Specifically for the json file
+	uuid := uuid.New().String()
+	tempAuthors := Author{map[string]User{}}
+	tempAuthors.Authors[uuid] = user 
+
+	data, err := json.MarshalIndent(tempAuthors, "", "    ")
+	if err != nil {
+		panic(fmt.Sprintf("Error marshalling json: %v", err))
+
+	}
+
+	// open author_file
+	
+	
+	f, err := os.OpenFile(profile_file, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		panic(err)
+	}
+
+	defer f.Close()
+
+	// write the data to the file
+	f.Truncate(0)
+	f.Seek(0, 0)
+	f.Write(data)
+	f.Close()
+
+	return true
+}
+
 func CreateAuthor(user User) bool {
 	if Authors.Authors == nil {
 		Authors.Authors = map[string]User{}
