@@ -678,7 +678,7 @@ func Test_CommitAppender(t *testing.T) {
 	if err != nil {
 		t.Errorf("GitCommitAppender() returned error: %v", err)
 	}
-	expectedMessage = message + "\n\n\n"
+	expectedMessage = message + "\n\n\nCo-authored-by: UserName2 <testing@user.io>"
 
 	if appendedMessage != expectedMessage {
 		t.Errorf("CommitAppender() = %v;\nwant:\n%v", appendedMessage, expectedMessage)
