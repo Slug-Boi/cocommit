@@ -197,6 +197,13 @@ func check_update() {
 		return
 	}
 
+	// Trim version to make sure nothing weird is happening
+	tag.TagName = strings.TrimSpace(tag.TagName)
+	tag.TagName = strings.Trim(tag.TagName, "\n")
+
+	Coco_Version = strings.TrimSpace(Coco_Version)
+	Coco_Version = strings.Trim(Coco_Version, "\n")
+
 	// NOTE: maybe change to a split and parse method idk if this can cause issues
 	if tag.TagName != Coco_Version && Coco_Version != "" {
 		update = true
