@@ -28,6 +28,7 @@ var (
 )
 
 var tempAuthorToggle bool
+var profileAuthorToggle bool
 
 type model_ca struct {
 	focusIndex int
@@ -208,8 +209,57 @@ func createGHAuthorModel(old_m *Model, user utils.User) model_ca {
 	return m
 }
 
+func createProfileAuthorModel(old_m *Model, user utils.User) model_ca {
+	parent_m = old_m
+
+	m := model_ca{
+		inputs:     make([]textinput.Model, 6),
+		errorModel: intitialErrorModel(),
+	}
+
+	var t textinput.Model
+	for i := range m.inputs {
+		t = textinput.New()
+		t.Cursor.Style = cursorStyle
+
+		switch i {
+		case 0:
+			t.Placeholder = "Shortname (e.g. jo)"
+			t.Focus()
+			t.PromptStyle = focusedStyle
+			t.TextStyle = focusedStyle
+		case 1:
+			t.Placeholder = "Longname (e.g. JohnDoe)"
+		case 2:
+			t.Placeholder = "Username (e.g. JohnDoe-gh)"
+		case 3:
+			t.Placeholder = "Email (e.g. JohnDoe@domain.do"
+		case 4:
+			t.Placeholder = "Platform (e.g. Github)"
+		case 5:
+			t.Placeholder = "Group tags (e.g. gr1|gr2)"
+		}
+
+		m.inputs[i] = t
+	}
+
+	return m
+}
+
 func EntryGHAuthorModel(user utils.User) {
 	model := createGHAuthorModel(&Model{}, user)
+
+	print(model.inputs[0].Value())
+
+	if _, err := tea.NewProgram(model).Run(); err != nil {
+		fmt.Println("Error running program:", err)
+		os.Exit(1)
+	}
+}
+
+func EntryProfileAuthorModel() {
+	profileAuthorToggle = true
+	model := createProfileAuthorModel(&Model{}, utils.User{})
 
 	print(model.inputs[0].Value())
 
@@ -291,7 +341,7 @@ func (m model_ca) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			s := msg.String()
 			// Did the user press enter while the submit button was focused?
 			// If so, exit.
-			if !tempAuthorToggle {
+			if !tempAuthorToggle && !profileAuthorToggle {
 				if s == "enter" && m.focusIndex == len(m.inputs)+1 {
 					m.quitting = true
 					m.errorModel.visible = m.AddAuthor()
@@ -309,6 +359,23 @@ func (m model_ca) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					// toggle exclude
 					m.exclude = !m.exclude
 					return m, nil
+				}
+			} else if profileAuthorToggle {
+				if s == "enter" && m.focusIndex == len(m.inputs)+1 {
+					m.quitting = true
+					m.errorModel.visible = m.AddProfile()
+					if m.errorModel.visible {
+						m.quitting = false
+						return m, nil
+					}
+					if parent_m.keys != nil {
+						tempAuthorToggle = false
+						return Model{list: parent_m.list}, tea.ClearScreen
+					} else {
+						m.quitting = true
+						tempAuthorToggle = false
+						return m, tea.Quit
+					}
 				}
 			} else {
 				if s == "enter" && m.focusIndex == len(m.inputs) {
@@ -435,6 +502,41 @@ func (m model_ca) View() string {
 	//b.WriteString(cursorModeHelpStyle.Render())
 
 	return b.String()
+}
+
+func (m *model_ca) AddProfile() bool {
+	if len(m.inputs) > 0 &&
+		m.inputs[0].Value() != "" &&
+		m.inputs[1].Value() != "" &&
+		m.inputs[2].Value() != "" &&
+		m.inputs[3].Value() != "" &&
+		m.inputs[4].Value() != "" {
+
+		var groups []string
+		if m.inputs[4].Value() == "" {
+			groups = []string{}
+		} else {
+			groups = strings.Split(m.inputs[5].Value(), "|")
+		}
+
+		// create and add the user to the users map
+		usr := utils.User{
+			Shortname: m.inputs[0].Value(),
+			Longname:  m.inputs[1].Value(),
+			Username:  m.inputs[2].Value(),
+			Email:     m.inputs[3].Value(),
+			Ex:        m.exclude,
+			Groups:    groups,
+			Platform:  m.inputs[4].Value(),
+		}
+
+		if !utils.CreateProfile(usr) {
+			m.errorModel.missing = append(m.errorModel.missing, "Profile already exists please use edit instead")
+			return true
+		}
+		return false
+	}
+	return true
 }
 
 func (m *model_ca) AddAuthor() bool {
