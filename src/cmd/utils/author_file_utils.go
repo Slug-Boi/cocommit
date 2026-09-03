@@ -106,9 +106,52 @@ func CheckAuthorFile(input io.Reader, output io.Writer) (string, error) {
 	return authorfile, nil
 }
 
-func CreateProfile(user User) bool {
+func EditProfile(user User) bool {
 	config_dir, _ := os.UserConfigDir()
 	profile_file := config_dir + "/cocommit/profile.json"
+
+	if _, err := os.Stat(profile_file); os.IsNotExist(err) {
+		return false
+	}
+
+	// Specifically for the json file
+	uuid := uuid.New().String()
+	tempAuthors := Author{map[string]User{}}
+	tempAuthors.Authors[uuid] = user 
+
+	data, err := json.MarshalIndent(tempAuthors, "", "    ")
+	if err != nil {
+		panic(fmt.Sprintf("Error marshalling json: %v", err))
+
+	}
+
+	// open author_file
+	
+	
+	f, err := os.OpenFile(profile_file, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		panic(err)
+	}
+
+	defer f.Close()
+
+	// write the data to the file
+	f.Truncate(0)
+	f.Seek(0, 0)
+	f.Write(data)
+	f.Close()
+
+	return true
+}
+
+func GetProfileFilePath() string {
+	config_dir, _ := os.UserConfigDir()
+	profile_file := config_dir + "/cocommit/profile.json"
+	return profile_file
+}
+
+func CreateProfile(user User) bool {
+	profile_file := GetProfileFilePath()
 
 	if _, err := os.Stat(profile_file); !os.IsNotExist(err) {
 		return false
@@ -142,6 +185,27 @@ func CreateProfile(user User) bool {
 	f.Close()
 
 	return true
+}
+
+func GetProfileUser() User {
+	profile_file := GetProfileFilePath()
+
+	var profile Author
+
+	data, err := os.ReadFile(profile_file)
+	if err != nil {
+		panic(err)
+	}
+
+	err = json.Unmarshal(data, &profile)	
+	if err != nil {
+		panic(err)
+	}
+	// profile is only allowed to contain a single user if more are there the user has done something weird
+	for _,v := range profile.Authors {
+		return v
+	}
+	return User{}
 }
 
 func CreateAuthor(user User) bool {

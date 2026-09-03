@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"github.com/Slug-Boi/cocommit/src/cmd/tui"
+	"github.com/Slug-Boi/cocommit/src/cmd/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -31,10 +32,11 @@ func ProfileCommand() *cobra.Command {
 				tui.EntryProfileAuthorModel()
 			}
 			if e {
-				// EDIT UI
+				tui.EntryEditProfileModel()
 			}
 			if ee {
-
+				profileFile := utils.GetProfileFilePath()
+				utils.LaunchEditor(utils.ConfigVar.Settings.Editor, profileFile)
 			}		
 			if r != "" {
 				cocommit_user_url = r
