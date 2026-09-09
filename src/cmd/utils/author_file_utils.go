@@ -144,9 +144,16 @@ func EditProfile(user User) bool {
 	return true
 }
 
-func GetProfileFilePath() string {
+func GetProfileFilePath(params ...string) string {
+	extra := strings.Join(params, "")
 	config_dir, _ := os.UserConfigDir()
-	profile_file := config_dir + "/cocommit/profile.json"
+	profile_file := config_dir + "/cocommit/profile.json"+extra
+
+	if _, err := os.Stat(profile_file); !os.IsNotExist(err) {
+		fmt.Println("Profile file doesn't exist please use add flag to create one")
+		os.Exit(0)
+	}
+
 	return profile_file
 }
 
