@@ -4,6 +4,9 @@ Copyright © 2026 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/Slug-Boi/cocommit/src/cmd/tui"
 	"github.com/Slug-Boi/cocommit/src/cmd/utils"
 	"github.com/spf13/cobra"
@@ -42,9 +45,12 @@ func ProfileCommand() *cobra.Command {
 				cocommit_user_url = r
 			}
 			if s {
-
+				
+				profile := []utils.User{utils.GetProfileUser()}
+				encoded := utils.UserSlice.SerealizeUsers(profile)
+				fmt.Print(encoded)
+				os.Exit(0)
 			}
-
 		},
 	}
 }
@@ -55,6 +61,6 @@ func init() {
 	profileCmd.Flags().BoolP("add", "a", false, "Add your user credentials for the first time")
 	profileCmd.Flags().BoolP("edit", "e", false, "Edit your user credentials using the cocommit UI")
 	profileCmd.Flags().BoolP("edit-editor", "v", false, "Edit your user credentials using your config preferred editor")
-	profileCmd.Flags().BoolP("sync", "s", false, "Sync your user credentials to the public cocommit user repository")
+	profileCmd.Flags().BoolP("share", "s", false, "Share your user credentials as a sharecode")
 	profileCmd.Flags().StringP("repo", "r", "", "Use a different sync repository URL")
 }
