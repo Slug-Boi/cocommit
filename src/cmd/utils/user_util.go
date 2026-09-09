@@ -226,6 +226,19 @@ func TempAddUser(username, email string) {
 	Users[username] = usr
 }
 
+type UserSlice []User
+
+func (users UserSlice) SerealizeUsers() string {
+	bytes, err := json.Marshal(users)
+	if err != nil {
+		panic(err)
+	}
+
+	encoded := base64.StdEncoding.EncodeToString(bytes)
+
+	return encoded
+}
+
 func SerealizeUsers(authors []string) string {
 	var users []User
 	for _, name := range authors {
