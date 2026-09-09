@@ -30,24 +30,8 @@ func UsersCmd() *cobra.Command {
 			}
 
 			s, _ := cmd.Flags().GetBool("share")
-			if s && len(args) == 0 {
-				args = append(args, tui.Entry()...)
-				if len(args) == 0 {
-					fmt.Println("\033[31mNo authors selected exiting\033[31m")
-					os.Exit(0)
-				}
-				encoded := utils.SerealizeUsers(args)
-				fmt.Print(encoded)
-				os.Exit(0)
-			} else if s && len(args) >= 1 {
-				users := utils.CLIAuthorInput(args)
-				if len(users) == 0 {
-					fmt.Println("\033[31mNo authors selected exiting\033[31m")
-					os.Exit(0)
-				}
-				encoded := utils.SerealizeUsers(users)
-				fmt.Print(encoded)
-				os.Exit(0)
+			if s {
+				generateShareCodes(args)
 			}
 
 			i, _ := cmd.Flags().GetBool("import")
@@ -85,6 +69,28 @@ func UsersCmd() *cobra.Command {
 			bat.Stderr = os.Stderr
 			bat.Run()
 		},
+	}
+}
+
+func generateShareCodes(args []string) {
+	if len(args) <= 0 {
+		args = append(args, tui.Entry()...)
+		if len(args) == 0 {
+			fmt.Println("\033[31mNo authors selected exiting\033[31m")
+			os.Exit(0)
+		}
+		encoded := utils.SerealizeUsers(args)
+		fmt.Print(encoded)
+		os.Exit(0)
+	} else {
+		users := utils.CLIAuthorInput(args)
+		if len(users) == 0 {
+			fmt.Println("\033[31mNo authors selected exiting\033[31m")
+			os.Exit(0)
+		}
+		encoded := utils.SerealizeUsers(users)
+		fmt.Print(encoded)
+		os.Exit(0)
 	}
 }
 
