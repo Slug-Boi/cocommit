@@ -31,6 +31,93 @@ type Config struct {
 		StartingScope string `mapstructure:"starting_scope"`
 		Editor        string `mapstructure:"editor"`
 	} `mapstructure:"settings"`
+	Style struct {
+		Help		string 	`mapstructure:"help"`
+		Item		string	`mapstructure:"item"`
+		SelectedItemFG string 	`mapstructure:"selected_item_fg"`
+		HighlightFG 	string	`mapstructure:"highlight_fg"`
+		SelectedHighlightFG string `mapstructure:"selected_highlight_fg"`
+		SelectedItemBG string 	`mapstructure:"selected_item_bg"`
+		HighlightBG 	string	`mapstructure:"highlight_bg"`
+		SelectedHighlightBG string `mapstructure:"selected_highlight_bg"`
+		Delete		string	`mapstructure:"delete"`
+		Sharing		string 	`mapstructure:"sharing"`
+		Pasting		string 	`mapstructure:"pasting"`
+		ActivePaginationDot string `mapstructure:"active_pagination_dot"`
+		GitScope    string 	`mapstructure:"git_scope"`
+		LocalScope 	string 	`mapstructure:"local_scope"`
+		MixedScope	string 	`mapstructure:"mixed_scope"`
+
+		CommitMessage struct {
+			// TUI CommitMessageWriter
+			Base string 	`mapstructure:"base"`
+			LineNumber string `mapstructure:"line_number"`
+		} `mapstructure:"commit_message_editor"`
+
+		GH struct {
+		// Tui GH
+		Error 	string 	`mapstructure:"error"`
+		Toggle	string 	`mapstructure:"toggle"`
+		ActiveToggle string 	`mapstructure:"active_toggle"`
+		} `mapstructure:"github_creation"`
+
+		Author struct {
+			// TUI author
+			Focused string  `mapstructure:"focused"`
+			Blurred string  `mapstructure:"blurred"`
+			CursorModeHelp  string `mapstructure:"cursor_mode_help"`
+			Cursor string	`mapstructure:"cursor"`
+		} `mapstructure:"author_creation"`
+		Groups struct {
+			// TUI Groups
+			ModelStyle string `mapstructure:"group_box"`
+			FocusedModelStyle string `mapstructure:"group_focused"`
+		} `mapstructure:"group_selection"`
+
+		Light struct {
+			Help		string 	`mapstructure:"help"`
+			Item		string	`mapstructure:"item"`
+			SelectedItemFG string 	`mapstructure:"selected_item_fg"`
+			HighlightFG 	string	`mapstructure:"highlight_fg"`
+			SelectedHighlightFG string `mapstructure:"selected_highlight_fg"`
+			SelectedItemBG string 	`mapstructure:"selected_item_bg"`
+			HighlightBG 	string	`mapstructure:"highlight_bg"`
+			SelectedHighlightBG string `mapstructure:"selected_highlight_bg"`
+			Delete		string	`mapstructure:"delete"`
+			Sharing		string 	`mapstructure:"sharing"`
+			Pasting		string 	`mapstructure:"pasting"`
+			ActivePaginationDot string `mapstructure:"active_pagination_dot"`
+			GitScope    string 	`mapstructure:"git_scope"`
+			LocalScope 	string 	`mapstructure:"local_scope"`
+			MixedScope	string 	`mapstructure:"mixed_scope"`
+
+			CommitMessage struct {
+			// TUI CommitMessageWriter
+			Base string 	`mapstructure:"base"`
+			LineNumber string `mapstructure:"line_number"`
+			} `mapstructure:"commit_message_editor"`
+
+			GH struct {
+			// Tui GH
+			Error 	string 	`mapstructure:"error"`
+			Toggle	string 	`mapstructure:"toggle"`
+			ActiveToggle string 	`mapstructure:"active_toggle"`
+			} `mapstructure:"github_creation"`
+
+			Author struct {
+				// TUI author
+				Focused string  `mapstructure:"focused"`
+				Blurred string  `mapstructure:"blurred"`
+				CursorModeHelp  string `mapstructure:"cursor_mode_help"`
+				Cursor string	`mapstructure:"cursor"`
+			} `mapstructure:"author_creation"`
+			Groups struct {
+				// TUI Groups
+				ModelStyle string `mapstructure:"group"`
+				FocusedModelStyle string `mapstructure:"group_focused"`
+			} `mapstructure:"group_selection"`
+		} `mapstructure:"light"`
+	} `mapstructure:"style"`
 }
 
 func (c *Config) String() string {
@@ -59,6 +146,73 @@ func LoadConfig() (*Config, error) {
 	v.SetDefault("settings.author_file", defaultConfigLocations[0]+"/authors.json")
 	v.SetDefault("settings.starting_scope", "local")
 	v.SetDefault("settings.editor", "built-in")
+
+	v.SetDefault("style.item", "170")
+	v.SetDefault("style.selected_item_fg", "170")
+	v.SetDefault("style.selected_item_bg", "236")
+	v.SetDefault("style.highlight_fg", "170")
+	v.SetDefault("style.highlight_bg", "206")
+	v.SetDefault("style.selected_highlight_fg", "90")
+	v.SetDefault("style.selected_highlight_bg", "206")
+	v.SetDefault("style.delete", "9")
+	v.SetDefault("style.sharing", "49")
+	v.SetDefault("style.pasting", "86")
+	v.SetDefault("style.active_pagination_dot", "170")
+	v.SetDefault("style.help", "15")
+	v.SetDefault("style.git_scope", "49")
+	v.SetDefault("style.local_scope", "170")
+	v.SetDefault("style.mixed_scope", "178")
+
+	v.SetDefault("style.github_creation.error", "9")
+	v.SetDefault("style.github_creation.toggle", "99")
+	v.SetDefault("style.github_creation.active_toggle", "205")
+
+	v.SetDefault("style.author_creation.focused", "170")
+	v.SetDefault("style.author_creation.blurred", "240")
+	v.SetDefault("style.author_creation.cursor", "170")
+	v.SetDefault("style.author_creation.cursor_mode_help", "244")
+
+	v.SetDefault("style.group_selection.group", "241")
+	v.SetDefault("style.group_selection.group_focused", "170")
+
+	v.SetDefault("style.commit_message_editor.base", 170)
+	v.SetDefault("style.commit_message_editor.line_number", 90)
+
+	// Lightmode
+	v.SetDefault("style.light.item", "170")
+	v.SetDefault("style.light.selected_item_fg", "170")
+	v.SetDefault("style.light.selected_item_bg", "236")
+	v.SetDefault("style.light.highlight_fg", "170")
+	v.SetDefault("style.light.highlight_bg", "206")
+	v.SetDefault("style.light.selected_highlight_fg", "90")
+	v.SetDefault("style.light.selected_highlight_bg", "206")
+	v.SetDefault("style.light.delete", "9")
+	v.SetDefault("style.light.sharing", "49")
+	v.SetDefault("style.light.pasting", "86")
+	v.SetDefault("style.light.active_pagination_dot", "170")
+	v.SetDefault("style.light.help", "15")
+	v.SetDefault("style.light.git_scope", "49")
+	v.SetDefault("style.light.local_scope", "170")
+	v.SetDefault("style.light.mixed_scope", "178")
+	v.SetDefault("style.light.github_creation.error", "9")
+	v.SetDefault("style.light.github_creation.toggle", "99")
+	v.SetDefault("style.light.github_creation.active_toggle", "205")
+
+	v.SetDefault("style.light.github_creation.error", "9")
+	v.SetDefault("style.light.github_creation.toggle", "99")
+	v.SetDefault("style.light.github_creation.active_toggle", "205")
+
+	v.SetDefault("style.light.author_creation.focused", "170")
+	v.SetDefault("style.light.author_creation.blurred", "240")
+	v.SetDefault("style.light.author_creation.cursor", "170")
+	v.SetDefault("style.light.author_creation.cursor_mode_help", "244")
+
+	v.SetDefault("style.light.group_selection.group", "241")
+	v.SetDefault("style.light.group_selection.group_focused", "170")
+
+	v.SetDefault("style.light.commit_message_editor.base", 170)
+	v.SetDefault("style.light.commit_message_editor.line_number", 90)
+
 
 	// Add search paths
 	for _, path := range defaultConfigLocations {

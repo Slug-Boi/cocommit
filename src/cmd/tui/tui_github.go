@@ -7,14 +7,6 @@ import (
 	"github.com/Slug-Boi/cocommit/src/cmd/utils"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
-)
-
-// Styles
-var (
-	errorStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("9"))
-	toggleStyle       = lipgloss.NewStyle().Foreground(lipgloss.Color("99"))
-	activeToggleStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
 )
 
 type GitHubUserModel struct {
@@ -40,8 +32,8 @@ func NewGitHubUserForm(old_m *Model) GitHubUserModel {
 	// GitHub Username (required)
 	username := textinput.New()
 	username.Placeholder = "GitHub username *"
-	username.PromptStyle = focusedStyle
-	username.TextStyle = focusedStyle
+	username.PromptStyle = styleVar.Focused
+	username.TextStyle = styleVar.Focused
 	username.Focus()
 	username.CharLimit = 39 // GitHub username max length
 	m.inputs[0] = username
@@ -49,8 +41,8 @@ func NewGitHubUserForm(old_m *Model) GitHubUserModel {
 	// Email (optional)
 	email := textinput.New()
 	email.Placeholder = "Email"
-	email.PromptStyle = blurredStyle
-	email.TextStyle = blurredStyle
+	email.PromptStyle = styleVar.Blurred
+	email.TextStyle = styleVar.Blurred
 	m.inputs[1] = email
 
 	return m
@@ -122,16 +114,16 @@ func (m GitHubUserModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			for i := 0; i < len(m.inputs); i++ {
 				if i == m.focusIndex {
 					cmds[i] = m.inputs[i].Focus()
-					m.inputs[i].PromptStyle = focusedStyle
-					m.inputs[i].TextStyle = focusedStyle
+					m.inputs[i].PromptStyle = styleVar.Focused
+					m.inputs[i].TextStyle = styleVar.Focused
 					continue
 				}
 				m.inputs[i].Blur()
-				m.inputs[i].PromptStyle = blurredStyle
+				m.inputs[i].PromptStyle = styleVar.Blurred
 				if m.inputs[i].Value() == "" {
-					m.inputs[i].TextStyle = blurredStyle
+					m.inputs[i].TextStyle = styleVar.Blurred
 				} else {
-					m.inputs[i].TextStyle = noStyle
+					m.inputs[i].TextStyle = styleVar.NoStyle
 				}
 			}
 
@@ -180,26 +172,33 @@ func (m GitHubUserModel) View() string {
 		toggleBtn := fmt.Sprintf("[ TempAuthor ] %s ", toggleText)
 
 		if m.focusIndex == len(m.inputs) { // When toggle is focused
-			b.WriteString("\n" + focusedStyle.Render(toggleBtn))
+			b.WriteString("\n")
+			b.WriteString(styleVar.Focused.Render(toggleBtn))
 		} else {
-			b.WriteString("\n" + blurredStyle.Render(toggleBtn))
+			b.WriteString("\n")
+			b.WriteString(styleVar.Blurred.Render(toggleBtn))
 		}
 	}
 
 	// Submit button
-	button := blurredButton
+	button := fmt.Sprintf("[ %s ]", styleVar.Blurred.Render("Submit"))
 	if m.focusIndex == len(m.inputs)+1 && m.tempAuthShow || m.focusIndex == len(m.inputs) && !m.tempAuthShow {
-		button = focusedButton
+		button = styleVar.Focused.Render("[ Submit ]")
 	}
-	b.WriteString("\n\n" + button + "\n")
+	b.WriteString("\n\n")
+	b.WriteString(button)
+	b.WriteString("\n")
 
 	// Error message
 	if m.showError {
-		b.WriteString("\n" + errorStyle.Render(m.errorMsg) + "\n")
+		b.WriteString("\n")
+		b.WriteString(styleVar.Error.Render(m.errorMsg))
+		b.WriteString("\n")
 	}
 
 	// Help text
-	b.WriteString("\n" + blurredStyle.Render("tab to navigate • enter to submit"))
+	b.WriteString("\n")
+	b.WriteString(styleVar.Blurred.Render("tab to navigate • enter to submit"))
 
 	return b.String()
 }

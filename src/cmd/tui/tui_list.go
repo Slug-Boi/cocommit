@@ -18,23 +18,125 @@ import (
 
 const listHeight = 14
 
-var (
-	titleStyle             = lipgloss.NewStyle().MarginLeft(2)
-	itemStyle              = lipgloss.NewStyle().PaddingLeft(4).Foreground(lipgloss.Color("170"))
-	selectedItemStyle      = lipgloss.NewStyle().PaddingLeft(2).Background(lipgloss.Color("236")).Foreground(lipgloss.Color("170"))
-	highlightStyle         = lipgloss.NewStyle().PaddingLeft(4).Background(lipgloss.Color("236")).Foreground(lipgloss.Color("170"))
-	selectedHighlightStyle = lipgloss.NewStyle().PaddingLeft(2).Background(lipgloss.Color("206")).Foreground(lipgloss.Color("90"))
-	deletionStyle          = lipgloss.NewStyle().MarginLeft(2).Foreground(lipgloss.Color("9"))
-	sharingStyle           = lipgloss.NewStyle().MarginLeft(2).Foreground(lipgloss.Color("49"))
-	pastingStyle           = lipgloss.NewStyle().MarginLeft(2).Foreground(lipgloss.Color("86"))
-	paginationStyle        = list.DefaultStyles().PaginationStyle.PaddingLeft(4)
-	ActivePaginationDot    = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "170", Dark: "170"})
-	helpStyle              = list.DefaultStyles().HelpStyle.PaddingLeft(4).PaddingBottom(1)
-	git_scope_style        = lipgloss.NewStyle().Foreground(lipgloss.Color("49")).Bold(true)
-	git_scope_author_style = lipgloss.NewStyle().PaddingLeft(4).Foreground(lipgloss.Color("49"))
-	local_scope_style      = lipgloss.NewStyle().Foreground(lipgloss.Color("170")).Bold(true)
-	mixed_scope_style      = lipgloss.NewStyle().Foreground(lipgloss.Color("178")).Bold(true)
-)
+var styleVar styles
+
+type styles struct {
+	Title               lipgloss.Style
+	Item                lipgloss.Style
+	SelectedItem        lipgloss.Style
+	Highlight           lipgloss.Style
+	SelectedHighlight   lipgloss.Style
+	Deletion            lipgloss.Style
+	Sharing             lipgloss.Style
+	Pasting             lipgloss.Style
+	Pagination          lipgloss.Style
+	ActivePaginationDot lipgloss.Style
+	Help                lipgloss.Style
+	GitScope            lipgloss.Style
+	GitScopeAuthor      lipgloss.Style
+	LocalScope          lipgloss.Style
+	MixedScope          lipgloss.Style
+	Error               lipgloss.Style
+	Toggle              lipgloss.Style
+	ActiveToggle        lipgloss.Style
+	Focused             lipgloss.Style
+	Blurred             lipgloss.Style
+	Cursor              lipgloss.Style
+	NoStyle             lipgloss.Style
+	CursorModeHelp      lipgloss.Style
+	ModelStyle			lipgloss.Style
+	FocusedModelStyle   lipgloss.Style
+	Base 				lipgloss.Style
+	LineNumber			lipgloss.Style
+}
+func NewStyles(cfg *utils.Config) {
+styleVar = styles{
+	Title: lipgloss.NewStyle().MarginLeft(2),
+
+	Item: lipgloss.NewStyle().PaddingLeft(4).
+		Foreground(lipgloss.AdaptiveColor{Light: cfg.Style.Light.Item, Dark: cfg.Style.Item}),
+
+	SelectedItem: lipgloss.NewStyle().PaddingLeft(2).
+		Background(lipgloss.AdaptiveColor{Light: cfg.Style.Light.SelectedItemBG, Dark: cfg.Style.SelectedItemBG}).
+		Foreground(lipgloss.AdaptiveColor{Light: cfg.Style.Light.SelectedItemFG, Dark: cfg.Style.SelectedItemFG}),
+
+	Highlight: lipgloss.NewStyle().PaddingLeft(4).
+		Background(lipgloss.AdaptiveColor{Light: cfg.Style.Light.HighlightBG, Dark: cfg.Style.HighlightBG}).
+		Foreground(lipgloss.AdaptiveColor{Light: cfg.Style.Light.HighlightFG, Dark: cfg.Style.HighlightFG}),
+
+	SelectedHighlight: lipgloss.NewStyle().PaddingLeft(2).
+		Background(lipgloss.AdaptiveColor{Light: cfg.Style.Light.SelectedHighlightBG, Dark: cfg.Style.SelectedHighlightBG}).
+		Foreground(lipgloss.AdaptiveColor{Light: cfg.Style.Light.SelectedHighlightFG, Dark: cfg.Style.SelectedHighlightFG}),
+
+	Deletion: lipgloss.NewStyle().MarginLeft(2).
+		Foreground(lipgloss.AdaptiveColor{Light: cfg.Style.Light.Delete, Dark: cfg.Style.Delete}),
+
+	Sharing: lipgloss.NewStyle().MarginLeft(2).
+		Foreground(lipgloss.AdaptiveColor{Light: cfg.Style.Light.Sharing, Dark: cfg.Style.Sharing}),
+
+	Pasting: lipgloss.NewStyle().MarginLeft(2).
+		Foreground(lipgloss.AdaptiveColor{Light: cfg.Style.Light.Pasting, Dark: cfg.Style.Pasting}),
+
+	Pagination: list.DefaultStyles().PaginationStyle.PaddingLeft(4),
+
+	ActivePaginationDot: lipgloss.NewStyle().
+		Foreground(lipgloss.AdaptiveColor{Light: cfg.Style.Light.ActivePaginationDot, Dark: cfg.Style.ActivePaginationDot}),
+
+	Help: list.DefaultStyles().HelpStyle.PaddingLeft(4).PaddingBottom(1).
+		Foreground(lipgloss.AdaptiveColor{Light: cfg.Style.Light.Help, Dark: cfg.Style.Help}),
+
+	GitScope: lipgloss.NewStyle().Bold(true).
+		Foreground(lipgloss.AdaptiveColor{Light: cfg.Style.Light.GitScope, Dark: cfg.Style.GitScope}),
+
+	GitScopeAuthor: lipgloss.NewStyle().PaddingLeft(4).
+		Foreground(lipgloss.AdaptiveColor{Light: cfg.Style.Light.GitScope, Dark: cfg.Style.GitScope}), 
+
+	LocalScope: lipgloss.NewStyle().Bold(true).
+		Foreground(lipgloss.AdaptiveColor{Light: cfg.Style.Light.LocalScope, Dark: cfg.Style.LocalScope}),
+
+	MixedScope: lipgloss.NewStyle().Bold(true).
+		Foreground(lipgloss.AdaptiveColor{Light: cfg.Style.Light.MixedScope, Dark: cfg.Style.MixedScope}),
+
+	// TUI Github Styles
+	Error: lipgloss.NewStyle().
+		Foreground(lipgloss.AdaptiveColor{Light: cfg.Style.Light.GH.Error, Dark: cfg.Style.GH.Error}),
+	Toggle: lipgloss.NewStyle().
+		Foreground(lipgloss.AdaptiveColor{Light: cfg.Style.Light.GH.Toggle, Dark: cfg.Style.GH.Toggle}),
+	ActiveToggle: lipgloss.NewStyle().
+		Foreground(lipgloss.AdaptiveColor{Light: cfg.Style.Light.GH.ActiveToggle, Dark: cfg.Style.GH.ActiveToggle}),
+
+	// TUI Author Styles
+	Focused: lipgloss.NewStyle().
+		Foreground(lipgloss.AdaptiveColor{Light: cfg.Style.Light.Author.Focused, Dark: cfg.Style.Author.Focused}),
+	Blurred: lipgloss.NewStyle().
+		Foreground(lipgloss.AdaptiveColor{Light: cfg.Style.Light.Author.Blurred, Dark: cfg.Style.Author.Blurred}),
+	Cursor: lipgloss.NewStyle().
+		Foreground(lipgloss.AdaptiveColor{Light: cfg.Style.Light.Author.Cursor, Dark: cfg.Style.Author.Cursor}),
+	NoStyle: lipgloss.NewStyle(),
+	CursorModeHelp: lipgloss.NewStyle().
+		Foreground(lipgloss.AdaptiveColor{Light: cfg.Style.Light.Author.CursorModeHelp, Dark: cfg.Style.Author.CursorModeHelp}),
+
+	// TUI Groups Styles
+	ModelStyle: lipgloss.NewStyle().
+		Width(20).
+		Height(8).
+		Align(lipgloss.Center, lipgloss.Center).
+		BorderStyle(lipgloss.NormalBorder()).
+		BorderForeground(lipgloss.AdaptiveColor{Light: cfg.Style.Light.Groups.ModelStyle, Dark: cfg.Style.Groups.ModelStyle}),
+	FocusedModelStyle: lipgloss.NewStyle().
+		Width(20).
+		Height(8).
+		Align(lipgloss.Center, lipgloss.Center).
+		BorderStyle(lipgloss.DoubleBorder()).
+		BorderForeground(lipgloss.AdaptiveColor{Light: cfg.Style.Light.Groups.FocusedModelStyle, Dark: cfg.Style.Groups.FocusedModelStyle}),
+
+	// TUI Commit Message Writer Styles
+	Base: lipgloss.NewStyle().
+		Foreground(lipgloss.AdaptiveColor{Light: cfg.Style.Light.CommitMessage.Base, Dark: cfg.Style.CommitMessage.Base}),
+	LineNumber: lipgloss.NewStyle().
+		Foreground(lipgloss.AdaptiveColor{Light: cfg.Style.Light.CommitMessage.LineNumber, Dark: cfg.Style.CommitMessage.LineNumber}),
+}
+}
 
 type item struct {
 	id      string
@@ -143,13 +245,13 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	var baseStyle lipgloss.Style
 	switch i.source {
 	case git_scope:
-		baseStyle = git_scope_author_style
+		baseStyle = styleVar.GitScopeAuthor
 	case local_scope:
-		baseStyle = itemStyle
+		baseStyle = styleVar.Item
 	case mixed_scope:
 		baseStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("178"))
 	default:
-		baseStyle = itemStyle
+		baseStyle = styleVar.Item
 	}
 
 	str := fmt.Sprintf("%d. %s", index+1, i.display)
@@ -387,7 +489,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.scope):
 			if m.scope == git_scope {
 				m.scope = local_scope
-				m.list.Title = title_text + local_scope_style.Render("Scope: LOCAL")
+				m.list.Title = title_text + styleVar.LocalScope.Render("Scope: LOCAL")
 				if len(m.swap_lists[1]) == 0 {
 					m.swap_lists[1] = generate_list(local_scope)
 				}
@@ -397,7 +499,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			if m.scope == local_scope {
 				m.scope = mixed_scope
-				m.list.Title = title_text + mixed_scope_style.Render("Scope: MIXED")
+				m.list.Title = title_text + styleVar.MixedScope.Render("Scope: MIXED")
 				if len(m.swap_lists[2]) == 0 {
 					m.swap_lists[2] = generate_list(mixed_scope)
 				}
@@ -407,7 +509,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			if m.scope == mixed_scope {
 				m.scope = git_scope
-				m.list.Title = title_text + git_scope_style.Render("Scope: GIT")
+				m.list.Title = title_text + styleVar.GitScope.Render("Scope: GIT")
 				if len(m.swap_lists[0]) == 0 {
 					m.swap_lists[0] = generate_list(git_scope)
 				}
@@ -533,15 +635,15 @@ func (m Model) View() string {
 	sb.WriteString("\n" + m.list.View())
 
 	if deletion {
-		sb.WriteString(deletionStyle.Render("\n  D: Confirm delete author"))
+		sb.WriteString(styleVar.Deletion.Render("\n  D: Confirm delete author"))
 	}
 
 	if sharing {
-		sb.WriteString(sharingStyle.Render("\n  " + m.keys.yank_selected_share.Keys()[0] + ": Confirm creation of share code"))
+		sb.WriteString(styleVar.Sharing.Render("\n  " + m.keys.yank_selected_share.Keys()[0] + ": Confirm creation of share code"))
 	}
 
 	if pasting {
-		sb.WriteString(pastingStyle.Render("\n  " + m.keys.paste_share.Keys()[0] + ": Confirm pasting/importing of share code"))
+		sb.WriteString(styleVar.Pasting.Render("\n  " + m.keys.paste_share.Keys()[0] + ": Confirm pasting/importing of share code"))
 	}
 	if m.popUp {
 		sb.Reset()
@@ -595,17 +697,17 @@ func listModel(scope ...int) Model {
 
 	switch scope[0] {
 	case git_scope:
-		l.Title = title_text + git_scope_style.Render("Scope: GIT")
+		l.Title = title_text + styleVar.GitScope.Render("Scope: GIT")
 	case local_scope:
-		l.Title = title_text + local_scope_style.Render("Scope: LOCAL")
+		l.Title = title_text + styleVar.LocalScope.Render("Scope: LOCAL")
 	case mixed_scope:
-		l.Title = title_text + mixed_scope_style.Render("Scope: MIXED")
+		l.Title = title_text + styleVar.MixedScope.Render("Scope: MIXED")
 	}
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(true) // Enable filtering
-	l.Styles.Title = titleStyle
-	l.Styles.PaginationStyle = paginationStyle
-	l.Paginator.ActiveDot = ActivePaginationDot.Render("•")
+	l.Styles.Title = styleVar.Title
+	l.Styles.PaginationStyle = styleVar.Pagination
+	l.Paginator.ActiveDot = styleVar.ActivePaginationDot.Render("•")
 	l.AdditionalShortHelpKeys = // Add help keys (main page)
 		func() []key.Binding {
 			return []key.Binding{
@@ -627,7 +729,14 @@ func listModel(scope ...int) Model {
 				listKeys.paste_share,
 			}
 		}
-	l.Styles.HelpStyle = helpStyle
+	l.Styles.HelpStyle = styleVar.Help
+	l.Help.Styles.ShortKey = styleVar.Help
+	l.Help.Styles.ShortDesc = styleVar.Help
+	l.Help.Styles.ShortSeparator = styleVar.Help
+	l.Help.Styles.FullKey = styleVar.Help
+	l.Help.Styles.FullDesc = styleVar.Help
+	l.Help.Styles.FullSeparator = styleVar.Help
+	l.Help.Styles.Ellipsis = styleVar.Help
 
 	swapLists := [3][]list.Item{}
 	swapLists[scope[0]] = items

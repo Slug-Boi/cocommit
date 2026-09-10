@@ -148,6 +148,7 @@ func Execute() {
 	// define users
 	utils.Define_users(author_file)
 	utils.Define_git_users()
+	tui.NewStyles(utils.ConfigVar)
 
 	err = rootCmd.Execute()
 	if err != nil {

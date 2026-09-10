@@ -13,20 +13,6 @@ import (
 
 // sessionState is used to track which model is focused
 
-var (
-	modelStyle = lipgloss.NewStyle().
-			Width(20).
-			Height(8).
-			Align(lipgloss.Center, lipgloss.Center).
-			BorderStyle(lipgloss.NormalBorder()).
-			BorderForeground(lipgloss.Color("241"))
-	focusedModelStyle = lipgloss.NewStyle().
-				Width(20).
-				Height(8).
-				Align(lipgloss.Center, lipgloss.Center).
-				BorderStyle(lipgloss.DoubleBorder()).
-				BorderForeground(lipgloss.Color("170"))
-)
 
 type mainModel struct {
 	content   []string
@@ -125,7 +111,7 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				for k, v := range dupProtect {
 					if _, ok := selected[v]; !ok {
 						for _, user := range users {
-							if user.Username+" - "+user.Email+" ("+user.Platform + ")" == k {
+							if user.Username+" - "+user.Email+" ("+user.Platform+")" == k {
 								selectToggle(item{id: v, display: k, source: local_scope})
 							}
 						}
@@ -157,9 +143,9 @@ func (m mainModel) View() string {
 	for i, c := range m.content {
 		// uses joinhorizontal to create a grid of squares
 		if i == m.index {
-			squares = append(squares, focusedModelStyle.Render(c))
+			squares = append(squares, styleVar.FocusedModelStyle.Render(c))
 		} else {
-			squares = append(squares, modelStyle.Render(c))
+			squares = append(squares, styleVar.ModelStyle.Render(c))
 		}
 	}
 	// Take the first 5 elements and join them horizontally
@@ -177,7 +163,7 @@ func (m mainModel) View() string {
 
 	s += "\n" + m.paginator.View()
 
-	s += helpStyle.Render("\ntab/right: focus next • left: focus previous • enter: select group • q/esq: exit\n")
+	s += styleVar.Help.Render("\ntab/right: focus next • left: focus previous • enter: select group • q/esq: exit\n")
 	return s
 }
 
