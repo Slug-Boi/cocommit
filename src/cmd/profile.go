@@ -30,6 +30,7 @@ func ProfileCommand() *cobra.Command {
 			ee, _ := cmd.Flags().GetBool("edit-editor")
 			s, _ := cmd.Flags().GetBool("share")
 			r, _ := cmd.Flags().GetString("repo")
+			p, _ := cmd.Flags().GetBool("publish")
 
 			if a {
 				tui.EntryProfileAuthorModel()
@@ -59,6 +60,22 @@ func ProfileCommand() *cobra.Command {
 				fmt.Print(encoded)
 				os.Exit(0)
 			}
+			if p {
+				var inp string
+				fmt.Println("\033[33mWARNING:\033[0m")
+				fmt.Println("Your profile data will be published to a public repo, anyone can look up your profile email.")
+				fmt.Println("Please use the <id>+<username>@users.noreply.github.com email unless you have a good reason not to.")
+				fmt.Println("If your personal email is currently being used and you do not want it publicly published, please cancel this action.")
+				fmt.Print("With this in mind, do you want to continue to publish your profile? (y/n):\n")
+				fmt.Scan(&inp)
+				
+				if inp == "y" || inp == "Y" {
+
+				} else {
+					fmt.Println("Profile publish aborted")
+					os.Exit(0)
+				}
+			}
 		},
 	}
 }
@@ -71,4 +88,5 @@ func init() {
 	profileCmd.Flags().BoolP("edit-editor", "v", false, "Edit your user credentials using your config preferred editor")
 	profileCmd.Flags().BoolP("share", "s", false, "Share your user credentials as a sharecode")
 	profileCmd.Flags().StringP("repo", "r", "", "Use a different sync repository URL")
+	profileCmd.Flags().BoolP("publish", "p", false, "Publishes your profile to a public user store in serialized format (defaults to the cocommit_user_store repo)")
 }
