@@ -15,17 +15,17 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-var (
-	focusedStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("170"))
-	blurredStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
-	cursorStyle         = focusedStyle
-	noStyle             = lipgloss.NewStyle()
-	cursorModeHelpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("244"))
-	focusedButton       = focusedStyle.Render("[ Submit ]")
-	focusedExclude      = focusedStyle.Render("[ Exclude ]")
-	blurredButton       = fmt.Sprintf("[ %s ]", blurredStyle.Render("Submit"))
-	excludeButton       = fmt.Sprintf("[ %s ]", blurredStyle.Render("Exclude"))
-)
+// var (
+// 	focusedStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("170"))
+// 	blurredStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+// 	cursorStyle         = focusedStyle
+// 	noStyle             = lipgloss.NewStyle()
+// 	cursorModeHelpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("244"))
+// 	focusedButton       = focusedStyle.Render("[ Submit ]")
+// 	focusedExclude      = focusedStyle.Render("[ Exclude ]")
+// 	blurredButton       = fmt.Sprintf("[ %s ]", blurredStyle.Render("Submit"))
+// 	excludeButton       = fmt.Sprintf("[ %s ]", blurredStyle.Render("Exclude"))
+// )
 
 var tempAuthorToggle bool
 
@@ -105,14 +105,15 @@ func createAuthorModel(old_m *Model) model_ca {
 	var t textinput.Model
 	for i := range m.inputs {
 		t = textinput.New()
-		t.Cursor.Style = cursorStyle
+		t.Cursor.Style = styleVar.Cursor
+
 
 		switch i {
 		case 0:
 			t.Placeholder = "Shortname (e.g. jo)"
 			t.Focus()
-			t.PromptStyle = focusedStyle
-			t.TextStyle = focusedStyle
+			t.PromptStyle = styleVar.Focused
+			t.TextStyle = styleVar.Focused
 		case 1:
 			t.Placeholder = "Longname (e.g. JohnDoe)"
 		case 2:
@@ -147,14 +148,14 @@ func createGHTempAuthorModel(old_m *Model, user utils.User) model_ca {
 	var t textinput.Model
 	for i := range m.inputs {
 		t = textinput.New()
-		t.Cursor.Style = cursorStyle
+		t.Cursor.Style = styleVar.Cursor
 		switch i {
 		case 0:
 			t.Placeholder = "Username (e.g. JohnDoe-gh)"
 			t.SetValue(user.Username)
 			t.Focus()
-			t.PromptStyle = focusedStyle
-			t.TextStyle = focusedStyle
+			t.PromptStyle = styleVar.Focused
+			t.TextStyle = styleVar.Focused
 		case 1:
 			t.Placeholder = "Email (e.g. JohnDoe@domain.do)"
 			t.SetValue(user.Email)
@@ -176,15 +177,15 @@ func createGHAuthorModel(old_m *Model, user utils.User) model_ca {
 	var t textinput.Model
 	for i := range m.inputs {
 		t = textinput.New()
-		t.Cursor.Style = cursorStyle
+		t.Cursor.Style = styleVar.Cursor
 
 		switch i {
 		case 0:
 			t.Placeholder = "Shortname (e.g. jo)"
 			t.SetValue(user.Shortname)
 			t.Focus()
-			t.PromptStyle = focusedStyle
-			t.TextStyle = focusedStyle
+			t.PromptStyle = styleVar.Focused
+			t.TextStyle = styleVar.Focused
 		case 1:
 			t.Placeholder = "Longname (e.g. JohnDoe)"
 			t.SetValue(user.Longname)
@@ -230,15 +231,15 @@ func tempAuthorModel(old_m *Model) model_ca {
 	var t textinput.Model
 	for i := range m.inputs {
 		t = textinput.New()
-		t.Cursor.Style = cursorStyle
+		t.Cursor.Style = styleVar.Cursor
 		//t.CharLimit = 32
 
 		switch i {
 		case 0:
 			t.Placeholder = "Username (e.g. JohnDoe-gh)"
 			t.Focus()
-			t.PromptStyle = focusedStyle
-			t.TextStyle = focusedStyle
+			t.PromptStyle = styleVar.Focused
+			t.TextStyle = styleVar.Focused
 		case 1:
 			t.Placeholder = "Email (e.g. JohnDoe@JohnDoe.io)"
 		}
@@ -352,14 +353,14 @@ func (m model_ca) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if i == m.focusIndex {
 					// Set focused state
 					cmds[i] = m.inputs[i].Focus()
-					m.inputs[i].PromptStyle = focusedStyle
-					m.inputs[i].TextStyle = focusedStyle
+					m.inputs[i].PromptStyle = styleVar.Focused
+					m.inputs[i].TextStyle = styleVar.Focused
 					continue
 				}
 				// Remove focused state
 				m.inputs[i].Blur()
-				m.inputs[i].PromptStyle = noStyle
-				m.inputs[i].TextStyle = noStyle
+				m.inputs[i].PromptStyle = styleVar.NoStyle
+				m.inputs[i].TextStyle = styleVar.NoStyle
 			}
 
 			return m, tea.Batch(cmds...)
@@ -406,31 +407,31 @@ func (m model_ca) View() string {
 	}
 
 	//TODO: add check here for wether this button is needed
-	var exclude *string
-	var button *string
+	var exclude string
+	var button string
 	if !tempAuthorToggle {
-		exclude = &excludeButton
+		exclude = fmt.Sprintf("[ %s ]", styleVar.Blurred.Render("Exclude"))
 		if m.focusIndex == len(m.inputs) {
-			exclude = &focusedExclude
+			exclude = styleVar.Focused.Render("[ Exclude ]")
 		}
-		button = &blurredButton
+		button = fmt.Sprintf("[ %s ]", styleVar.Blurred.Render("Submit"))
 		if m.focusIndex == len(m.inputs)+1 {
-			button = &focusedButton
+			button = styleVar.Focused.Render("[ Submit ]")
 		}
 
 		if m.exclude {
-			fmt.Fprintf(&b, "\n\n%s: [X]\n\n", *exclude)
+			fmt.Fprintf(&b, "\n\n%s: [X]\n\n", exclude)
 		} else {
-			fmt.Fprintf(&b, "\n\n%s: [ ]\n\n", *exclude)
+			fmt.Fprintf(&b, "\n\n%s: [ ]\n\n", exclude)
 		}
 	} else {
-		button = &blurredButton
+		button = fmt.Sprintf("[ %s ]", styleVar.Blurred.Render("Submit"))
 		if m.focusIndex == len(m.inputs) {
-			button = &focusedButton
+			button = styleVar.Focused.Render("[ Exclude ]")
 		}
 	}
 
-	fmt.Fprintf(&b, "\n\n%s\n\n", *button)
+	fmt.Fprintf(&b, "\n\n%s\n\n", button)
 
 	//b.WriteString(cursorModeHelpStyle.Render())
 

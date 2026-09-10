@@ -13,7 +13,6 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 )
 
 type KeyMap struct {
@@ -60,8 +59,8 @@ type model_cm struct {
 func initialModel_cm() model_cm {
 	ti := textarea.New()
 	ti.FocusedStyle = textarea.Style{
-		Base:       lipgloss.NewStyle().Foreground(lipgloss.Color("170")),
-		LineNumber: lipgloss.NewStyle().Foreground(lipgloss.Color("90")),
+		Base:       styleVar.Base,
+		LineNumber: styleVar.LineNumber,
 	}
 	ti.SetWidth(80)
 	ti.SetHeight(8)
