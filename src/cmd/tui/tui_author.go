@@ -223,14 +223,14 @@ func createProfileAuthorModel(old_m *Model, user utils.User) model_ca {
 	var t textinput.Model
 	for i := range m.inputs {
 		t = textinput.New()
-		t.Cursor.Style = cursorStyle
+		t.Cursor.Style = styleVar.Cursor
 
 		switch i {
 		case 0:
 			t.Placeholder = "Shortname (e.g. jo)"
 			t.Focus()
-			t.PromptStyle = focusedStyle
-			t.TextStyle = focusedStyle
+			t.PromptStyle = styleVar.Focused
+			t.TextStyle = styleVar.Focused
 		case 1:
 			t.Placeholder = "Longname (e.g. JohnDoe)"
 		case 2:
@@ -260,14 +260,14 @@ func editProfileAuthorModel(old_m *Model, user utils.User) model_ca {
 	var t textinput.Model
 	for i := range m.inputs {
 		t = textinput.New()
-		t.Cursor.Style = cursorStyle
+		t.Cursor.Style = styleVar.Cursor
 
 		switch i {
 		case 0:
 			t.Placeholder = "Shortname (e.g. jo)"
 			t.Focus()
-			t.PromptStyle = focusedStyle
-			t.TextStyle = focusedStyle
+			t.PromptStyle = styleVar.Focused
+			t.TextStyle = styleVar.Focused
 			t.SetValue(user.Shortname)
 		case 1:
 			t.Placeholder = "Longname (e.g. JohnDoe)"
