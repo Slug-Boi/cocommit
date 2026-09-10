@@ -82,11 +82,11 @@ func LaunchEditor(editor string, filepath string, ) (string, error) {
 	}
 
 	// Clean up the temp file
-	if strings.HasSuffix(message, "\n") {
-		message = strings.TrimSuffix(message, "\n")
+	if before, ok :=strings.CutSuffix(message, "\n"); ok  {
+		message = before
 	}
-	if strings.HasSuffix(message, "\r") {
-		message = strings.TrimSuffix(message, "\r")
+	if before, ok :=strings.CutSuffix(message, "\r"); ok  {
+		message = before
 	}
 	if strings.TrimSpace(message) == "" {
 		fmt.Printf("Error: Commit message is empty. Please provide a commit message.\n")
