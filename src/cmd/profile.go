@@ -28,7 +28,7 @@ func ProfileCommand() *cobra.Command {
 			a, _ := cmd.Flags().GetBool("add")
 			e, _ := cmd.Flags().GetBool("edit")
 			ee, _ := cmd.Flags().GetBool("edit-editor")
-			s, _ := cmd.Flags().GetBool("sync")
+			s, _ := cmd.Flags().GetBool("share")
 			r, _ := cmd.Flags().GetString("repo")
 
 			if a {
@@ -39,10 +39,18 @@ func ProfileCommand() *cobra.Command {
 			}
 			if ee {
 				profileFile := utils.GetProfileFilePath()
-				utils.LaunchEditor(utils.ConfigVar.Settings.Editor, profileFile)
+				editor, err := utils.LaunchEditor(utils.ConfigVar.Settings.Editor, profileFile)
+				if err != nil {
+					panic(err)
+				}
+				if editor == "" {
+					fmt.Println("built-in editor not supported for editing profile please -e flag")
+					os.Exit(0)
+				}
 			}		
 			if r != "" {
 				cocommit_user_url = r
+				fmt.Println("This currently does nothing WIP")
 			}
 			if s {
 				
