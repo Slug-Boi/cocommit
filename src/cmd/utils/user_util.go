@@ -22,7 +22,7 @@ type User struct {
 	Groups    []string `json:"groups"`
 	From_git  bool     `json:"from_git,omitempty"`
 	Platform  string   `json:"platform,omitempty"`
-	uuid      string
+	Uuid      string   `json:"-"`
 }
 
 type Author struct {
@@ -51,7 +51,7 @@ func userEquals(a, b User) bool {
 
 func LookupAuthor(key string) (User, bool) {
 	if user, ok := Authors.Authors[key]; ok {
-		user.uuid = key
+		user.Uuid = key
 		return user, true
 	}
 
@@ -77,12 +77,12 @@ func authorTokenMatches(user User, token string) bool {
 	return strings.EqualFold(token, user.Shortname) ||
 		strings.EqualFold(token, user.Longname) ||
 		strings.EqualFold(token, user.Username) ||
-		strings.EqualFold(token, user.uuid)
+		strings.EqualFold(token, user.Uuid)
 }
 
 func ResolveAuthorToken(token string) (User, bool) {
 	if user, ok := Authors.Authors[token]; ok {
-		user.uuid = token
+		user.Uuid = token
 		return user, true
 	}
 
@@ -96,7 +96,7 @@ func ResolveAuthorToken(token string) (User, bool) {
 	found := false
 	for _, id := range ids {
 		user := Authors.Authors[id]
-		user.uuid = id
+		user.Uuid = id
 		if !authorTokenMatches(user, token) {
 			continue
 		}
@@ -159,7 +159,7 @@ func Define_users(author_file string) {
 	Authors = auth
 
 	for s, usr := range auth.Authors {
-		usr.uuid = s
+		usr.Uuid = s
 		Users[usr.Shortname] = usr
 		Users[usr.Longname] = usr
 		if usr.Ex {
@@ -268,11 +268,11 @@ func UnserealizeUsers(encoded string) ([]string, []string) {
 	return added_users, not_added
 }
 
-func ImportUsersFromShareCode(args []string) string {
+func ImportUsersFromShareCode(sharecode string) string {
 	var sb strings.Builder
 
-	if len(args) > 0 {
-		added_users, not_added := UnserealizeUsers(args[0])
+	if len(sharecode) > 0 {
+		added_users, not_added := UnserealizeUsers(sharecode)
 
 		if len(added_users) == 0 {
 			fmt.Println("\033[33mNo authors added (authors probably already existed or corrupted \"share code\")\033[0m")
@@ -305,7 +305,7 @@ func ImportUsersFromShareCode(args []string) string {
 			sb.WriteString("\n")
 		}
 
-	} else if len(args) == 0 {
+	} else if len(sharecode) == 0 {
 		fmt.Println("\033[33mNo \"share code\", please run the flag with a valid \"share code\"\033[0m")
 		sb.WriteString("\033[33mNo \"share code\", please run the flag with a valid \"share code\"\033[0m")
 		os.Exit(0)
@@ -358,7 +358,7 @@ func add_x_users_string_slice(excludeMode, selected []string) []string {
 		excludeMode = append(excludeMode, DefExclude...)
 	}
 	for key, user := range Authors.Authors {
-		user.uuid = key
+		user.Uuid = key
 		if !slices.Contains(excludeMode, key) {
 			selected = append(selected, key)
 			excludeMode = append(excludeMode, key)
@@ -368,4 +368,3 @@ func add_x_users_string_slice(excludeMode, selected []string) []string {
 }
 
 // Profile specific util for users
-

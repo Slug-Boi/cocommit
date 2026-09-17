@@ -21,14 +21,11 @@ func Find_authorfile() string {
 		if cfg == nil {
 			// mimic the default config structure
 			cfg = &Config{
-				Settings: struct {
-					AuthorFile    string `mapstructure:"author_file"`
-					StartingScope string `mapstructure:"starting_scope"`
-					Editor        string `mapstructure:"editor"`
-				}{
-					AuthorFile:    "",
-					StartingScope: "git",
-					Editor:        "built-in",
+				Settings: SettingsConfig{
+					AuthorFile:       "",
+					StartingScope:    "git",
+					Editor:           "built-in",
+					DefaultStoreRepo: "",
 				},
 			}
 		}
@@ -149,7 +146,7 @@ func GetProfileFilePath(params ...string) string {
 	config_dir, _ := os.UserConfigDir()
 	profile_file := config_dir + "/cocommit/profile.json"+extra
 
-	if _, err := os.Stat(profile_file); !os.IsNotExist(err) {
+	if _, err := os.Stat(profile_file); os.IsNotExist(err) {
 		fmt.Println("Profile file doesn't exist please use add flag to create one")
 		os.Exit(0)
 	}
@@ -158,11 +155,14 @@ func GetProfileFilePath(params ...string) string {
 }
 
 func CreateProfile(user User) bool {
-	profile_file := GetProfileFilePath()
+	config_dir, _ := os.UserConfigDir()
+	profile_file := config_dir + "/cocommit/profile.json"
 
 	if _, err := os.Stat(profile_file); !os.IsNotExist(err) {
 		return false
 	}
+
+	user.Platform = strings.ToLower(user.Platform)
 
 	// Specifically for the json file
 	uuid := uuid.New().String()
@@ -209,7 +209,9 @@ func GetProfileUser() User {
 		panic(err)
 	}
 	// profile is only allowed to contain a single user if more are there the user has done something weird
-	for _,v := range profile.Authors {
+	for k,v := range profile.Authors {
+		v.Uuid = k
+		v.Platform = strings.ToLower(v.Platform)
 		return v
 	}
 	return User{}
@@ -222,6 +224,8 @@ func CreateAuthor(user User) bool {
 	if _, ok := LookupAuthorID(user); ok {
 		return false
 	}
+
+	user.Platform = strings.ToLower(user.Platform)
 
 	Users[user.Shortname] = user
 	Users[user.Longname] = user
@@ -271,6 +275,7 @@ func CreateMultipleAuthors(users []User) ([]string, []string) {
 
 	for _, usr := range users {
 		if _, ok := LookupAuthorID(usr); !ok {
+			usr.Platform = strings.ToLower(usr.Platform)
 			added_users = append(added_users, (usr.Username + " - " + usr.Email + "\n"))
 			Users[usr.Shortname] = usr
 			Users[usr.Longname] = usr

@@ -475,7 +475,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					panic("clipboard could not read: \n" + err.Error())
 				}
 
-				out := utils.ImportUsersFromShareCode([]string{text})
+				out := utils.ImportUsersFromShareCode(text)
 
 				m.popUp = true
 				m.popUpText = out

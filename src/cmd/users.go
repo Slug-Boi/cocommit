@@ -36,10 +36,36 @@ func UsersCmd() *cobra.Command {
 
 			i, _ := cmd.Flags().GetBool("import")
 			if i {
-				utils.ImportUsersFromShareCode(args)	
+				utils.ImportUsersFromShareCode(args[0])	
 				
 				os.Exit(0)
 			}
+
+			var cocommit_user_store_url string
+			r, _ := cmd.Flags().GetString("repo")
+			if r != "" {
+				cocommit_user_store_url = r
+			} else {
+				cocommit_user_store_url = utils.ConfigVar.Settings.DefaultStoreRepo
+			}
+
+			g, _ := cmd.Flags().GetString("get")
+			if g != "" {
+				repo, err := utils.ParseStoreRepo(cocommit_user_store_url)
+				if err != nil {
+					panic(err)
+				}
+
+				f_users, err := utils.ParseUserQueries(g)
+				if err != nil {
+					panic(err)
+				}
+				for _, user := range f_users {
+					result := utils.FetchUserStoreUser(user.Username, user.Platform, repo.Owner, repo.Repo, repo.Ref)
+					fmt.Println(result)
+				} 
+			}
+
 
 			//TODO: make this print a bit prettier (sort it and maybe use a table)
 			// check if the no pretty print flag is set
@@ -100,4 +126,6 @@ func init() {
 	usersCmd.Flags().BoolP("np", "n", false, "No pretty print of the users")
 	usersCmd.Flags().BoolP("share", "s", false, "Shares one or more users as a \"share code\" (encoded json)")
 	usersCmd.Flags().BoolP("import", "i", false, "Imports users from \"share code\" (encoded json)")
+	usersCmd.Flags().StringP("repo", "r", "", "Sets the repository to get users from with the get command (only for this command run)")
+	usersCmd.Flags().StringP("get", "g", "", "Gets a user from the public cocommit user store based on GH username")
 }

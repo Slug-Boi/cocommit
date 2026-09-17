@@ -25,99 +25,172 @@ var (
 	configType = "toml"
 )
 
+// type Config struct {
+// 	Settings struct {
+// 		AuthorFile    string `mapstructure:"author_file"`
+// 		StartingScope string `mapstructure:"starting_scope"`
+// 		Editor        string `mapstructure:"editor"`
+// 		DefaultStoreRepo string `mapstructure:"default_user_store_repository"`
+// 	} `mapstructure:"settings"`
+// 	Style struct {
+// 		Help		string 	`mapstructure:"help"`
+// 		Item		string	`mapstructure:"item"`
+// 		SelectedItemFG string 	`mapstructure:"selected_item_fg"`
+// 		HighlightFG 	string	`mapstructure:"highlight_fg"`
+// 		SelectedHighlightFG string `mapstructure:"selected_highlight_fg"`
+// 		SelectedItemBG string 	`mapstructure:"selected_item_bg"`
+// 		HighlightBG 	string	`mapstructure:"highlight_bg"`
+// 		SelectedHighlightBG string `mapstructure:"selected_highlight_bg"`
+// 		Delete		string	`mapstructure:"delete"`
+// 		Sharing		string 	`mapstructure:"sharing"`
+// 		Pasting		string 	`mapstructure:"pasting"`
+// 		ActivePaginationDot string `mapstructure:"active_pagination_dot"`
+// 		GitScope    string 	`mapstructure:"git_scope"`
+// 		LocalScope 	string 	`mapstructure:"local_scope"`
+// 		MixedScope	string 	`mapstructure:"mixed_scope"`
+
+// 		CommitMessage struct {
+// 			// TUI CommitMessageWriter
+// 			Base string 	`mapstructure:"base"`
+// 			LineNumber string `mapstructure:"line_number"`
+// 		} `mapstructure:"commit_message_editor"`
+
+// 		GH struct {
+// 		// Tui GH
+// 		Error 	string 	`mapstructure:"error"`
+// 		Toggle	string 	`mapstructure:"toggle"`
+// 		ActiveToggle string 	`mapstructure:"active_toggle"`
+// 		} `mapstructure:"github_creation"`
+
+// 		Author struct {
+// 			// TUI author
+// 			Focused string  `mapstructure:"focused"`
+// 			Blurred string  `mapstructure:"blurred"`
+// 			CursorModeHelp  string `mapstructure:"cursor_mode_help"`
+// 			Cursor string	`mapstructure:"cursor"`
+// 		} `mapstructure:"author_creation"`
+// 		Groups struct {
+// 			// TUI Groups
+// 			ModelStyle string `mapstructure:"group_box"`
+// 			FocusedModelStyle string `mapstructure:"group_focused"`
+// 		} `mapstructure:"group_selection"`
+
+// 		Light struct {
+// 			Help		string 	`mapstructure:"help"`
+// 			Item		string	`mapstructure:"item"`
+// 			SelectedItemFG string 	`mapstructure:"selected_item_fg"`
+// 			HighlightFG 	string	`mapstructure:"highlight_fg"`
+// 			SelectedHighlightFG string `mapstructure:"selected_highlight_fg"`
+// 			SelectedItemBG string 	`mapstructure:"selected_item_bg"`
+// 			HighlightBG 	string	`mapstructure:"highlight_bg"`
+// 			SelectedHighlightBG string `mapstructure:"selected_highlight_bg"`
+// 			Delete		string	`mapstructure:"delete"`
+// 			Sharing		string 	`mapstructure:"sharing"`
+// 			Pasting		string 	`mapstructure:"pasting"`
+// 			ActivePaginationDot string `mapstructure:"active_pagination_dot"`
+// 			GitScope    string 	`mapstructure:"git_scope"`
+// 			LocalScope 	string 	`mapstructure:"local_scope"`
+// 			MixedScope	string 	`mapstructure:"mixed_scope"`
+
+// 			CommitMessage struct {
+// 			// TUI CommitMessageWriter
+// 			Base string 	`mapstructure:"base"`
+// 			LineNumber string `mapstructure:"line_number"`
+// 			} `mapstructure:"commit_message_editor"`
+
+// 			GH struct {
+// 			// Tui GH
+// 			Error 	string 	`mapstructure:"error"`
+// 			Toggle	string 	`mapstructure:"toggle"`
+// 			ActiveToggle string 	`mapstructure:"active_toggle"`
+// 			} `mapstructure:"github_creation"`
+
+// 			Author struct {
+// 				// TUI author
+// 				Focused string  `mapstructure:"focused"`
+// 				Blurred string  `mapstructure:"blurred"`
+// 				CursorModeHelp  string `mapstructure:"cursor_mode_help"`
+// 				Cursor string	`mapstructure:"cursor"`
+// 			} `mapstructure:"author_creation"`
+// 			Groups struct {
+// 				// TUI Groups
+// 				ModelStyle string `mapstructure:"group"`
+// 				FocusedModelStyle string `mapstructure:"group_focused"`
+// 			} `mapstructure:"group_selection"`
+// 		} `mapstructure:"light"`
+// 	} `mapstructure:"style"`
+// }
+
+type SettingsConfig struct {
+	AuthorFile       string `mapstructure:"author_file"`
+	StartingScope    string `mapstructure:"starting_scope"`
+	Editor           string `mapstructure:"editor"`
+	DefaultStoreRepo string `mapstructure:"default_store_repo"`
+}
+
+// PaletteConfig holds one full set of style colors — used once for the
+// default (dark) palette and once for the light-mode override.
+type PaletteConfig struct {
+	Help                string `mapstructure:"help"`
+	Item                string `mapstructure:"item"`
+	SelectedItemFG      string `mapstructure:"selected_item_fg"`
+	HighlightFG         string `mapstructure:"highlight_fg"`
+	SelectedHighlightFG string `mapstructure:"selected_highlight_fg"`
+	SelectedItemBG      string `mapstructure:"selected_item_bg"`
+	HighlightBG         string `mapstructure:"highlight_bg"`
+	SelectedHighlightBG string `mapstructure:"selected_highlight_bg"`
+	Delete              string `mapstructure:"delete"`
+	Sharing             string `mapstructure:"sharing"`
+	Pasting             string `mapstructure:"pasting"`
+	ActivePaginationDot string `mapstructure:"active_pagination_dot"`
+	GitScope            string `mapstructure:"git_scope"`
+	LocalScope          string `mapstructure:"local_scope"`
+	MixedScope          string `mapstructure:"mixed_scope"`
+
+	CommitMessage CommitMessageStyleConfig `mapstructure:"commit_message_editor"`
+	GH            GHStyleConfig            `mapstructure:"github_creation"`
+	Author        AuthorStyleConfig        `mapstructure:"author_creation"`
+	Groups        GroupsStyleConfig        `mapstructure:"group_selection"`
+}
+
+// TUI CommitMessageWriter
+type CommitMessageStyleConfig struct {
+	Base       string `mapstructure:"base"`
+	LineNumber string `mapstructure:"line_number"`
+}
+
+// TUI GH
+type GHStyleConfig struct {
+	Error        string `mapstructure:"error"`
+	Toggle       string `mapstructure:"toggle"`
+	ActiveToggle string `mapstructure:"active_toggle"`
+}
+
+// TUI author
+type AuthorStyleConfig struct {
+	Focused        string `mapstructure:"focused"`
+	Blurred        string `mapstructure:"blurred"`
+	CursorModeHelp string `mapstructure:"cursor_mode_help"`
+	Cursor         string `mapstructure:"cursor"`
+}
+
+// TUI Groups
+type GroupsStyleConfig struct {
+	ModelStyle        string `mapstructure:"group_box"`
+	FocusedModelStyle string `mapstructure:"group_focused"`
+}
+
+// StyleConfig embeds PaletteConfig for the default/dark palette (so
+// cfg.Style.Help, cfg.Style.CommitMessage.Base, etc. keep working exactly
+// as before via promoted fields) and adds Light as the override palette.
+type StyleConfig struct {
+	PaletteConfig `mapstructure:",squash"`
+	Light         PaletteConfig `mapstructure:"light"`
+}
+
 type Config struct {
-	Settings struct {
-		AuthorFile    string `mapstructure:"author_file"`
-		StartingScope string `mapstructure:"starting_scope"`
-		Editor        string `mapstructure:"editor"`
-	} `mapstructure:"settings"`
-	Style struct {
-		Help		string 	`mapstructure:"help"`
-		Item		string	`mapstructure:"item"`
-		SelectedItemFG string 	`mapstructure:"selected_item_fg"`
-		HighlightFG 	string	`mapstructure:"highlight_fg"`
-		SelectedHighlightFG string `mapstructure:"selected_highlight_fg"`
-		SelectedItemBG string 	`mapstructure:"selected_item_bg"`
-		HighlightBG 	string	`mapstructure:"highlight_bg"`
-		SelectedHighlightBG string `mapstructure:"selected_highlight_bg"`
-		Delete		string	`mapstructure:"delete"`
-		Sharing		string 	`mapstructure:"sharing"`
-		Pasting		string 	`mapstructure:"pasting"`
-		ActivePaginationDot string `mapstructure:"active_pagination_dot"`
-		GitScope    string 	`mapstructure:"git_scope"`
-		LocalScope 	string 	`mapstructure:"local_scope"`
-		MixedScope	string 	`mapstructure:"mixed_scope"`
-
-		CommitMessage struct {
-			// TUI CommitMessageWriter
-			Base string 	`mapstructure:"base"`
-			LineNumber string `mapstructure:"line_number"`
-		} `mapstructure:"commit_message_editor"`
-
-		GH struct {
-		// Tui GH
-		Error 	string 	`mapstructure:"error"`
-		Toggle	string 	`mapstructure:"toggle"`
-		ActiveToggle string 	`mapstructure:"active_toggle"`
-		} `mapstructure:"github_creation"`
-
-		Author struct {
-			// TUI author
-			Focused string  `mapstructure:"focused"`
-			Blurred string  `mapstructure:"blurred"`
-			CursorModeHelp  string `mapstructure:"cursor_mode_help"`
-			Cursor string	`mapstructure:"cursor"`
-		} `mapstructure:"author_creation"`
-		Groups struct {
-			// TUI Groups
-			ModelStyle string `mapstructure:"group_box"`
-			FocusedModelStyle string `mapstructure:"group_focused"`
-		} `mapstructure:"group_selection"`
-
-		Light struct {
-			Help		string 	`mapstructure:"help"`
-			Item		string	`mapstructure:"item"`
-			SelectedItemFG string 	`mapstructure:"selected_item_fg"`
-			HighlightFG 	string	`mapstructure:"highlight_fg"`
-			SelectedHighlightFG string `mapstructure:"selected_highlight_fg"`
-			SelectedItemBG string 	`mapstructure:"selected_item_bg"`
-			HighlightBG 	string	`mapstructure:"highlight_bg"`
-			SelectedHighlightBG string `mapstructure:"selected_highlight_bg"`
-			Delete		string	`mapstructure:"delete"`
-			Sharing		string 	`mapstructure:"sharing"`
-			Pasting		string 	`mapstructure:"pasting"`
-			ActivePaginationDot string `mapstructure:"active_pagination_dot"`
-			GitScope    string 	`mapstructure:"git_scope"`
-			LocalScope 	string 	`mapstructure:"local_scope"`
-			MixedScope	string 	`mapstructure:"mixed_scope"`
-
-			CommitMessage struct {
-			// TUI CommitMessageWriter
-			Base string 	`mapstructure:"base"`
-			LineNumber string `mapstructure:"line_number"`
-			} `mapstructure:"commit_message_editor"`
-
-			GH struct {
-			// Tui GH
-			Error 	string 	`mapstructure:"error"`
-			Toggle	string 	`mapstructure:"toggle"`
-			ActiveToggle string 	`mapstructure:"active_toggle"`
-			} `mapstructure:"github_creation"`
-
-			Author struct {
-				// TUI author
-				Focused string  `mapstructure:"focused"`
-				Blurred string  `mapstructure:"blurred"`
-				CursorModeHelp  string `mapstructure:"cursor_mode_help"`
-				Cursor string	`mapstructure:"cursor"`
-			} `mapstructure:"author_creation"`
-			Groups struct {
-				// TUI Groups
-				ModelStyle string `mapstructure:"group"`
-				FocusedModelStyle string `mapstructure:"group_focused"`
-			} `mapstructure:"group_selection"`
-		} `mapstructure:"light"`
-	} `mapstructure:"style"`
+	Settings SettingsConfig `mapstructure:"settings"`
+	Style    StyleConfig    `mapstructure:"style"`
 }
 
 func (c *Config) String() string {
@@ -146,6 +219,7 @@ func LoadConfig() (*Config, error) {
 	v.SetDefault("settings.author_file", defaultConfigLocations[0]+"/authors.json")
 	v.SetDefault("settings.starting_scope", "local")
 	v.SetDefault("settings.editor", "built-in")
+	v.SetDefault("settings.default_user_store_repository", "https://github.com/Slug-Boi/cocommit_user_store")
 
 	v.SetDefault("style.item", "170")
 	v.SetDefault("style.selected_item_fg", "170")
@@ -175,8 +249,8 @@ func LoadConfig() (*Config, error) {
 	v.SetDefault("style.group_selection.group", "241")
 	v.SetDefault("style.group_selection.group_focused", "170")
 
-	v.SetDefault("style.commit_message_editor.base", 170)
-	v.SetDefault("style.commit_message_editor.line_number", 90)
+	v.SetDefault("style.commit_message_editor.base", "170")
+	v.SetDefault("style.commit_message_editor.line_number", "90")
 
 	// Lightmode
 	v.SetDefault("style.light.item", "170")
@@ -210,8 +284,8 @@ func LoadConfig() (*Config, error) {
 	v.SetDefault("style.light.group_selection.group", "241")
 	v.SetDefault("style.light.group_selection.group_focused", "170")
 
-	v.SetDefault("style.light.commit_message_editor.base", 170)
-	v.SetDefault("style.light.commit_message_editor.line_number", 90)
+	v.SetDefault("style.light.commit_message_editor.base", "170")
+	v.SetDefault("style.light.commit_message_editor.line_number", "90")
 
 
 	// Add search paths

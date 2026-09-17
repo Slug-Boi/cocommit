@@ -21,6 +21,7 @@ COMING SOON`,
 		editConfig, _ := cmd.Flags().GetBool("edit")
 		configLocation, _ := cmd.Flags().GetBool("location")
 		removeConfig, _ := cmd.Flags().GetBool("remove")
+		deleteToken, _ := cmd.Flags().GetBool("delete-token")
 
 		if printConfig {
 			if !utils.CheckConfig() {
@@ -54,7 +55,9 @@ COMING SOON`,
 		} else if removeConfig {
 			utils.RemoveConfig()
 			return
-		} 
+		} else if deleteToken {
+			utils.DeleteToken()
+		}
   		fmt.Println("No action specified. Use flags to specify an action, use -h for help.")
 	},
 }
@@ -65,4 +68,5 @@ func init() {
 	configCmd.Flags().BoolP("edit", "e", false, "Edit the configuration file in your default editor")
 	configCmd.Flags().BoolP("location", "l", false, "Print the location of the configuration file")
 	configCmd.Flags().BoolP("remove", "r", false, "Remove the configuration file")
+	configCmd.Flags().BoolP("delete-token", "d", false, "Delete the github token saved to keyring")
 }
