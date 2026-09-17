@@ -391,7 +391,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Handle keys from keyList (help menu)
 		switch {
 		case key.Matches(msg, m.keys.ghAdd):
-			sub_model = NewGitHubUserForm(&m)
 			return m, tea.ClearScreen
 
 		case key.Matches(msg, m.keys.negation):

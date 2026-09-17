@@ -32,6 +32,7 @@ var profileAuthorToggle bool
 var profileAuthorEditToggle bool
 var userAuthorEditToggle bool
 
+
 type model_ca struct {
 	focusIndex int
 	inputs     []textinput.Model
