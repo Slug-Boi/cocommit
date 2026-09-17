@@ -64,6 +64,8 @@ func UsersCmd() *cobra.Command {
 					result := utils.FetchUserStoreUser(user.Username, user.Platform, repo.Owner, repo.Repo, repo.Ref)
 					fmt.Println(result)
 				} 
+
+				os.Exit(0)
 			}
 
 
