@@ -98,10 +98,19 @@ func FetchGithubProfile(ctx context.Context, username string) (User, error) {
 }
 
 func fetchGithubProfileViaAPI(ctx context.Context, username string) (GithubProfile, error) {
-	tok, err := Login(ctx)
+	tok, err := LoadToken()
 	if err != nil {
-		return GithubProfile{}, fmt.Errorf("authenticating: %w", err)
+		panic(err)
 	}
+	if tok == nil || !tok.Valid() {
+		tok, err = Login(ctx)
+		//TODO: add yes no check here
+		err = SaveToken(tok)
+		if err != nil {
+			return GithubProfile{}, fmt.Errorf("authenticating: %w", err)
+		}
+	}
+	
 
 	client, err := github.NewClient(github.WithAuthToken(tok.AccessToken))
 	if err != nil {

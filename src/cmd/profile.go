@@ -87,7 +87,7 @@ func ProfileCommand() *cobra.Command {
 					if err != nil {
 						panic(err)
 					}
-					if tok == nil {
+					if tok == nil || !tok.Valid() {
 						tok, err = utils.Login(ctx)
 						if err != nil {
 							panic(err)
