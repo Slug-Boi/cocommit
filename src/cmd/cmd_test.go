@@ -6,6 +6,8 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/Slug-Boi/cocommit/src/cmd/utils"
 )
 
 const author_data = `
@@ -42,6 +44,12 @@ func setup() {
 	}
 	os.Setenv("author_file", "author_file_test")
 	envVar = os.Getenv("author_file")
+
+	utils.ConfigVar = &utils.Config{
+		Settings: utils.SettingsConfig{
+			DefaultStoreRepo: "Slug-Boi/cocommit_user_store",
+		},
+	}
 }
 
 func teardown() {

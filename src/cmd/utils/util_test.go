@@ -872,15 +872,12 @@ editor = "built-in"`
 	os.WriteFile(filename, []byte(initial_config_data), 0644)
 
 	override_cfg := &utils.Config{
-		Settings: struct {
-			AuthorFile    string `mapstructure:"author_file"`
-			StartingScope string `mapstructure:"starting_scope"`
-			Editor        string `mapstructure:"editor"`
-		}{
+		Settings: utils.SettingsConfig{
 			AuthorFile:    "test_authors.json",
 			StartingScope: "git",
 			Editor:        "built-in",
-		}}
+		},
+	}
 
 	// Set viper config file to be cfg
 	viper.SetConfigFile(filename)

@@ -213,7 +213,9 @@ func createGHAuthorModel(old_m *Model, user utils.User) model_ca {
 }
 
 func createProfileAuthorModel(old_m *Model, user utils.User) model_ca {
-	parent_m = old_m
+	if old_m != nil {
+		parent_m = old_m
+	}
 
 	m := model_ca{
 		inputs:     make([]textinput.Model, 6),
@@ -250,7 +252,9 @@ func createProfileAuthorModel(old_m *Model, user utils.User) model_ca {
 }
 
 func editProfileAuthorModel(old_m *Model, user utils.User) model_ca {
-	parent_m = old_m
+	if old_m != nil {
+		parent_m = old_m
+	}
 
 	m := model_ca{
 		inputs:     make([]textinput.Model, 6),
@@ -295,8 +299,6 @@ func editProfileAuthorModel(old_m *Model, user utils.User) model_ca {
 func EntryGHAuthorModel(user utils.User) {
 	model := createGHAuthorModel(&Model{}, user)
 
-	print(model.inputs[0].Value())
-
 	if _, err := tea.NewProgram(model).Run(); err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
@@ -305,9 +307,7 @@ func EntryGHAuthorModel(user utils.User) {
 
 func EntryProfileAuthorModel() {
 	profileAuthorToggle = true
-	model := createProfileAuthorModel(&Model{}, utils.User{})
-
-	print(model.inputs[0].Value())
+	model := createProfileAuthorModel(nil, utils.User{})
 
 	if _, err := tea.NewProgram(model).Run(); err != nil {
 		fmt.Println("Error running program:", err)
@@ -321,9 +321,7 @@ func EntryEditProfileModel() {
 
 	profile := utils.GetProfileUser()
 
-	model := editProfileAuthorModel(&Model{}, profile)
-
-	print(model.inputs[0].Value())
+	model := editProfileAuthorModel(nil, profile)
 
 	if _, err := tea.NewProgram(model).Run(); err != nil {
 		fmt.Println("Error running program:", err)
@@ -336,8 +334,6 @@ func EntryEditAuthor(user utils.User) {
 	userAuthorEditToggle = true
 
 	model := editProfileAuthorModel(&Model{}, user)
-
-	print(model.inputs[0].Value())
 
 	if _, err := tea.NewProgram(model).Run(); err != nil {
 		fmt.Println("Error running program:", err)
@@ -649,6 +645,7 @@ func (m *model_ca) AddProfile() bool {
 			m.errorModel.missing = append(m.errorModel.missing, "Profile already exists please use edit instead")
 			return true
 		}
+		fmt.Println("\033[32mProfile Created\033[0m")
 		return false
 	}
 	return true
