@@ -734,7 +734,11 @@ func Test_FetchGHProfile(t *testing.T) {
 	setup()
 	defer teardown()
 	// Test FetchGithubProfile
-	profile, _ := utils.FetchGithubProfile(nil, "Slug-Boi")
+
+	profile, err := utils.FetchGithubProfile(nil, "Slug-Boi")
+	if err != nil {
+		t.Fatalf("FetchGithubProfile() returned error: %v", err)
+	}
 	if profile.Username != "Slug-Boi" {
 		t.Errorf("FetchGithubProfile() = %v; want Slug-Boi", profile.Username)
 	}
