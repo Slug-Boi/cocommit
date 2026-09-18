@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -41,8 +42,11 @@ func GHCmd () *cobra.Command {
 				args = append(args, username)
 				email = strings.TrimSpace(email_out)
 			}
-
-			user := utils.FetchGithubProfile(args[0])
+			ctx := context.Background()
+			user, err := utils.FetchGithubProfile(ctx, args[0])
+			if err != nil {
+				panic(err)
+			}
 
 			// Update values if flags are set
 			if shortname != "" {
