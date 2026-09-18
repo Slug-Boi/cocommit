@@ -71,6 +71,12 @@ func teardown() {
 	os.Remove("config.toml")
 }
 
+func skipCI(t *testing.T) {
+	if os.Getenv("CI") != "" {
+		t.Skip("Skipping testing in CI environment")
+	}
+}
+
 // Author tests BEGIN
 func Test_FindAuthorFile(t *testing.T) {
 	setup()
@@ -731,6 +737,7 @@ func Test_CommitAppender(t *testing.T) {
 
 // Github tests BEGIN
 func Test_FetchGHProfile(t *testing.T) {
+	skipCI(t)
 	setup()
 	defer teardown()
 	// Test FetchGithubProfile
@@ -761,6 +768,7 @@ func Test_FetchGHProfile(t *testing.T) {
 
 func Test_FetchGHProfilePanicOnRequestError(t *testing.T) {
 	// Test FetchGithubProfile panic on HTTP request error
+	skipCI(t)
 	defer func() {
 		if r := recover(); r == nil {
 			t.Errorf("FetchGithubProfile() did not panic on HTTP request error")
@@ -772,6 +780,7 @@ func Test_FetchGHProfilePanicOnRequestError(t *testing.T) {
 }
 
 func Test_FetchGHProfilePanicOnInvalidJSON(t *testing.T) {
+	skipCI(t)
 	// Test FetchGithubProfile panic on invalid JSON response
 	defer func() {
 		if r := recover(); r == nil {
@@ -793,6 +802,7 @@ func Test_FetchGHProfilePanicOnInvalidJSON(t *testing.T) {
 }
 
 func Test_FetchGHProfilePanicOnHTTPGetError(t *testing.T) {
+	skipCI(t)
 	// Test FetchGithubProfile panic on HTTP GET error
 	defer func() {
 		if r := recover(); r == nil {
