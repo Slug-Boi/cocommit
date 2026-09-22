@@ -50,9 +50,14 @@ func main() {
 		// build application
 		// write the build output to the host
 		build := test.
-			WithEnvVariable("GOOS", goos).
-			WithEnvVariable("GOARCH", goarch).
-			WithExec([]string{"go", "build", "-o", filename, "-ldflags", "-s -w", "-X github.com/Slug-Boi/cocommit/src/cmd.Coco_Version=" + Coco_var}).WithEnvVariable("CI", "true")
+			WithEnvVariable("GOOS", "darwin").
+			WithEnvVariable("GOARCH", "arm64").
+			WithExec([]string{
+				"go", "build",
+				"-o", filename,
+				"-ldflags", "-s -w -X github.com/Slug-Boi/cocommit/src/cmd.Coco_Version=" + Coco_var,
+			}).
+			WithEnvVariable("CI", "true")
 
 		buildDir = buildDir.WithDirectory(path, build.Directory(path))
 
