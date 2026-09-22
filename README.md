@@ -15,6 +15,12 @@
 
 
 ## Install:
+### Homebrew
+Cocommit is available on homebrew through my homebrew-tap below is how to install it using brew
+```console
+brew install Slug-Boi/homebrew-tap/cocommit
+```
+
 ### Install Script
 The repo contains two different install scripts for unix based system and windows. You can copy paste one of the commands below to use it.  
 **Unix:**
