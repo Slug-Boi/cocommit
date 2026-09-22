@@ -50,8 +50,8 @@ func main() {
 		// build application
 		// write the build output to the host
 		build := test.
-			WithEnvVariable("GOOS", "darwin").
-			WithEnvVariable("GOARCH", "arm64").
+			WithEnvVariable("GOOS", goos).
+			WithEnvVariable("GOARCH", goarch).
 			WithExec([]string{
 				"go", "build",
 				"-o", filename,
