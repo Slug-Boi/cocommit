@@ -148,6 +148,8 @@ var selected = map[string]item{}
 
 var negation = false
 
+var platformToggle = false
+
 var dupProtect = map[string]string{}
 
 var sub_model tea.Model
@@ -225,7 +227,16 @@ func (i item) FilterValue() string { return string(i.display) }
 func authorDisplay(user utils.User, includePlatform bool) string {
 	strUser := user.Username + " - " + user.Email
 	if includePlatform {
-		strUser += " (" + user.Platform + ")"
+		platform := user.Platform
+		if utils.ConfigVar != nil {
+			if icon, ok := utils.ConfigVar.PlatformIcons.PlatformIcons[user.Platform]; ok && icon != "" {
+				platform = icon
+			}
+		}
+		if platform == "" {
+			platform = "missing"
+		}
+		strUser += " (" + platform + ")"
 	}
 	return strUser
 }
@@ -546,6 +557,50 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.list, cmd = m.list.Update(msg)
 	return m, cmd
 }
+type displayCandidate struct {
+	id   string
+	user utils.User
+}
+
+// addItemsWithDisambiguation groups users by their base display string,
+// then appends items to `items`. Any string with more than one
+// candidate gets "(platform)" appended so duplicates stay distinguishable;
+// unique display strings are added as-is. `protect` is checked/updated
+// per final display string, so it still catches cross-call duplicates.
+func addItemsWithDisambiguation(
+	items []list.Item,
+	users map[string]utils.User,
+	protect map[string]string,
+	includePlatform bool,
+	sourceFn func(utils.User) int,
+) []list.Item {
+	type displayCandidate struct {
+		id   string
+		user utils.User
+	}
+
+	// Group by the BASE string (platform never included here) purely to detect collisions.
+	grouped := make(map[string][]displayCandidate)
+	for id, user := range users {
+		base := authorDisplay(user, false)
+		grouped[base] = append(grouped[base], displayCandidate{id: id, user: user})
+	}
+
+	for _, candidates := range grouped {
+		needsPlatform := includePlatform && len(candidates) > 1
+
+		for _, c := range candidates {
+			str := authorDisplay(c.user, needsPlatform)
+			if _, ok := protect[str]; ok {
+				continue
+			}
+			items = append(items, item{id: c.id, display: str, source: sourceFn(c.user)})
+			protect[str] = c.id
+		}
+	}
+
+	return items
+}
 
 func generate_list(scope int) []list.Item {
 	items := []list.Item{}
@@ -553,60 +608,25 @@ func generate_list(scope int) []list.Item {
 
 	switch scope {
 	case git_scope:
-		for short, user := range utils.Git_Users {
-			// if items already contains the user, skip it
-			str_user := authorDisplay(user, false)
-			if _, ok := local_dupProtect[str_user]; ok {
-				continue
-			}
-			items = append(items, item{id: short, display: str_user, source: git_scope})
-			local_dupProtect[str_user] = short
-		}
+		items = addItemsWithDisambiguation(items, utils.Git_Users, local_dupProtect, false,
+			func(u utils.User) int { return git_scope })
+
 	case local_scope:
-		for uuid, user := range utils.Authors.Authors {
-			// if items already contains the user, skip it
-			str_user := authorDisplay(user, true)
-			if _, ok := dupProtect[str_user]; ok {
-				continue
-			}
-			items = append(items, item{id: uuid, display: str_user, source: local_scope})
-			dupProtect[str_user] = uuid
-		}
+		items = addItemsWithDisambiguation(items, utils.Authors.Authors, dupProtect, true,
+			func(u utils.User) int { return local_scope })
+
 	case mixed_scope:
-		for uuid, user := range utils.Authors.Authors {
-			// if items already contains the user, skip it
-			str_user := authorDisplay(user, true)
-			if _, ok := local_dupProtect[str_user]; ok {
-				continue
+		sourceFn := func(u utils.User) int {
+			if u.From_git {
+				return git_scope
 			}
-			if user.From_git {
-				items = append(items, item{id: uuid, display: str_user, source: git_scope})
-			} else {
-				items = append(items, item{id: uuid, display: str_user, source: local_scope})
-			}
-			local_dupProtect[str_user] = uuid
+			return local_scope
 		}
-		//TODO: Why was this here?????
-		// local_dupProtect = map[string]string{}
-		for short, user := range utils.Git_Users {
-			// if items already contains the user, skip it
-			str_user := authorDisplay(user, false)
-
-			if _, ok := local_dupProtect[str_user]; ok {
-				continue
-			}
-
-			if user.From_git {
-				items = append(items, item{id: short, display: str_user, source: git_scope})
-			} else {
-				items = append(items, item{id: short, display: str_user, source: local_scope})
-			}
-			local_dupProtect[str_user] = short
-		}
+		items = addItemsWithDisambiguation(items, utils.Authors.Authors, local_dupProtect, true, sourceFn)
+		items = addItemsWithDisambiguation(items, utils.Git_Users, local_dupProtect, false, sourceFn)
 	}
 
 	return items
-
 }
 
 func ConvertStringScopeToIOTA(scope string) int {

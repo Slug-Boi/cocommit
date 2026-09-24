@@ -99,26 +99,31 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return nil, nil
 		case "enter":
 			var group string
-			if m.currentFocusedModel() != "" {
-				group = strings.Split(m.currentFocusedModel(), ":")[0]
-			}
-			if group != "" {
-				for _, sel := range selected {
-					delete(selected, sel.id)
+				if m.currentFocusedModel() != "" {
+					group = strings.Split(m.currentFocusedModel(), ":")[0]
 				}
-				users := utils.Groups[group]
-				//TODO: this may be able to be done in a more efficient way currently this would scale poorly
-				for k, v := range dupProtect {
-					if _, ok := selected[v]; !ok {
-						for _, user := range users {
-							if user.Username+" - "+user.Email+" ("+user.Platform+")" == k {
+				if group != "" {
+					for _, sel := range selected {
+						delete(selected, sel.id)
+					}
+					users := utils.Groups[group]
+
+					groupUUIDs := make(map[string]bool, len(users))
+					for _, user := range users {
+						if uuid, ok := utils.LookupAuthorID(user); ok {
+							groupUUIDs[uuid] = true
+						}
+					}
+
+					for k, v := range dupProtect {
+						if groupUUIDs[v] {
+							if _, ok := selected[v]; !ok {
 								selectToggle(item{id: v, display: k, source: local_scope})
 							}
 						}
 					}
 				}
-			}
-			return nil, nil
+				return nil, nil
 		case "tab", "right":
 			m.next()
 		case "left":
