@@ -25,15 +25,15 @@ COMING SOON`,
 
 		if printConfig {
 			if !utils.CheckConfig() {
-					fmt.Println("No configuration file found. Default is being used.") 
-					fmt.Println("Default configuration:")
+				fmt.Println("No configuration file found. Default is being used.")
+				fmt.Println("Default configuration:")
 
 			} else {
 				fmt.Println("Current configuration:")
 			}
 			fmt.Println(utils.ConfigVar.String())
-		} 
-		
+		}
+
 		// Check if the config file exists
 		if !utils.CheckConfig() {
 			err := utils.HandleMissingConfig()
@@ -45,9 +45,9 @@ COMING SOON`,
 		if printConfig {
 			return
 		}
-		
+
 		if editConfig {
-			utils.LaunchEditor("default",utils.GetConfigFilePath())
+			utils.LaunchEditor("default", utils.GetConfigFilePath())
 			return
 		} else if configLocation {
 			fmt.Println("Configuration file location:", utils.GetConfigFilePath())
@@ -57,14 +57,15 @@ COMING SOON`,
 			return
 		} else if deleteToken {
 			utils.DeleteToken()
+			return
 		}
-  		fmt.Println("No action specified. Use flags to specify an action, use -h for help.")
+		fmt.Println("No action specified. Use flags to specify an action, use -h for help.")
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(configCmd)
- 	configCmd.Flags().BoolP("print", "p", false, "Print the current configuration")
+	configCmd.Flags().BoolP("print", "p", false, "Print the current configuration")
 	configCmd.Flags().BoolP("edit", "e", false, "Edit the configuration file in your default editor")
 	configCmd.Flags().BoolP("location", "l", false, "Print the location of the configuration file")
 	configCmd.Flags().BoolP("remove", "r", false, "Remove the configuration file")
