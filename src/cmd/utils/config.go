@@ -153,6 +153,10 @@ type PaletteConfig struct {
 	Groups        GroupsStyleConfig        `mapstructure:"group_selection"`
 }
 
+type IconConfig struct {
+	PlatformIcons map[string]string `mapstructure:"platform_icons"`
+}
+
 // TUI CommitMessageWriter
 type CommitMessageStyleConfig struct {
 	Base       string `mapstructure:"base"`
@@ -189,15 +193,17 @@ type StyleConfig struct {
 }
 
 type Config struct {
-	Settings SettingsConfig `mapstructure:"settings"`
-	Style    StyleConfig    `mapstructure:"style"`
+	Settings      SettingsConfig `mapstructure:"settings"`
+	PlatformIcons IconConfig     `mapstructure:"icons"`
+	Style         StyleConfig    `mapstructure:"style"`
 }
 
 func (c *Config) String() string {
-	return fmt.Sprintf("Author File: %s\nStarting Scope: %s\nEditor: %s",
+	return fmt.Sprintf("Author File: %s\nStarting Scope: %s\nEditor: %s\nPlatform Icons: %v",
 		c.Settings.AuthorFile,
 		c.Settings.StartingScope,
-		c.Settings.Editor)
+		c.Settings.Editor,
+		c.PlatformIcons.PlatformIcons)
 }
 
 func init() {
@@ -220,6 +226,10 @@ func LoadConfig() (*Config, error) {
 	v.SetDefault("settings.starting_scope", "local")
 	v.SetDefault("settings.editor", "built-in")
 	v.SetDefault("settings.default_user_store_repository", "https://github.com/Slug-Boi/cocommit_user_store")
+
+	v.SetDefault("icons.platform_icons", map[string]string{
+		"github": "", "gitlab": "", "bitbucket": "",
+	})
 
 	v.SetDefault("style.item", "170")
 	v.SetDefault("style.selected_item_fg", "170")
@@ -287,7 +297,6 @@ func LoadConfig() (*Config, error) {
 	v.SetDefault("style.light.commit_message_editor.base", "170")
 	v.SetDefault("style.light.commit_message_editor.line_number", "90")
 
-
 	// Add search paths
 	for _, path := range defaultConfigLocations {
 		if path != "" {
@@ -340,11 +349,34 @@ func HandleMissingConfig() error {
 		return fmt.Errorf("config file not found")
 	}
 
+	fmt.Println("Do you want to use nerdfont icons for platform printing (requires a nerdfont in your terminal)? (y/n)")
+	fmt.Println("Preview:  ()   ()   ()")
+   fmt.Println("If these look like boxes or ?, answer 'n' below.")
+	response = ""
+	if _, err := fmt.Scanln(&response); err != nil {
+		return fmt.Errorf("error reading response: %w", err)
+	}
+	useNerdFonts := yesResponses[strings.TrimSpace(response)]
+
 	if v == nil {
 		v = viper.New()
 
 		v.SetConfigName(configName)
 		v.SetConfigType(configType)
+	}
+
+	if useNerdFonts {
+		v.Set("icons.platform_icons", map[string]string{
+			"github":    "",
+			"gitlab":    "",
+			"bitbucket": "",
+		})
+	} else {
+		v.Set("icons.platform_icons", map[string]string{
+			"github":    "",
+			"gitlab":    "",
+			"bitbucket": "",
+		})
 	}
 
 	return CreateConfig()
@@ -419,12 +451,19 @@ func CreateConfig() error {
 }
 
 func (c *Config) Save() error {
-	v := viper.New()
+	if v == nil {
+		return fmt.Errorf("no config loaded to save")
+	}
 
-	// Set all configuration values from the struct
 	v.Set("settings.author_file", c.Settings.AuthorFile)
 	v.Set("settings.starting_scope", c.Settings.StartingScope)
 	v.Set("settings.editor", c.Settings.Editor)
+	v.Set("icons.platform_icons", c.PlatformIcons.PlatformIcons)
+
+	// // Set all configuration values from the struct
+	// v.Set("settings.author_file", c.Settings.AuthorFile)
+	// v.Set("settings.starting_scope", c.Settings.StartingScope)
+	// v.Set("settings.editor", c.Settings.Editor)
 
 	v.SetConfigName(configName)
 	v.SetConfigType(configType)
