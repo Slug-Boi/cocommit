@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -8,6 +9,8 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 )
+
+var testToggle bool
 
 type GitHubUserModel struct {
 	inputs       []textinput.Model
@@ -77,7 +80,14 @@ func (m GitHubUserModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, nil
 				}
 				m.submitted = true
-				user := utils.FetchGithubProfile(m.inputs[0].Value())
+				var ctx context.Context
+				if !testToggle {
+					ctx = context.Background()
+				} 
+				user, err  := utils.FetchGithubProfile(ctx, m.inputs[0].Value())
+				if err != nil {
+					panic(err)
+				}
 				if m.inputs[1].Value() != "" {
 					user.Email = m.inputs[1].Value()
 				}

@@ -41,6 +41,7 @@ const author_data = `
 var envVar string
 
 func setup() {
+	testToggle = true
 	// setup test data
 	err := os.WriteFile("author_file_test", []byte(author_data), 0644)
 	if err != nil {

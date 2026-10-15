@@ -32,6 +32,7 @@ var profileAuthorToggle bool
 var profileAuthorEditToggle bool
 var userAuthorEditToggle bool
 
+
 type model_ca struct {
 	focusIndex int
 	inputs     []textinput.Model
@@ -297,7 +298,7 @@ func editProfileAuthorModel(old_m *Model, user utils.User) model_ca {
 }
 
 func EntryGHAuthorModel(user utils.User) {
-	model := createGHAuthorModel(&Model{}, user)
+	model := createGHAuthorModel(nil, user)
 
 	if _, err := tea.NewProgram(model).Run(); err != nil {
 		fmt.Println("Error running program:", err)
