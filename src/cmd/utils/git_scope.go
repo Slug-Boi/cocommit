@@ -35,8 +35,14 @@ func GitCheckAuthors() []User {
 		name := strings.TrimSpace(nameAndEmail[0])
 		email := strings.TrimSpace(strings.TrimSuffix(nameAndEmail[1], ">"))
 
+		runes := []rune(name)
+		short := name
+		if len(runes) > 2 {
+			short = string(runes[:2])
+		}
+
 		authors = append(authors, User{
-			Shortname: name[:2],
+			Shortname: short,
 			Longname:  name,
 			Username: name,
 			Email: email,
