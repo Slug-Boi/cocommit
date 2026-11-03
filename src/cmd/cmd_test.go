@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 	"os"
+	"os/exec"
 	"strings"
 	"testing"
 
@@ -182,6 +183,53 @@ func Test_CommitCmdWithM(t *testing.T) {
 		t.Errorf("Expected to find 'Test commit message' in output but got %s", outStr)
 	}
 
+}
+
+func Test_AuthorNamesToShortNames(t *testing.T) {
+	skipCI(t)
+
+	dir := t.TempDir()
+
+	run := func(name, email string, args ...string) {
+		cmd := exec.Command("git", args...)
+		cmd.Dir = dir
+		cmd.Env = append(os.Environ(),
+			"GIT_AUTHOR_NAME=" + name,
+			"GIT_AUTHOR_EMAIL=" + email,
+			"GIT_COMMITTER_NAME=" + name,
+			"GIT_COMMITTER_EMAIL=" + email,
+		)
+		if out, err := cmd.CombinedOutput(); err != nil {
+			t.Fatalf("git %v: %v\n%s", args, err, out)
+		}
+	}
+
+	run("a", "a@b", "init")
+	run("Jane Doe", "jane@doe.io", "commit", "--allow-empty", "-m", "one")
+	run("Æskild Doe", "e@doe.io", "commit", "--allow-empty", "-m", "two")
+	run("B", "b@b.io", "commit", "--allow-empty", "-m", "three")
+
+	old, _ := os.Getwd()
+	if err := os.Chdir(dir); err != nil {
+		t.Fatal(err)
+	}
+	defer os.Chdir(old)
+
+	authors := utils.GitCheckAuthors()
+	if len(authors) != 3 {
+		t.Fatalf("Expected to find 3 authors, got %d: %+v", len(authors), authors)
+	}
+	expected := map[string]string {
+		"Jane Doe": "Ja",
+		"Æskild Doe": "Æs",
+		"B": "B",
+	}
+
+	for _, author := range authors {
+		if exp, ok := expected[author.Longname]; !ok || author.Shortname != exp {
+			t.Errorf("%q: Shortname = %q, expected %q", author.Longname, author.Shortname, exp)
+		}
+	}
 }
 
 // output doesnt match the expected terminal behavior very confusing...
